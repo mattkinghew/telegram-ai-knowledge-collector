@@ -1,0 +1,557 @@
+{
+    "name": "Integration Telegram Bot, Google Gemini AI",
+    "flow": [
+        {
+            "id": 1,
+            "module": "telegram:WatchUpdates",
+            "version": 1,
+            "parameters": {
+                "__IMTHOOK__": 2987894
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                },
+                "restore": {
+                    "parameters": {
+                        "__IMTHOOK__": {
+                            "data": {
+                                "editable": "false"
+                            },
+                            "label": "My Telegram Bot Updates webhook"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTHOOK__",
+                        "type": "hook:telegramapi",
+                        "label": "Webhook",
+                        "required": true
+                    }
+                ]
+            }
+        },
+        {
+            "id": 2,
+            "module": "gemini-ai:simpleTextPrompt",
+            "version": 1,
+            "parameters": {},
+            "mapper": {
+                "model": "gemini-3-flash-preview",
+                "textPrompt": "你是一位世界級的 AI 產品經理 (AI PM) 導師，同時具備資深數位轉型顧問與技術分析師的雙重身份。\n\n你的服務對象是 Matthew。他是一位正在從 NGO 專案經理轉型為 AI PM 的專業人士，擁有 PMP、Six Sigma、Cybersecurity 及 Google 高階數據分析認證。此外，他經營著調香文化手作副業，並提供數位轉型顧問服務。\n\n請分析我從 Telegram 抓取的原始文本/連結內容，並將其處理為一個「高價值知識筆記」。\n\n請嚴格按以下結構輸出，確保可直接複製到 Notion/Obsidian：\n\n💡 標題與核心 (Title)\n\n[用一句話概括這則新聞對我轉職 AI PM 或副業的最高價值]\n\n📊 3分鐘懶人包 (Executive Summary)\n\n使用 3-5 個 Bullet points 總結新聞重點。\n\n必須包含 5W1H（Who, What, Where, When, Why, How）。\n\n🛠️ 專屬行動建議 (Actionable Insights)\n\nAI PM 角度：這則新聞涉及的 AI 模型邊界、資安風險或產品機會是什麼？\n\n顧問/副業角度：如何將此技術應用於 NGO 轉型或調香業務的行銷？\n\n如果有發現工作機會或課程折扣，請獨立提取出來\n\n📖 技術英語詞彙表 (Technical English Cheat Sheet)\n\n從文中提取 2-3 個關鍵技術術語（例如：RAG, LLM-as-a-Judge, Hallucination）。\n\n提供其解釋，並編寫一個我在面試中可以使用的「英語範例句子」 。\n\n🏷️ 分類標籤 (Tags)\n\n例如：#AI_PM #Cybersecurity #Digital_Transformation #Fragrance_Biz\n\n語氣：專業、鼓勵、精簡。\n\n語言：繁體中文為主，技術術語保留英文並附帶面試用的例句。\n\n避免廢話：直接輸出內容，不要說「好的，這是我為你準備的...」 。"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0
+                },
+                "restore": {
+                    "expect": {
+                        "model": {
+                            "label": "Gemini 3 Flash PreviewBuilt for speed, scale, and frontier intelligence"
+                        }
+                    }
+                },
+                "expect": [
+                    {
+                        "name": "model",
+                        "type": "select",
+                        "label": "Model",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "gemini-3.1-pro-preview",
+                                "gemini-3-flash-preview",
+                                "gemini-2.5-pro",
+                                "gemini-2.5-flash"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "textPrompt",
+                        "type": "text",
+                        "label": "Text prompt",
+                        "required": true
+                    }
+                ]
+            }
+        },
+        {
+            "id": 3,
+            "module": "google-sheets:addRow",
+            "version": 2,
+            "parameters": {
+                "__IMTCONN__": 7211958
+            },
+            "mapper": {
+                "from": "drive",
+                "mode": "select",
+                "values": {
+                    "0": "收錄時間{{1.callback_query.data}}",
+                    "1": "原始內容/連結{{1.message.text}}",
+                    "2": "AI 摘要與標籤{{2.result}}",
+                    "3": "行動項目{{2.result}}",
+                    "4": "處理狀態"
+                },
+                "sheetId": "例子",
+                "spreadsheetId": "/1032NYop7e3lfjhgCJx71naZ64Sj4p36RCFk5hW3bvMI",
+                "includesHeaders": true,
+                "insertDataOption": "INSERT_ROWS",
+                "useColumnHeaders": false,
+                "valueInputOption": "USER_ENTERED",
+                "insertUnformatted": false
+            },
+            "metadata": {
+                "designer": {
+                    "x": 637,
+                    "y": -9
+                },
+                "restore": {
+                    "expect": {
+                        "from": {
+                            "label": "My Drive"
+                        },
+                        "mode": {
+                            "label": "Search by path"
+                        },
+                        "sheetId": {
+                            "label": "例子"
+                        },
+                        "spreadsheetId": {
+                            "path": [
+                                "未命名的試算表"
+                            ]
+                        },
+                        "includesHeaders": {
+                            "label": "Yes"
+                        },
+                        "insertDataOption": {
+                            "mode": "chose",
+                            "label": "Insert rows"
+                        },
+                        "useColumnHeaders": {
+                            "label": "No",
+                            "nested": [
+                                {
+                                    "name": "values",
+                                    "spec": [
+                                        {
+                                            "name": "0",
+                                            "type": "text",
+                                            "label": "A"
+                                        },
+                                        {
+                                            "name": "1",
+                                            "type": "text",
+                                            "label": "B"
+                                        },
+                                        {
+                                            "name": "2",
+                                            "type": "text",
+                                            "label": "C"
+                                        },
+                                        {
+                                            "name": "3",
+                                            "type": "text",
+                                            "label": "D"
+                                        },
+                                        {
+                                            "name": "4",
+                                            "type": "text",
+                                            "label": "E"
+                                        },
+                                        {
+                                            "name": "5",
+                                            "type": "text",
+                                            "label": "F"
+                                        },
+                                        {
+                                            "name": "6",
+                                            "type": "text",
+                                            "label": "G"
+                                        },
+                                        {
+                                            "name": "7",
+                                            "type": "text",
+                                            "label": "H"
+                                        },
+                                        {
+                                            "name": "8",
+                                            "type": "text",
+                                            "label": "I"
+                                        },
+                                        {
+                                            "name": "9",
+                                            "type": "text",
+                                            "label": "J"
+                                        },
+                                        {
+                                            "name": "10",
+                                            "type": "text",
+                                            "label": "K"
+                                        },
+                                        {
+                                            "name": "11",
+                                            "type": "text",
+                                            "label": "L"
+                                        },
+                                        {
+                                            "name": "12",
+                                            "type": "text",
+                                            "label": "M"
+                                        },
+                                        {
+                                            "name": "13",
+                                            "type": "text",
+                                            "label": "N"
+                                        },
+                                        {
+                                            "name": "14",
+                                            "type": "text",
+                                            "label": "O"
+                                        },
+                                        {
+                                            "name": "15",
+                                            "type": "text",
+                                            "label": "P"
+                                        },
+                                        {
+                                            "name": "16",
+                                            "type": "text",
+                                            "label": "Q"
+                                        },
+                                        {
+                                            "name": "17",
+                                            "type": "text",
+                                            "label": "R"
+                                        },
+                                        {
+                                            "name": "18",
+                                            "type": "text",
+                                            "label": "S"
+                                        },
+                                        {
+                                            "name": "19",
+                                            "type": "text",
+                                            "label": "T"
+                                        },
+                                        {
+                                            "name": "20",
+                                            "type": "text",
+                                            "label": "U"
+                                        },
+                                        {
+                                            "name": "21",
+                                            "type": "text",
+                                            "label": "V"
+                                        },
+                                        {
+                                            "name": "22",
+                                            "type": "text",
+                                            "label": "W"
+                                        },
+                                        {
+                                            "name": "23",
+                                            "type": "text",
+                                            "label": "X"
+                                        },
+                                        {
+                                            "name": "24",
+                                            "type": "text",
+                                            "label": "Y"
+                                        },
+                                        {
+                                            "name": "25",
+                                            "type": "text",
+                                            "label": "Z"
+                                        }
+                                    ],
+                                    "type": "collection",
+                                    "label": "Values in columns"
+                                }
+                            ]
+                        },
+                        "valueInputOption": {
+                            "mode": "chose",
+                            "label": "User entered"
+                        },
+                        "insertUnformatted": {
+                            "mode": "chose"
+                        }
+                    },
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "google"
+                            },
+                            "label": "My Google connection (lamms1234@gmail.com)"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:google",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "mode",
+                        "type": "select",
+                        "label": "Search Method",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "select",
+                                "fromAll",
+                                "map"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "insertUnformatted",
+                        "type": "boolean",
+                        "label": "Unformatted",
+                        "required": true
+                    },
+                    {
+                        "name": "valueInputOption",
+                        "type": "select",
+                        "label": "Value input option",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "USER_ENTERED",
+                                "RAW"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "insertDataOption",
+                        "type": "select",
+                        "label": "Insert data option",
+                        "validate": {
+                            "enum": [
+                                "INSERT_ROWS",
+                                "OVERWRITE"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "from",
+                        "type": "select",
+                        "label": "Drive",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "drive",
+                                "share",
+                                "team"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "spreadsheetId",
+                        "type": "file",
+                        "label": "Spreadsheet Name",
+                        "required": true
+                    },
+                    {
+                        "name": "sheetId",
+                        "type": "select",
+                        "label": "Sheet Name",
+                        "required": true
+                    },
+                    {
+                        "name": "includesHeaders",
+                        "type": "select",
+                        "label": "Table contains headers",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                true,
+                                false
+                            ]
+                        }
+                    },
+                    {
+                        "name": "useColumnHeaders",
+                        "type": "select",
+                        "label": "Use column headers as IDs of the columns",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                true,
+                                false
+                            ]
+                        }
+                    },
+                    {
+                        "name": "values",
+                        "spec": [
+                            {
+                                "name": "0",
+                                "type": "text",
+                                "label": "A"
+                            },
+                            {
+                                "name": "1",
+                                "type": "text",
+                                "label": "B"
+                            },
+                            {
+                                "name": "2",
+                                "type": "text",
+                                "label": "C"
+                            },
+                            {
+                                "name": "3",
+                                "type": "text",
+                                "label": "D"
+                            },
+                            {
+                                "name": "4",
+                                "type": "text",
+                                "label": "E"
+                            },
+                            {
+                                "name": "5",
+                                "type": "text",
+                                "label": "F"
+                            },
+                            {
+                                "name": "6",
+                                "type": "text",
+                                "label": "G"
+                            },
+                            {
+                                "name": "7",
+                                "type": "text",
+                                "label": "H"
+                            },
+                            {
+                                "name": "8",
+                                "type": "text",
+                                "label": "I"
+                            },
+                            {
+                                "name": "9",
+                                "type": "text",
+                                "label": "J"
+                            },
+                            {
+                                "name": "10",
+                                "type": "text",
+                                "label": "K"
+                            },
+                            {
+                                "name": "11",
+                                "type": "text",
+                                "label": "L"
+                            },
+                            {
+                                "name": "12",
+                                "type": "text",
+                                "label": "M"
+                            },
+                            {
+                                "name": "13",
+                                "type": "text",
+                                "label": "N"
+                            },
+                            {
+                                "name": "14",
+                                "type": "text",
+                                "label": "O"
+                            },
+                            {
+                                "name": "15",
+                                "type": "text",
+                                "label": "P"
+                            },
+                            {
+                                "name": "16",
+                                "type": "text",
+                                "label": "Q"
+                            },
+                            {
+                                "name": "17",
+                                "type": "text",
+                                "label": "R"
+                            },
+                            {
+                                "name": "18",
+                                "type": "text",
+                                "label": "S"
+                            },
+                            {
+                                "name": "19",
+                                "type": "text",
+                                "label": "T"
+                            },
+                            {
+                                "name": "20",
+                                "type": "text",
+                                "label": "U"
+                            },
+                            {
+                                "name": "21",
+                                "type": "text",
+                                "label": "V"
+                            },
+                            {
+                                "name": "22",
+                                "type": "text",
+                                "label": "W"
+                            },
+                            {
+                                "name": "23",
+                                "type": "text",
+                                "label": "X"
+                            },
+                            {
+                                "name": "24",
+                                "type": "text",
+                                "label": "Y"
+                            },
+                            {
+                                "name": "25",
+                                "type": "text",
+                                "label": "Z"
+                            }
+                        ],
+                        "type": "collection",
+                        "label": "Values in columns"
+                    }
+                ]
+            }
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu1.make.com",
+        "notes": []
+    }
+}
