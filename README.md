@@ -33,7 +33,6 @@ This project utilizes a No-Code architecture for rapid development and deploymen
 5. Turn the Scenario to `ON`, and your automated knowledge assistant is ready to use!
 
 ## 👤 About Me
-**Mingshen Lin**
+**Matthew Lam**
 *AI Product Manager | Digital Transformation Consultant*
 * Focusing on NGO digital transformation, workflow automation, and the practical implementation of AI applications.
-* [LinkedIn Profile](Please insert your LinkedIn URL here)
