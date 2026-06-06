@@ -20,7 +20,7 @@
                             "data": {
                                 "editable": "false"
                             },
-                            "label": "My Telegram Bot Updates webhook"
+                            "label": "[TELEGRAM_WEBHOOK]"
                         }
                     }
                 },
@@ -288,7 +288,7 @@
                                 "scoped": "true",
                                 "connection": "google"
                             },
-                            "label": "My Google connection (lamms1234@gmail.com)"
+                            "label": "[GOOGLE_CONNECTION]"
                         }
                     }
                 },
@@ -357,7 +357,7 @@
                         }
                     },
                     {
-                        "name": "spreadsheetId",
+                        "name": "[SPREADSHEET_ID]",
                         "type": "file",
                         "label": "Spreadsheet Name",
                         "required": true
