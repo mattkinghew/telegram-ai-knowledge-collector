@@ -26,8 +26,9 @@ from business_knowledge_capture.due_selection import (
 
 class DueReportHandoffTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.temp = tempfile.TemporaryDirectory(dir="/private/tmp")
-        self.vault = Path(self.temp.name) / "vault"
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name).resolve()
+        self.vault = self.root / "vault"
         (self.vault / "00_Inbox").mkdir(parents=True)
         (self.vault / "10_Work" / "11_Projects").mkdir(parents=True)
         (self.vault / "90_System").mkdir()
@@ -194,7 +195,7 @@ class DueReportHandoffTests(unittest.TestCase):
             self.selected("deadline::2026-08-15::00_Inbox/nested/note.md")
 
     def test_13_vault_external_note_is_rejected(self) -> None:
-        outside = Path(self.temp.name) / "outside.md"
+        outside = self.root / "outside.md"
         outside.write_text("# Outside", encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "Vault-relative"):
             self.selected(f"deadline::2026-08-15::{outside}")
@@ -204,14 +205,14 @@ class DueReportHandoffTests(unittest.TestCase):
             self.selected("deadline::2026-08-15::Private/note.md")
 
     def test_15_symlink_note_is_rejected(self) -> None:
-        target = Path(self.temp.name) / "outside.md"
+        target = self.root / "outside.md"
         target.write_text("# Outside", encoding="utf-8")
         (self.vault / "00_Inbox" / "link.md").symlink_to(target)
         with self.assertRaisesRegex(ValueError, "symbolic link"):
             self.selected(self.key(name="link.md"))
 
     def test_16_symlink_ancestor_is_rejected(self) -> None:
-        alias = Path(self.temp.name) / "vault-alias"
+        alias = self.root / "vault-alias"
         alias.symlink_to(self.vault, target_is_directory=True)
         with self.assertRaisesRegex(ValueError, "symbolic link"):
             validate_due_selections(

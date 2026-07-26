@@ -25,8 +25,9 @@ from business_knowledge_capture.search import (
 
 class MetadataSearchTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.temp = tempfile.TemporaryDirectory(dir="/private/tmp")
-        self.vault = Path(self.temp.name) / "vault"
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name).resolve()
+        self.vault = self.root / "vault"
         (self.vault / "00_Inbox").mkdir(parents=True)
         (self.vault / "10_Work" / "11_Projects").mkdir(parents=True)
         (self.vault / "90_System").mkdir()
@@ -82,7 +83,7 @@ class MetadataSearchTests(unittest.TestCase):
         self.assertEqual(self.result().total_matches, 0)
 
     def test_03_symlink_note_is_skipped(self) -> None:
-        target = Path(self.temp.name) / "outside.md"
+        target = self.root / "outside.md"
         target.write_text("# Outside\n\n## Metadata\n", encoding="utf-8")
         (self.vault / "00_Inbox" / "link.md").symlink_to(target)
         result = self.result()
@@ -90,13 +91,13 @@ class MetadataSearchTests(unittest.TestCase):
         self.assertTrue(result.diagnostics)
 
     def test_04_symlink_ancestor_is_blocked(self) -> None:
-        alias = Path(self.temp.name) / "vault-alias"
+        alias = self.root / "vault-alias"
         alias.symlink_to(self.vault)
         with self.assertRaises(UnsafePathError):
             search_inbox(vault=alias, query=InboxSearchQuery())
 
     def test_05_vault_external_note_is_not_searched(self) -> None:
-        (Path(self.temp.name) / "external.md").write_text("# External", encoding="utf-8")
+        (self.root / "external.md").write_text("# External", encoding="utf-8")
         self.assertEqual(self.result().total_matches, 0)
 
     def test_06_candidate_limit_stops_without_partial_results(self) -> None:

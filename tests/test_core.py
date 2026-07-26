@@ -28,8 +28,9 @@ from business_knowledge_capture.core import (
 
 class CoreTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.temp = tempfile.TemporaryDirectory(dir="/private/tmp")
-        self.vault = Path(self.temp.name) / "Example_Business_Vault"
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name).resolve()
+        self.vault = self.root / "Example_Business_Vault"
         (self.vault / "00_Inbox").mkdir(parents=True)
         (self.vault / "10_Work" / "11_Projects").mkdir(parents=True)
         (self.vault / "90_System").mkdir()
@@ -65,14 +66,14 @@ class CoreTests(unittest.TestCase):
 
     def test_media_is_awaiting_transcription(self) -> None:
         initialize_vault(self.vault)
-        media = Path(self.temp.name) / "meeting.mp3"
+        media = self.root / "meeting.mp3"
         media.write_bytes(b"ID3")
         source = extract_source(vault=self.vault, patterns=load_protected_patterns(self.vault), file_path=str(media))
         self.assertEqual(source.processing_status, "awaiting_transcription")
 
     def test_docx_text_extraction_without_external_dependency(self) -> None:
         initialize_vault(self.vault)
-        docx = Path(self.temp.name) / "sample.docx"
+        docx = self.root / "sample.docx"
         document_xml = b'''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
 <w:body><w:p><w:r><w:t>AWS exam learning note</w:t></w:r></w:p></w:body>
@@ -132,12 +133,12 @@ class CoreTests(unittest.TestCase):
             ".mp4": "awaiting_transcription",
         }
         for extension, status in expected.items():
-            path = Path(self.temp.name) / f"sample{extension}"
+            path = self.root / f"sample{extension}"
             path.write_bytes(b"sample")
             source = extract_source(vault=self.vault, patterns=load_protected_patterns(self.vault), file_path=str(path))
             self.assertEqual(source.processing_status, status, extension)
 
-        pdf = Path(self.temp.name) / "sample.pdf"
+        pdf = self.root / "sample.pdf"
         pdf.write_bytes(b"%PDF-1.4\n%%EOF")
         source = extract_source(vault=self.vault, patterns=load_protected_patterns(self.vault), file_path=str(pdf))
         self.assertIn(source.processing_status, {"awaiting_text_extraction", "extraction_failed", "text_ready"})
@@ -156,7 +157,7 @@ class CoreTests(unittest.TestCase):
 
     def test_missing_file_is_preserved_as_error_record(self) -> None:
         initialize_vault(self.vault)
-        missing = Path(self.temp.name) / "missing.pdf"
+        missing = self.root / "missing.pdf"
         source = extract_source(vault=self.vault, patterns=load_protected_patterns(self.vault), file_path=str(missing))
         note = create_inbox_note(vault=self.vault, source=source, title="Missing source")
         body = note.read_text(encoding="utf-8")
@@ -232,9 +233,9 @@ class CoreTests(unittest.TestCase):
 
     def test_capture_blocks_symlink_file_without_reading_target(self) -> None:
         initialize_vault(self.vault)
-        target = Path(self.temp.name) / "target.txt"
+        target = self.root / "target.txt"
         target.write_text("must not be read", encoding="utf-8")
-        link = Path(self.temp.name) / "source.txt"
+        link = self.root / "source.txt"
         link.symlink_to(target)
         patterns = load_protected_patterns(self.vault)
         with mock.patch("pathlib.Path.read_text", side_effect=AssertionError("target read")):
@@ -256,10 +257,10 @@ class CoreTests(unittest.TestCase):
 
     def test_symlink_ancestor_is_blocked(self) -> None:
         initialize_vault(self.vault)
-        target = Path(self.temp.name) / "external"
+        target = self.root / "external"
         target.mkdir()
         (target / "note.txt").write_text("target", encoding="utf-8")
-        link_dir = Path(self.temp.name) / "linked"
+        link_dir = self.root / "linked"
         link_dir.symlink_to(target, target_is_directory=True)
         with self.assertRaises(UnsafePathError):
             extract_source(
@@ -270,14 +271,14 @@ class CoreTests(unittest.TestCase):
 
     def test_review_rejects_external_markdown(self) -> None:
         initialize_vault(self.vault)
-        external = Path(self.temp.name) / "external.md"
+        external = self.root / "external.md"
         external.write_text("# External\n", encoding="utf-8")
         with self.assertRaises(UnsafePathError):
             review_note(vault=self.vault, note_path=external)
 
     def test_report_rejects_external_markdown(self) -> None:
         initialize_vault(self.vault)
-        external = Path(self.temp.name) / "external.md"
+        external = self.root / "external.md"
         external.write_text("# External\n", encoding="utf-8")
         with self.assertRaises(UnsafePathError):
             generate_progress_report(

@@ -34,8 +34,8 @@ from business_knowledge_capture.search import InboxSearchQuery, search_inbox
 
 class MobileHandoffTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.temp = tempfile.TemporaryDirectory(dir="/private/tmp")
-        self.root = Path(self.temp.name)
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name).resolve()
         self.vault = self.root / "vault"
         (self.vault / "00_Inbox").mkdir(parents=True)
         (self.vault / "10_Work" / "11_Projects").mkdir(parents=True)
@@ -622,8 +622,9 @@ class MobileHandoffTests(unittest.TestCase):
 
     def test_82_main_and_handoff_help_parse(self) -> None:
         parser = build_parser()
+        handoff_path = Path(tempfile.gettempdir()) / "example.json"
         args = parser.parse_args(
-            ["handoff", "validate", "--file", "/private/tmp/example.json"]
+            ["handoff", "validate", "--file", str(handoff_path)]
         )
         self.assertEqual((args.command, args.handoff_command), ("handoff", "validate"))
 

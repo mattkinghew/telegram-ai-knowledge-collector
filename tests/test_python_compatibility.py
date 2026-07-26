@@ -21,19 +21,23 @@ from business_knowledge_capture.core import (
 class PythonCompatibilityTests(unittest.TestCase):
     def test_cli_parser_loads(self) -> None:
         parser = build_parser()
-        args = parser.parse_args(["validate", "--vault", "/private/tmp/example-vault"])
+        vault_path = Path(tempfile.gettempdir()).resolve() / "example-vault"
+        args = parser.parse_args(["validate", "--vault", str(vault_path)])
         self.assertEqual(args.command, "validate")
 
     def test_cli_reports_path_errors_without_traceback(self) -> None:
+        temp_root = Path(tempfile.gettempdir()).resolve()
+        vault_path = temp_root / "example-vault"
+        external_path = temp_root / "external.md"
         error_output = StringIO()
         with redirect_stderr(error_output):
             result = main(
                 [
                     "review",
                     "--vault",
-                    "/private/tmp/example-vault",
+                    str(vault_path),
                     "--note",
-                    "/private/tmp/external.md",
+                    str(external_path),
                 ]
             )
         self.assertEqual(result, 2)
@@ -41,8 +45,8 @@ class PythonCompatibilityTests(unittest.TestCase):
         self.assertNotIn("Traceback", error_output.getvalue())
 
     def test_progress_report_flow_executes(self) -> None:
-        with tempfile.TemporaryDirectory(dir="/private/tmp") as directory:
-            vault = Path(directory) / "vault"
+        with tempfile.TemporaryDirectory() as directory:
+            vault = Path(directory).resolve() / "vault"
             (vault / "00_Inbox").mkdir(parents=True)
             (vault / "10_Work" / "11_Projects").mkdir(parents=True)
             (vault / "90_System").mkdir()

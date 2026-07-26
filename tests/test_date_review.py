@@ -32,8 +32,9 @@ from business_knowledge_capture.search import InboxSearchQuery, search_inbox
 
 class DateReviewTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.temp = tempfile.TemporaryDirectory(dir="/private/tmp")
-        self.vault = Path(self.temp.name) / "vault"
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name).resolve()
+        self.vault = self.root / "vault"
         (self.vault / "00_Inbox").mkdir(parents=True)
         (self.vault / "10_Work" / "11_Projects").mkdir(parents=True)
         (self.vault / "90_System").mkdir()
@@ -370,7 +371,7 @@ class DateReviewTests(unittest.TestCase):
         diagnostics = format_date_diagnostics(result)
         self.assertEqual(len(diagnostics), 21)
         self.assertIn("suppressed: 1", diagnostics[-1])
-        other = Path(self.temp.name) / "relationship-vault"
+        other = self.root / "relationship-vault"
         (other / "00_Inbox").mkdir(parents=True)
         (other / "10_Work" / "11_Projects").mkdir(parents=True)
         (other / "90_System").mkdir()

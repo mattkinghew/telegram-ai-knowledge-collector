@@ -28,8 +28,9 @@ from business_knowledge_capture.core import (
 
 class DuplicateDetectionTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.temp = tempfile.TemporaryDirectory(dir="/private/tmp")
-        self.vault = Path(self.temp.name) / "vault"
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name).resolve()
+        self.vault = self.root / "vault"
         (self.vault / "00_Inbox").mkdir(parents=True)
         (self.vault / "10_Work" / "11_Projects").mkdir(parents=True)
         (self.vault / "90_System").mkdir()
@@ -76,7 +77,7 @@ class DuplicateDetectionTests(unittest.TestCase):
 
     def test_symlink_candidate_is_skipped_without_following(self) -> None:
         source = self.source_text("symlink scope")
-        target = Path(self.temp.name) / "outside.md"
+        target = self.root / "outside.md"
         target.write_text(f"## Metadata\n\n- Content Hash: {source.content_hash}\n", encoding="utf-8")
         (self.vault / "00_Inbox" / "link.md").symlink_to(target)
         result = find_exact_duplicates(vault=self.vault, source=source)
@@ -89,7 +90,7 @@ class DuplicateDetectionTests(unittest.TestCase):
 
     def test_vault_external_markdown_is_not_read(self) -> None:
         source = self.source_text("external scope")
-        external = Path(self.temp.name) / "external.md"
+        external = self.root / "external.md"
         external.write_text(f"## Metadata\n\n- Content Hash: {source.content_hash}\n", encoding="utf-8")
         with mock.patch(
             "business_knowledge_capture.core._read_inbox_metadata",
@@ -122,8 +123,8 @@ class DuplicateDetectionTests(unittest.TestCase):
         self.assertEqual(result, DuplicateResult("unique", "none"))
 
     def test_same_file_bytes_are_content_hash_duplicate(self) -> None:
-        first = Path(self.temp.name) / "first.txt"
-        second = Path(self.temp.name) / "second.txt"
+        first = self.root / "first.txt"
+        second = self.root / "second.txt"
         first.write_bytes(b"identical bytes")
         second.write_bytes(b"identical bytes")
         create_inbox_note(
@@ -137,7 +138,7 @@ class DuplicateDetectionTests(unittest.TestCase):
         self.assertEqual(result.match_type, "content_hash")
 
     def test_missing_file_duplicate_check_is_unavailable(self) -> None:
-        missing = Path(self.temp.name) / "missing.pdf"
+        missing = self.root / "missing.pdf"
         source = extract_source(vault=self.vault, patterns=self.patterns, file_path=str(missing))
         self.assertEqual(find_exact_duplicates(vault=self.vault, source=source).status, "check_unavailable")
 
