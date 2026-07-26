@@ -9,6 +9,7 @@ import os
 import re
 import socket
 import stat
+import tempfile
 import urllib.request
 import zipfile
 from dataclasses import dataclass
@@ -1095,7 +1096,72 @@ def _evidence_lines(notes: Iterable[dict[str, object]]) -> list[str]:
     return lines
 
 
-def generate_progress_report(*, vault: Path, completed_paths: Iterable[Path], in_progress_paths: Iterable[Path], period_label: str, report_type: str, project_root: str = "", blockers: Iterable[str] = (), commitments: Iterable[str] = ()) -> Path:
+def _date_review_markdown(events: Iterable[object]) -> str:
+    labels = {
+        "reminder": "Reminder",
+        "deadline": "Deadline",
+        "resource_expiry": "Resource Expiry",
+    }
+    sections: list[str] = []
+    for event in events:
+        event_type = str(getattr(event, "event_type"))
+        event_date = getattr(event, "event_date")
+        days_until = int(getattr(event, "days_until"))
+        lines = [
+            (
+                f"### {event_date.isoformat()} — {labels[event_type]} — "
+                f"{getattr(event, 'title')}"
+            ),
+            "",
+            f"- Status: {getattr(event, 'status')}",
+            (
+                f"- Days Overdue: {abs(days_until)}"
+                if days_until < 0
+                else f"- Days Until: {days_until}"
+            ),
+        ]
+        optional = (
+            ("Action Required", getattr(event, "action_required")),
+            (
+                "Reminder Note",
+                getattr(event, "reminder_note")
+                if event_type == "reminder"
+                else "",
+            ),
+            ("Related Project", getattr(event, "related_project")),
+            ("Related Area", getattr(event, "related_area")),
+        )
+        lines.extend(f"- {label}: {value}" for label, value in optional if value)
+        lines.append(f"- Source Note: `{getattr(event, 'relative_path')}`")
+        sections.append("\n".join(lines))
+    return "\n\n".join(sections)
+
+
+def _atomic_write_text(path: Path, text: str) -> None:
+    temporary_name = ""
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=str(path.parent),
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            temporary_name = handle.name
+            handle.write(text)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary_name, path)
+    finally:
+        if temporary_name:
+            try:
+                Path(temporary_name).unlink()
+            except FileNotFoundError:
+                pass
+
+
+def generate_progress_report(*, vault: Path, completed_paths: Iterable[Path], in_progress_paths: Iterable[Path], period_label: str, report_type: str, project_root: str = "", blockers: Iterable[str] = (), commitments: Iterable[str] = (), due_events: Iterable[object] = ()) -> Path:
     if report_type not in {"daily", "weekly"}:
         raise ValueError("report_type must be daily or weekly")
     patterns = load_protected_patterns(vault)
@@ -1118,6 +1184,12 @@ def generate_progress_report(*, vault: Path, completed_paths: Iterable[Path], in
         if action_text:
             action_lines.append(f"- {action_text}")
 
+    date_events = tuple(due_events)
+    in_progress_block = block(_note_line(note) for note in in_progress)
+    if date_events:
+        in_progress_block += (
+            f"\n\n## Date Review\n\n{_date_review_markdown(date_events)}"
+        )
     report = f"""# Progress Update
 
 ## Period
@@ -1130,7 +1202,7 @@ def generate_progress_report(*, vault: Path, completed_paths: Iterable[Path], in
 
 ## In Progress
 
-{block(_note_line(note) for note in in_progress)}
+{in_progress_block}
 
 ## Evidence
 
@@ -1157,7 +1229,7 @@ def generate_progress_report(*, vault: Path, completed_paths: Iterable[Path], in
         output = reports_dir / f"{stem}-{counter}.md"
         counter += 1
     guard_local_path(output, vault, patterns)
-    output.write_text(report, encoding="utf-8")
+    _atomic_write_text(output, report)
     return output
 
 

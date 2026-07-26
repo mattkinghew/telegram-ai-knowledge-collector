@@ -38,6 +38,8 @@ The local MVP runs without an API key and never invents an AI summary when no ap
 - Validate deadline, resource-expiry, and reminder dates as `YYYY-MM-DD`.
 - Review date events with a bounded, read-only `bkc due` command.
 - Calculate overdue, due-today, due-soon, and upcoming status at query time.
+- Copy stable due-event selection keys into an explicit progress-report handoff.
+- Reject stale or unsafe selections before atomically creating a report.
 
 ## Safety Boundary
 
@@ -133,6 +135,12 @@ The default result includes overdue, due-today, and due-soon events. Add
 `--include-upcoming` to include later events. Status is calculated dynamically;
 it is never saved into a note. Text and JSON return Vault-relative paths only.
 
+Each event also exposes a readable key such as:
+
+```text
+deadline::2026-08-15::00_Inbox/example.md
+```
+
 This is a foreground, read-only review command. It does not send notifications,
 write Calendar events, modify notes, move files, or create an index.
 
@@ -148,6 +156,24 @@ bkc report \
   --blocker "Awaiting access approval" \
   --commitment "Complete stakeholder map"
 ```
+
+Date events enter a report only through repeated explicit `--due-selection`
+arguments. The command revalidates current selected-note Metadata before
+writing:
+
+```bash
+bkc report \
+  --vault "/absolute/path/to/Matt_Space" \
+  --type daily \
+  --period "2026-08-01" \
+  --as-of "2026-08-01" \
+  --window-days 14 \
+  --due-selection "deadline::2026-08-15::00_Inbox/example.md"
+```
+
+No selection means no `Date Review` section. Any invalid or stale selection
+stops the full report. Duplicate keys appear once with a stderr warning; at
+most 50 keys may be supplied.
 
 ## Metadata-only Inbox Search
 
@@ -190,8 +216,10 @@ CI runs compile, unit tests, and the CLI help smoke test on Python 3.9 through 3
 - `docs/P1B_ACCEPTANCE_REPORT.md`
 - `docs/P1C_DATE_REVIEW.md`
 - `docs/P1C_ACCEPTANCE_REPORT.md`
+- `docs/P1D_DUE_REPORT_HANDOFF.md`
+- `docs/P1D_ACCEPTANCE_REPORT.md`
 - `samples/sample_capture_commands.md`
 
 ## Not Included
 
-iPhone Shortcut, voice transcription, OCR, full-text or semantic search, fuzzy duplicate detection, deadline notifications, search UI, persistent index, automatic classification moves, chatbot, RAG, vector database, external AI activation, deployment, and publication.
+iPhone Shortcut, voice transcription, OCR, full-text or semantic search, fuzzy duplicate detection, deadline notifications, Calendar integration, scheduled/background reports, search UI, persistent index, automatic classification moves, chatbot, RAG, vector database, external AI activation, deployment, and publication.

@@ -9,7 +9,7 @@ Build a daily-use Business Knowledge Capture & Reporting MVP for the existing Ob
 Two complementary flows exist:
 
 1. Existing no-code flow: Telegram → Make.com → optional Gemini processing → Google Sheets.
-2. New local flow: CLI input → exact duplicate suggestion from flat Inbox metadata → flat `00_Inbox` Markdown note → metadata-only Inbox search and date review → manual review → selected-note progress report.
+2. New local flow: CLI input → exact duplicate suggestion from flat Inbox metadata → flat `00_Inbox` Markdown note → metadata-only Inbox search and date review → manual review → explicitly selected events and notes → progress report.
 
 The local CLI is the P0 core and does not require an API key.
 
@@ -89,6 +89,19 @@ P1C acceptance completed on 2026-07-26 using Python 3.9.6. All 124 retained
 tests and 23 P1C tests passed, together with isolated and scoped real-Vault
 acceptance. See `docs/P1C_ACCEPTANCE_REPORT.md`.
 
+## Implemented P1D
+
+- Stable readable selection keys on all three due-event types.
+- Repeatable, explicit `bkc report --due-selection`.
+- Direct-Inbox, protected-path, regular-file, and symlink validation before
+  selected Metadata is read.
+- Stale protection for changed, cleared, malformed, or missing events.
+- Stable duplicate-key removal, a 50-selection limit, deterministic event
+  sorting, and dynamic status recalculation.
+- Optional Date Review section with Vault-relative source traceability.
+- Full validation before one atomic report write; selected notes stay unchanged.
+- No automatic Inbox or project event inclusion.
+
 ## Not Implemented
 
 - iPhone Shortcut and voice-input workflow.
@@ -103,6 +116,6 @@ acceptance. See `docs/P1C_ACCEPTANCE_REPORT.md`.
 
 ## Next Recommended Task
 
-Define one bounded P1D task for user-selected due-event handoff into an existing
-progress-report command, without automatic Inbox scanning, background work,
-notifications, Calendar writes, or a database.
+Define one bounded P1E task only after P1D acceptance. Preserve explicit
+selection, metadata-only reads, and no background work, notifications, Calendar
+writes, database, or automatic note movement.

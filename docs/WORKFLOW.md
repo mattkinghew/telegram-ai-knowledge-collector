@@ -139,6 +139,12 @@ default sort is date ascending, with reminder before deadline before resource
 expiry, then Vault-relative path. The command reads only bounded H1 and Metadata
 from direct Inbox notes and writes nothing.
 
+Every text and JSON event includes:
+
+```text
+<event_type>::<YYYY-MM-DD>::<00_Inbox/direct-note.md>
+```
+
 ## Progress Report Draft
 
 ```bash
@@ -155,7 +161,28 @@ bkc report \
 The report is written to `14_New_Role_90_Day/03_Progress_Reports/` under the detected existing project root.
 
 Date review does not automatically populate reports. Run `bkc due`, identify
-relevant notes, then explicitly pass selected notes to `bkc report`.
+relevant events, then explicitly repeat `--due-selection`:
+
+```bash
+bkc report \
+  --vault "/absolute/path/to/Matt_Space" \
+  --type daily \
+  --period "2026-08-01" \
+  --as-of "2026-08-01" \
+  --window-days 14 \
+  --due-selection "reminder::2026-08-08::00_Inbox/example.md" \
+  --due-selection "deadline::2026-08-15::00_Inbox/example.md"
+```
+
+The handoff validates all keys and current event dates before rendering. Any
+invalid or stale selection stops the complete operation. Identical keys are
+deduplicated with a warning, different events from one note stay distinct, and
+the maximum is 50 supplied keys.
+
+Selected events are recalculated against `--as-of` and `--window-days`, sorted
+by date, event type, title, and relative path, then rendered between In Progress
+and Evidence. Explicit upcoming events remain included. Without selections, the
+existing report contains no Date Review section.
 
 ## Validation
 

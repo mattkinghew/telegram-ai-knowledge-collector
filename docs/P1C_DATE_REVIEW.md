@@ -41,6 +41,10 @@ path. Text displays overdue values as Days Overdue. JSON uses a strict allowlist
 Neither output includes absolute paths, source URLs, local files, external file
 links, content hashes, Source Notes, or body content. Diagnostics use stderr.
 
+Each event also includes a stable key built from its type, current date, and
+Vault-relative direct Inbox path. P1D accepts only keys the user explicitly
+passes to `bkc report`; `bkc due` remains read-only.
+
 ## Manual review and search
 
 Capture validates dates before creating a note. Review validates all requested
@@ -56,5 +60,6 @@ presence filters. Reminder Note is allowlisted for metadata query.
 - No background notification, email, mobile alert, or scheduler.
 - No Calendar integration or Calendar write.
 - No natural-language date parsing or timezone guessing.
-- No automatic report inclusion, note movement, archive, or deletion.
+- No automatic report inclusion, note movement, archive, or deletion. P1D
+  validates only explicitly selected events.
 - No database, persistent index, semantic search, embedding, RAG, or external AI.

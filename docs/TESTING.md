@@ -8,6 +8,7 @@ PYTHONPATH=src "$PYTHON_BIN" -m unittest discover -s tests -v
 PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli --help
 PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli due --help
 PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli search --help
+PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli report --help
 ```
 
 The minimum supported runtime is Python 3.9. GitHub Actions repeats compile, unit tests, and CLI help on Python 3.9, 3.10, 3.11, and 3.12. No API key is needed.
@@ -67,3 +68,15 @@ The 2026-07-26 P1C acceptance ran 147 tests on Python 3.9.6: 124 retained
 P0/P1A/P1B tests and 23 P1C tests. Isolated and scoped real-Vault date-review
 flows both passed. GitHub-hosted execution remains pending because no push or
 pull request is permitted.
+
+P1D adds focused coverage for:
+
+- stable deadline, resource-expiry, and reminder keys in text and strict JSON;
+- selection syntax, direct-Inbox scope, traversal, protected-path, regular-file,
+  symlink, missing-note, and absolute-path controls;
+- current-date equality, stale/cleared events, full validation before write,
+  duplicate handling, and the 50-selection limit;
+- dynamic status and deterministic date/type/title/path sorting;
+- metadata-only selected-note reads, relative source traceability, unchanged
+  selected notes, and no automatic event inclusion;
+- daily/weekly compatibility, atomic report creation, Python 3.9, and CLI help.

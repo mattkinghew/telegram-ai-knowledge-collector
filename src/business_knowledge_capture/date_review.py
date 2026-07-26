@@ -53,6 +53,13 @@ class DateReviewEvent:
     source_type: str
     relative_path: str
 
+    @property
+    def selection_key(self) -> str:
+        return (
+            f"{self.event_type}::{self.event_date.isoformat()}::"
+            f"{self.relative_path}"
+        )
+
 
 @dataclass(frozen=True)
 class DateReviewQuery:
@@ -260,6 +267,7 @@ def format_due_text(result: DateReviewResult) -> str:
                 f"   Area: {event.related_area}",
                 f"   Source: {event.source_type}",
                 f"   Path: {event.relative_path}",
+                f"   Selection Key: {event.selection_key}",
             )
         )
     return "\n".join(lines)
@@ -281,6 +289,7 @@ def format_due_json(result: DateReviewResult) -> str:
             "related_area": event.related_area,
             "source_type": event.source_type,
             "relative_path": event.relative_path,
+            "selection_key": event.selection_key,
         }
         for event in result.events
     ]

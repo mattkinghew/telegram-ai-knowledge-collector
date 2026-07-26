@@ -33,6 +33,7 @@ from .date_review import (
     format_due_text,
     review_due_dates,
 )
+from .due_selection import validate_due_selections
 from .search import (
     DUPLICATE_STATUSES,
     SEARCH_SORTS,
@@ -103,6 +104,9 @@ def build_parser() -> argparse.ArgumentParser:
     report.add_argument("--blocker", action="append", default=[])
     report.add_argument("--commitment", action="append", default=[])
     report.add_argument("--project-root", default="")
+    report.add_argument("--due-selection", action="append", default=[])
+    report.add_argument("--as-of", default="")
+    report.add_argument("--window-days", type=int, default=14)
 
     validate = subparsers.add_parser("validate")
     validate.add_argument("--vault", required=True, type=_path)
@@ -224,6 +228,13 @@ def _run(args: argparse.Namespace) -> int:
         print(output)
         return 0
     if args.command == "report":
+        as_of = parse_filter_date(args.as_of, "--as-of") or date.today()
+        selected = validate_due_selections(
+            vault=args.vault,
+            values=args.due_selection,
+            as_of=as_of,
+            window_days=args.window_days,
+        )
         output = generate_progress_report(
             vault=args.vault,
             completed_paths=args.completed,
@@ -233,8 +244,11 @@ def _run(args: argparse.Namespace) -> int:
             project_root=args.project_root,
             blockers=args.blocker,
             commitments=args.commitment,
+            due_events=selected.events,
         )
         print(output)
+        for diagnostic in selected.diagnostics:
+            print(f"WARNING: {diagnostic}", file=sys.stderr)
         return 0
     if args.command == "search":
         query = InboxSearchQuery(

@@ -64,3 +64,20 @@ Symbolic-link files and paths with symbolic-link ancestors are rejected. Review 
   links, content hashes, Source Notes, and other body content.
 - No notification, scheduler, Calendar write, database, index, network, external
   AI, automatic move, archive, or deletion is used.
+
+## Due-to-report handoff boundary
+
+- A report receives date events only through explicit `--due-selection` keys.
+- Every key must resolve to an existing regular direct `00_Inbox/*.md` note
+  inside the selected Vault, outside Protected Paths, with no symlink file or
+  ancestor.
+- The selected-note reader opens only H1 and bounded Metadata. Source Notes,
+  summaries, actions, and other body sections are excluded.
+- The current Metadata date must equal the key date. Changed, cleared, missing,
+  or malformed events stop the complete report.
+- At most 50 supplied keys are accepted. Duplicate keys do not create duplicate
+  report items.
+- Output contains Vault-relative source paths, never absolute paths, source
+  URLs, local files, external links, content hashes, or note bodies.
+- The handoff creates no index, database, notification, Calendar event,
+  background job, external AI call, upload, move, archive, or deadline change.
