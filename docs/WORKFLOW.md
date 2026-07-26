@@ -10,6 +10,8 @@ bkc init --vault "/absolute/path/to/Matt_Space"
 
 The initializer confirms `00_Inbox` exists, creates missing approved system files/templates, detects `10_Work/11_Projects` before `10_Projects`, and refuses to guess a project root when neither exists.
 
+If one approved root already contains `14_New_Role_90_Day`, all init, validation, and reporting operations reuse it. If both approved roots contain that project, the command stops. Existing Protected Paths rules are preserved and missing required rules are appended. Conflicting user templates are preserved while one stable `.v2` managed template is created.
+
 ## Capture Text
 
 ```bash
@@ -31,6 +33,8 @@ bkc capture \
 ```
 
 Remote fetch is off by default. Use `--fetch-url` only for public, non-sensitive HTTP/HTTPS pages. Fetching is explicit and limited to 2 MB.
+
+Before each connection and redirect, the fetcher rejects localhost, private, loopback, link-local, multicast, reserved, and unspecified addresses. It uses a 15-second timeout and a fixed redirect limit.
 
 ## Register a Local File
 
@@ -66,6 +70,8 @@ bkc review \
 
 The system never automatically deletes or moves a note.
 
+Review and report accept only existing regular `.md` files inside the selected Vault. Protected paths, symlink files, and symlink ancestors are rejected before content is read.
+
 ## Progress Report Draft
 
 ```bash
@@ -88,3 +94,14 @@ bkc validate --vault "/absolute/path/to/Matt_Space"
 ```
 
 Validation checks only known MVP paths. It does not scan the entire vault.
+
+## Runtime
+
+Use an existing Python 3.9 or newer interpreter:
+
+```bash
+PYTHON_BIN="$(command -v python3)"
+"$PYTHON_BIN" --version
+```
+
+No API key is required.

@@ -2,12 +2,17 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
+from typing import Optional
 
 from .core import (
     DisabledSummarizer,
     ManualSummarizer,
     OptionalAIAdapter,
+    ProtectedPathError,
+    UnsafePathError,
+    VaultStructureError,
     create_inbox_note,
     extract_source,
     generate_progress_report,
@@ -71,8 +76,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list[str] | None = None) -> int:
-    args = build_parser().parse_args(argv)
+def _run(args: argparse.Namespace) -> int:
     if args.command == "init":
         print(json.dumps(initialize_vault(args.vault, args.project_root), ensure_ascii=False, indent=2))
         return 0
@@ -133,6 +137,15 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     print("Validation passed.")
     return 0
+
+
+def main(argv: Optional[list[str]] = None) -> int:
+    args = build_parser().parse_args(argv)
+    try:
+        return _run(args)
+    except (ProtectedPathError, UnsafePathError, VaultStructureError, ValueError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":

@@ -1,10 +1,14 @@
 # Testing
 
 ```bash
-python -m compileall -q src tests
-PYTHONPATH=src python -m unittest discover -s tests -v
-PYTHONPATH=src python -m business_knowledge_capture.cli --help
+PYTHON_BIN="$(command -v python3)"
+"$PYTHON_BIN" --version
+"$PYTHON_BIN" -m compileall -q src tests
+PYTHONPATH=src "$PYTHON_BIN" -m unittest discover -s tests -v
+PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli --help
 ```
+
+The minimum supported runtime is Python 3.9. GitHub Actions repeats compile, unit tests, and CLI help on Python 3.9, 3.10, 3.11, and 3.12. No API key is needed.
 
 Temporary non-sensitive smoke test:
 
@@ -13,10 +17,14 @@ mkdir -p /tmp/bkc-vault/00_Inbox
 mkdir -p /tmp/bkc-vault/10_Work/11_Projects
 mkdir -p /tmp/bkc-vault/90_System
 
-PYTHONPATH=src python -m business_knowledge_capture.cli init --vault /tmp/bkc-vault
-PYTHONPATH=src python -m business_knowledge_capture.cli capture \
+PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli init --vault /tmp/bkc-vault
+PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli capture \
   --vault /tmp/bkc-vault \
   --text "AI PM onboarding example" \
   --title "Smoke test"
-PYTHONPATH=src python -m business_knowledge_capture.cli validate --vault /tmp/bkc-vault
+PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli validate --vault /tmp/bkc-vault
 ```
+
+Safety coverage includes duplicate project detection, Protected Paths merging, template conflicts, symlink blocking, Vault note scope, URL/redirect validation, metadata newline sanitization, and manual classification consistency.
+
+The 2026-07-26 P0 acceptance ran 33 tests on local Python 3.9.6 and completed an isolated 11-input end-to-end flow plus a scoped real-Vault acceptance. GitHub-hosted matrix execution remains observable only after a future push or pull request.

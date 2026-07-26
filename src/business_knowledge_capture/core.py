@@ -3,16 +3,19 @@ from __future__ import annotations
 import fnmatch
 import hashlib
 import html
+import ipaddress
 import mimetypes
 import os
 import re
+import socket
+import stat
 import urllib.request
 import zipfile
 from dataclasses import dataclass
 from datetime import date, datetime
 from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
-from typing import Iterable, Protocol
+from typing import Callable, Iterable, Optional, Protocol
 from urllib.parse import urlparse
 from xml.etree import ElementTree
 
@@ -57,6 +60,10 @@ class ProtectedPathError(RuntimeError):
 
 
 class VaultStructureError(RuntimeError):
+    pass
+
+
+class UnsafePathError(RuntimeError):
     pass
 
 
@@ -114,7 +121,7 @@ class ExtractedSource:
     external_file_link: str = ""
     filename: str = ""
     file_type: str = ""
-    file_size: int | None = None
+    file_size: Optional[int] = None
     processing_status: str = "registered"
     readable_text: str = ""
     source_notes: str = ""
@@ -127,7 +134,7 @@ class _TextExtractor(HTMLParser):
         self.parts: list[str] = []
         self.skip_depth = 0
 
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, Optional[str]]]) -> None:
         if tag in {"script", "style", "noscript"}:
             self.skip_depth += 1
 
@@ -168,6 +175,7 @@ All scripts and agents must not read, list, stat, hash, copy, move, rename, summ
 def load_protected_patterns(vault: Path) -> tuple[str, ...]:
     patterns = list(DEFAULT_PROTECTED_PATTERNS)
     protected_file = vault / "90_System" / "Protected_Paths.md"
+    _guard_no_symlinks(protected_file)
     if protected_file.is_file():
         for raw in protected_file.read_text(encoding="utf-8", errors="replace").splitlines():
             line = re.sub(r"^[-*]\s+", "", raw.strip()).strip("` ")
@@ -212,6 +220,51 @@ def is_protected_path(path: Path, vault: Path, patterns: Iterable[str]) -> bool:
 def guard_path(path: Path, vault: Path, patterns: Iterable[str]) -> None:
     if is_protected_path(path, vault, patterns):
         raise ProtectedPathError(f"Protected path blocked before filesystem access: {path}")
+
+
+def _guard_no_symlinks(path: Path) -> None:
+    absolute = Path(os.path.abspath(os.path.expanduser(str(path))))
+    current = Path(absolute.anchor)
+    for part in absolute.parts[1:]:
+        current = current / part
+        try:
+            mode = os.lstat(str(current)).st_mode
+        except FileNotFoundError:
+            continue
+        if stat.S_ISLNK(mode):
+            raise UnsafePathError(f"Symbolic links are not accepted: {current}")
+
+
+def guard_local_path(path: Path, vault: Path, patterns: Iterable[str]) -> None:
+    guard_path(path, vault, patterns)
+    _guard_no_symlinks(path)
+
+
+def _lexically_inside(path: Path, directory: Path) -> bool:
+    path_abs = os.path.abspath(os.path.expanduser(str(path)))
+    directory_abs = os.path.abspath(os.path.expanduser(str(directory)))
+    try:
+        return os.path.commonpath([path_abs, directory_abs]) == directory_abs
+    except ValueError:
+        return False
+
+
+def guard_vault_note(path: Path, vault: Path, patterns: Iterable[str]) -> None:
+    if not _lexically_inside(path, vault):
+        raise UnsafePathError("Review and report notes must be inside the selected vault.")
+    if path.suffix.lower() != ".md":
+        raise UnsafePathError("Review and report notes must be Markdown files.")
+    guard_local_path(path, vault, patterns)
+    try:
+        mode = os.lstat(str(path)).st_mode
+    except FileNotFoundError as exc:
+        raise UnsafePathError(f"Vault note does not exist: {path}") from exc
+    if not stat.S_ISREG(mode):
+        raise UnsafePathError(f"Vault note must be a regular file: {path}")
+
+
+def _single_line(value: object) -> str:
+    return " ".join(str(value).replace("\r", "\n").splitlines()).strip()
 
 
 def inbox_template_markdown() -> str:
@@ -278,54 +331,129 @@ def progress_template_markdown() -> str:
 
 
 def detect_project_root(vault: Path, explicit_root: str = "") -> Path:
-    for candidate in (vault / "10_Work" / "11_Projects", vault / "10_Projects"):
-        if candidate.is_dir():
-            return candidate
+    migrated_root = vault / "10_Work" / "11_Projects"
+    legacy_root = vault / "10_Projects"
     if explicit_root:
-        return vault / explicit_root
+        explicit_candidate = Path(os.path.abspath(str(vault / explicit_root)))
+        approved_roots = {
+            Path(os.path.abspath(str(migrated_root))),
+            Path(os.path.abspath(str(legacy_root))),
+        }
+        if explicit_candidate not in approved_roots:
+            raise VaultStructureError("Explicit project root must be one of the two approved existing project roots.")
+    migrated_project = migrated_root / "14_New_Role_90_Day"
+    legacy_project = legacy_root / "14_New_Role_90_Day"
+    for candidate in (migrated_root, legacy_root, migrated_project, legacy_project):
+        _guard_no_symlinks(candidate)
+
+    migrated_exists = migrated_project.is_dir()
+    legacy_exists = legacy_project.is_dir()
+    if migrated_exists and legacy_exists:
+        raise VaultStructureError("Conflicting 14_New_Role_90_Day projects exist in both approved roots.")
+    if migrated_exists:
+        return migrated_root
+    if legacy_exists:
+        return legacy_root
+    if migrated_root.is_dir():
+        return migrated_root
+    if legacy_root.is_dir():
+        return legacy_root
     raise VaultStructureError(
         "Could not safely detect an existing project root. Expected 10_Work/11_Projects or 10_Projects. "
-        "Pass --project-root only after confirming the intended existing structure."
+        "An explicit root must already exist."
     )
 
 
+def _ensure_directory(path: Path, vault: Path, patterns: Iterable[str]) -> None:
+    guard_local_path(path, vault, patterns)
+    if path.exists() and not path.is_dir():
+        raise VaultStructureError(f"Expected a directory but found another file type: {path}")
+    path.mkdir(exist_ok=True)
+
+
+def _merge_protected_file(path: Path) -> None:
+    _guard_no_symlinks(path)
+    if not path.exists():
+        path.write_text(protected_paths_markdown(), encoding="utf-8")
+        return
+    existing = path.read_text(encoding="utf-8")
+    normalized = {
+        _normalize_pattern(re.sub(r"^[-*]\s+", "", raw.strip()).strip("` "))
+        for raw in existing.splitlines()
+    }
+    missing = [pattern for pattern in DEFAULT_PROTECTED_PATTERNS if _normalize_pattern(pattern) not in normalized]
+    if missing:
+        separator = "" if existing.endswith("\n") else "\n"
+        additions = "\n".join(f"- `{pattern}`" for pattern in missing)
+        path.write_text(f"{existing}{separator}{additions}\n", encoding="utf-8")
+
+
+def _write_managed_template(path: Path, content: str, conflicts: list[str]) -> Path:
+    _guard_no_symlinks(path)
+    if not path.exists():
+        path.write_text(content, encoding="utf-8")
+        return path
+    if path.read_text(encoding="utf-8") == content:
+        return path
+    versioned = path.with_name(f"{path.stem}.v2{path.suffix}")
+    _guard_no_symlinks(versioned)
+    if not versioned.exists():
+        versioned.write_text(content, encoding="utf-8")
+    conflicts.append(f"Preserved existing {path.name}; managed template is {versioned.name}.")
+    return versioned
+
+
 def initialize_vault(vault: Path, project_root: str = "") -> dict[str, str]:
+    _guard_no_symlinks(vault)
     if not vault.is_dir():
         raise VaultStructureError(f"Vault does not exist: {vault}")
     inbox = vault / "00_Inbox"
+    _guard_no_symlinks(inbox)
     if not inbox.is_dir():
         raise VaultStructureError("00_Inbox was not found. Refusing to guess or create a duplicate vault.")
 
+    patterns = DEFAULT_PROTECTED_PATTERNS
     system_dir = vault / "90_System"
     templates_dir = system_dir / "Templates"
-    system_dir.mkdir(exist_ok=True)
-    templates_dir.mkdir(exist_ok=True)
+    _ensure_directory(system_dir, vault, patterns)
+    _ensure_directory(templates_dir, vault, patterns)
 
     protected_file = system_dir / "Protected_Paths.md"
-    if not protected_file.exists():
-        protected_file.write_text(protected_paths_markdown(), encoding="utf-8")
+    guard_local_path(protected_file, vault, patterns)
+    _merge_protected_file(protected_file)
+    patterns = load_protected_patterns(vault)
+    conflicts: list[str] = []
     inbox_template = templates_dir / "Inbox_Note.md"
-    if not inbox_template.exists():
-        inbox_template.write_text(inbox_template_markdown(), encoding="utf-8")
+    guard_local_path(inbox_template, vault, patterns)
+    managed_inbox_template = _write_managed_template(inbox_template, inbox_template_markdown(), conflicts)
     report_template = templates_dir / "Progress_Update.md"
-    if not report_template.exists():
-        report_template.write_text(progress_template_markdown(), encoding="utf-8")
+    guard_local_path(report_template, vault, patterns)
+    managed_report_template = _write_managed_template(report_template, progress_template_markdown(), conflicts)
 
     base = detect_project_root(vault, project_root) / "14_New_Role_90_Day"
-    base.mkdir(parents=True, exist_ok=True)
+    _ensure_directory(base, vault, patterns)
     for folder in (
         "01_Onboarding", "02_Stakeholders", "03_Progress_Reports", "04_Work_Learning",
         "05_System_Development", "06_Decisions", "07_Retrospective",
     ):
-        (base / folder).mkdir(exist_ok=True)
+        _ensure_directory(base / folder, vault, patterns)
     hub = base / "00_Project_Hub.md"
+    guard_local_path(hub, vault, patterns)
     if not hub.exists():
         hub.write_text(
             "# New Role 90 Day Project Hub\n\n"
             "## Purpose\n\nTrack onboarding, stakeholders, work learning, system development, decisions, and reports.\n",
             encoding="utf-8",
         )
-    return {"vault": str(vault), "inbox": str(inbox), "protected_paths": str(protected_file), "project": str(base)}
+    return {
+        "vault": str(vault),
+        "inbox": str(inbox),
+        "protected_paths": str(protected_file),
+        "project": str(base),
+        "inbox_template": str(managed_inbox_template),
+        "report_template": str(managed_report_template),
+        "conflicts": "\n".join(conflicts),
+    }
 
 
 def _read_text_file(path: Path, max_chars: int = 100_000) -> str:
@@ -365,12 +493,60 @@ def _hash_file(path: Path, max_bytes: int = 20 * 1024 * 1024) -> str:
     return digest.hexdigest()
 
 
-def _fetch_url_text(url: str, max_bytes: int = 2 * 1024 * 1024) -> tuple[str, str]:
+def validate_public_url(
+    url: str,
+    resolver: Callable[..., list[tuple[object, ...]]] = socket.getaddrinfo,
+) -> str:
     parsed = urlparse(url)
     if parsed.scheme not in {"http", "https"}:
         raise ValueError("Only http and https URLs are supported.")
+    if not parsed.hostname or parsed.username or parsed.password:
+        raise ValueError("URL must contain a public hostname without embedded credentials.")
+    hostname = parsed.hostname.rstrip(".").lower()
+    if hostname == "localhost" or hostname.endswith(".localhost"):
+        raise ValueError("Localhost URLs are not allowed.")
+    try:
+        addresses = [ipaddress.ip_address(hostname)]
+    except ValueError:
+        try:
+            records = resolver(hostname, parsed.port or (443 if parsed.scheme == "https" else 80), type=socket.SOCK_STREAM)
+        except socket.gaierror as exc:
+            raise ValueError("URL hostname could not be resolved.") from exc
+        addresses = []
+        for record in records:
+            address = record[4][0]
+            parsed_address = ipaddress.ip_address(address.split("%", 1)[0])
+            if parsed_address not in addresses:
+                addresses.append(parsed_address)
+    if not addresses:
+        raise ValueError("URL hostname did not resolve to an address.")
+    if any(
+        not address.is_global
+        or address.is_private
+        or address.is_loopback
+        or address.is_link_local
+        or address.is_multicast
+        or address.is_reserved
+        or address.is_unspecified
+        for address in addresses
+    ):
+        raise ValueError("URL resolved to a non-public address.")
+    return url
+
+
+class _SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
+    max_redirections = 5
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        validate_public_url(newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def _fetch_url_text(url: str, max_bytes: int = 2 * 1024 * 1024) -> tuple[str, str]:
+    validate_public_url(url)
     request = urllib.request.Request(url, headers={"User-Agent": "BusinessKnowledgeCapture/0.1"})
-    with urllib.request.urlopen(request, timeout=15) as response:
+    opener = urllib.request.build_opener(_SafeRedirectHandler())
+    with opener.open(request, timeout=15) as response:
         content_type = response.headers.get_content_type()
         raw = response.read(max_bytes + 1)
         if len(raw) > max_bytes:
@@ -404,7 +580,7 @@ def extract_source(*, vault: Path, patterns: Iterable[str], text: str = "", url:
         return ExtractedSource("url", source_url=url, external_file_link=external_file_link, processing_status=status, readable_text=readable, source_notes=notes, content_hash=hashlib.sha256(url.encode()).hexdigest())
 
     path = Path(os.path.expanduser(file_path))
-    guard_path(path, vault, patterns)
+    guard_local_path(path, vault, patterns)
     suffix = path.suffix.lower()
     mime_type = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
     if suffix not in SUPPORTED_EXTENSIONS:
@@ -465,13 +641,13 @@ def _slugify(value: str) -> str:
 
 def _safe_title(title: str, source: ExtractedSource) -> str:
     if title.strip():
-        return title.strip()
+        return _single_line(title)
     if source.filename:
-        return Path(source.filename).stem
+        return _single_line(Path(source.filename).stem)
     if source.source_url:
-        return urlparse(source.source_url).netloc or "Saved URL"
+        return _single_line(urlparse(source.source_url).netloc) or "Saved URL"
     first = next((line.strip() for line in source.readable_text.splitlines() if line.strip()), "")
-    return first[:80] or "Inbox Capture"
+    return _single_line(first[:80]) or "Inbox Capture"
 
 
 def render_inbox_note(*, note_id: str, created: str, title: str, source: ExtractedSource, summary: SummaryResult, classification: ClassificationSuggestion, action_required: str = "", deadline: str = "", related_project: str = "", related_area: str = "") -> str:
@@ -481,28 +657,37 @@ def render_inbox_note(*, note_id: str, created: str, title: str, source: Extract
     relevance = f"Suggested category: **{classification.category}** ({classification.confidence} confidence)."
     if classification.reasons:
         relevance += "\n\nSignals: " + ", ".join(classification.reasons)
-    suggested_actions = action_required.strip() or ("Review the source and add a manual summary before final filing." if summary.status == "pending" else "")
+    safe_action = _single_line(action_required)
+    suggested_actions = safe_action or ("Review the source and add a manual summary before final filing." if summary.status == "pending" else "")
     points = "\n".join(f"- {item}" for item in summary.key_points)
     size = "" if source.file_size is None else str(source.file_size)
-    return f"""# {title}
+    safe_title = _single_line(title)
+    safe_related_project = _single_line(related_project)
+    safe_related_area = _single_line(related_area)
+    safe_deadline = _single_line(deadline)
+    safe_external_link = _single_line(source.external_file_link)
+    safe_source_url = _single_line(source.source_url)
+    safe_local_file = _single_line(source.local_file)
+    safe_filename = _single_line(source.filename)
+    return f"""# {safe_title}
 
 ## Metadata
 
 - ID: {note_id}
 - Created: {created}
 - Source Type: {source.source_type}
-- Source URL: {source.source_url}
-- Local File: {source.local_file}
-- External File Link: {source.external_file_link}
+- Source URL: {safe_source_url}
+- Local File: {safe_local_file}
+- External File Link: {safe_external_link}
 - Processing Status: {source.processing_status}
 - Summary Status: {summary.status}
 - Suggested Category: {classification.category}
 - Classification Confidence: {classification.confidence}
-- Action Required: {action_required}
-- Deadline: {deadline}
-- Related Project: {related_project}
-- Related Area: {related_area}
-- Source Filename: {source.filename}
+- Action Required: {safe_action}
+- Deadline: {safe_deadline}
+- Related Project: {safe_related_project}
+- Related Area: {safe_related_area}
+- Source Filename: {safe_filename}
 - File Type: {source.file_type}
 - File Size: {size}
 - Content Hash: {source.content_hash}
@@ -539,8 +724,9 @@ def render_inbox_note(*, note_id: str, created: str, title: str, source: Extract
 """
 
 
-def create_inbox_note(*, vault: Path, source: ExtractedSource, title: str = "", summarizer: Summarizer | None = None, manual_summary: str = "", action_required: str = "", deadline: str = "", related_project: str = "", related_area: str = "") -> Path:
+def create_inbox_note(*, vault: Path, source: ExtractedSource, title: str = "", summarizer: Optional[Summarizer] = None, manual_summary: str = "", action_required: str = "", deadline: str = "", related_project: str = "", related_area: str = "") -> Path:
     inbox = vault / "00_Inbox"
+    guard_local_path(inbox, vault, DEFAULT_PROTECTED_PATTERNS)
     if not inbox.is_dir():
         raise VaultStructureError("00_Inbox is missing; refusing to create a duplicate vault.")
     summarizer = summarizer or DisabledSummarizer()
@@ -556,6 +742,7 @@ def create_inbox_note(*, vault: Path, source: ExtractedSource, title: str = "", 
     while output.exists():
         output = inbox / f"{stem}-{counter}.md"
         counter += 1
+    guard_local_path(output, vault, DEFAULT_PROTECTED_PATTERNS)
     output.write_text(render_inbox_note(note_id=note_id, created=now.isoformat(timespec="seconds"), title=resolved_title, source=source, summary=summary, classification=classification, action_required=action_required, deadline=deadline, related_project=related_project, related_area=related_area), encoding="utf-8")
     return output
 
@@ -564,22 +751,41 @@ def _replace_metadata(text: str, key: str, value: str) -> str:
     pattern = re.compile(rf"(?m)^- {re.escape(key)}:.*$")
     if not pattern.search(text):
         raise ValueError(f"Metadata field not found: {key}")
-    return pattern.sub(f"- {key}: {value}", text, count=1)
+    return pattern.sub(f"- {key}: {_single_line(value)}", text, count=1)
 
 
 def review_note(*, vault: Path, note_path: Path, category: str = "", action_required: str = "", related_project: str = "", related_area: str = "", destination: str = "", mark: Iterable[str] = ()) -> Path:
-    guard_path(note_path, vault, load_protected_patterns(vault))
+    guard_vault_note(note_path, vault, load_protected_patterns(vault))
     if category and category not in CATEGORIES:
         raise ValueError(f"Category must be one of: {', '.join(CATEGORIES)}")
     text = note_path.read_text(encoding="utf-8")
     for key, value in {"Suggested Category": category, "Action Required": action_required, "Related Project": related_project, "Related Area": related_area}.items():
         if value:
             text = _replace_metadata(text, key, value)
+    if action_required:
+        safe_action = _single_line(action_required)
+        text = re.sub(
+            r"(?ms)^## Suggested Actions\s*\n.*?(?=^## Source Notes)",
+            lambda _: f"## Suggested Actions\n\n{safe_action}\n\n",
+            text,
+            count=1,
+        )
     mark_map = {"summary": "Summary reviewed", "classification": "Classification reviewed", "action": "Action confirmed", "links": "Related links added", "destination": "Final destination confirmed"}
     for item in mark:
         text = text.replace(f"- [ ] {mark_map[item]}", f"- [x] {mark_map[item]}", 1)
-    if destination and "Final destination:" not in text:
-        text = text.replace("## Manual Review", f"Final destination: {destination}\n\n## Manual Review", 1)
+    if category:
+        text = re.sub(
+            r"(?m)^Suggested category: \*\*.*?\*\* \((.*?) confidence\)\.$",
+            f"Suggested category: **{category}** (manual confidence).",
+            text,
+            count=1,
+        )
+    if destination:
+        safe_destination = _single_line(destination)
+        if "Final destination:" in text:
+            text = re.sub(r"(?m)^Final destination:.*$", f"Final destination: {safe_destination}", text, count=1)
+        else:
+            text = text.replace("## Manual Review", f"Final destination: {safe_destination}\n\n## Manual Review", 1)
     note_path.write_text(text, encoding="utf-8")
     return note_path
 
@@ -618,16 +824,22 @@ def generate_progress_report(*, vault: Path, completed_paths: Iterable[Path], in
     patterns = load_protected_patterns(vault)
     completed, in_progress = [], []
     for path in completed_paths:
-        guard_path(path, vault, patterns)
+        guard_vault_note(path, vault, patterns)
         completed.append(_parse_note(path))
     for path in in_progress_paths:
-        guard_path(path, vault, patterns)
+        guard_vault_note(path, vault, patterns)
         in_progress.append(_parse_note(path))
     all_notes = completed + in_progress
 
     def block(lines: Iterable[str], placeholder: str = "- None recorded.") -> str:
         values = [line for line in lines if line]
         return "\n".join(values) if values else placeholder
+
+    action_lines = []
+    for note in all_notes:
+        action_text = str(note["actions"]).strip()
+        if action_text:
+            action_lines.append(f"- {action_text}")
 
     report = f"""# Progress Update
 
@@ -653,33 +865,55 @@ def generate_progress_report(*, vault: Path, completed_paths: Iterable[Path], in
 
 ## Next Steps
 
-{block(f'- {str(note["actions"]).strip()}' for note in all_notes if str(note["actions"]).strip())}
+{block(action_lines)}
 
 ## Commitments Before Next Update
 
 {block((f'- [ ] {item}' for item in commitments if item.strip()), '- [ ] Add commitments after review.')}
 """
     reports_dir = detect_project_root(vault, project_root) / "14_New_Role_90_Day" / "03_Progress_Reports"
-    reports_dir.mkdir(parents=True, exist_ok=True)
+    _ensure_directory(reports_dir, vault, patterns)
     stem = f"{date.today().isoformat()}-{report_type}-progress"
     output = reports_dir / f"{stem}.md"
     counter = 2
     while output.exists():
         output = reports_dir / f"{stem}-{counter}.md"
         counter += 1
+    guard_local_path(output, vault, patterns)
     output.write_text(report, encoding="utf-8")
     return output
 
 
 def validate_vault(vault: Path) -> list[str]:
     errors: list[str] = []
+    try:
+        _guard_no_symlinks(vault)
+    except UnsafePathError as exc:
+        return [str(exc)]
     if not vault.is_dir():
         return [f"Vault does not exist: {vault}"]
     inbox = vault / "00_Inbox"
     if not inbox.is_dir():
         errors.append("00_Inbox is missing.")
-    elif any(item.is_dir() for item in inbox.iterdir()):
-        errors.append("00_Inbox must remain flat; subdirectories were found.")
-    if not (vault / "90_System" / "Protected_Paths.md").is_file():
-        errors.append("90_System/Protected_Paths.md is missing.")
+    else:
+        with os.scandir(str(inbox)) as entries:
+            for item in entries:
+                if item.is_symlink():
+                    errors.append("00_Inbox contains a symbolic link.")
+                    break
+                if item.is_dir(follow_symlinks=False):
+                    errors.append("00_Inbox must remain flat; subdirectories were found.")
+                    break
+    try:
+        detect_project_root(vault)
+    except (UnsafePathError, VaultStructureError) as exc:
+        errors.append(str(exc))
+    protected_file = vault / "90_System" / "Protected_Paths.md"
+    try:
+        _guard_no_symlinks(protected_file)
+    except UnsafePathError as exc:
+        errors.append(str(exc))
+    else:
+        if not protected_file.is_file():
+            errors.append("90_System/Protected_Paths.md is missing.")
     return errors

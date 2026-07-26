@@ -45,16 +45,16 @@ It does not request credentials, upload files, auto-publish, or process private 
 
 ## Install
 
-Python 3.12 or newer:
+Python 3.9 or newer. A system-wide Python 3.12 installation is not required:
 
 ```bash
-python -m pip install -e .
+python3 -m pip install -e .
 ```
 
 Optional local PDF text extraction:
 
 ```bash
-python -m pip install -e ".[pdf]"
+python3 -m pip install -e ".[pdf]"
 ```
 
 ## Initialize the Existing Vault
@@ -118,10 +118,13 @@ bkc report \
 ## Validation
 
 ```bash
-python -m compileall -q src tests
-PYTHONPATH=src python -m unittest discover -s tests -v
+python3 -m compileall -q src tests
+PYTHONPATH=src python3 -m unittest discover -s tests -v
+PYTHONPATH=src python3 -m business_knowledge_capture.cli --help
 bkc validate --vault "/absolute/path/to/Matt_Space"
 ```
+
+CI runs compile, unit tests, and the CLI help smoke test on Python 3.9 through 3.12. The core flow has no required dependencies and does not require an API key.
 
 ## Documentation
 
@@ -129,6 +132,7 @@ bkc validate --vault "/absolute/path/to/Matt_Space"
 - `docs/WORKFLOW.md`
 - `docs/PRIVACY_AND_PROTECTED_PATHS.md`
 - `docs/TESTING.md`
+- `docs/P0_ACCEPTANCE_REPORT.md`
 - `samples/sample_capture_commands.md`
 
 ## Not Included in P0
