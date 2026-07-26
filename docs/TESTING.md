@@ -6,6 +6,7 @@ PYTHON_BIN="$(command -v python3)"
 "$PYTHON_BIN" -m compileall -q src tests
 PYTHONPATH=src "$PYTHON_BIN" -m unittest discover -s tests -v
 PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli --help
+PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli due --help
 PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli search --help
 ```
 
@@ -51,3 +52,18 @@ P1B adds metadata-only search coverage for:
 - Source Notes, Source URL, Local File, Content Hash, and absolute Vault path exclusion.
 
 No full-text search, database, SQLite, background index, semantic search, embedding, RAG, network, or Vault write is required.
+
+P1C adds coverage for strict capture/review date validation, atomic set/clear,
+manual date review, three event types, deterministic status and sorting,
+same-field OR/different-field AND filters, malformed-date diagnostics, strict
+text/JSON output, search integration, direct-only scope, candidate limits, and
+read-only candidate hashes.
+
+All date-sensitive tests use an explicit reference date. The isolated E2E uses
+an actual non-symlink temporary path because the runtime intentionally rejects
+symlink ancestors.
+
+The 2026-07-26 P1C acceptance ran 147 tests on Python 3.9.6: 124 retained
+P0/P1A/P1B tests and 23 P1C tests. Isolated and scoped real-Vault date-review
+flows both passed. GitHub-hosted execution remains pending because no push or
+pull request is permitted.

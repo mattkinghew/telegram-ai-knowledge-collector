@@ -52,3 +52,15 @@ Symbolic-link files and paths with symbolic-link ancestors are rejected. Review 
 - Text and JSON output use Vault-relative paths only.
 - Search writes no Vault files, creates no database or persistent index, and calls no external AI or service.
 - More than 5,000 direct candidates is a hard failure rather than a partial result.
+
+## Date-review boundary
+
+- `bkc due` reuses the same direct Inbox scanner and bounded H1/Metadata reader.
+- It parses only Deadline, Resource Expiry, Reminder Date, Reminder Note, and
+  other allowlisted event-display metadata.
+- Dynamic status is calculated in memory and is not written to notes.
+- Malformed date fields are ignored with capped local diagnostics.
+- Text and JSON exclude absolute paths, source URLs, local files, external file
+  links, content hashes, Source Notes, and other body content.
+- No notification, scheduler, Calendar write, database, index, network, external
+  AI, automatic move, archive, or deletion is used.

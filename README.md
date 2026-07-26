@@ -35,6 +35,9 @@ The local MVP runs without an API key and never invents an AI summary when no ap
 - Search only the H1 title and an explicit metadata allowlist in direct `00_Inbox/*.md` notes.
 - Combine repeated filters with OR, different filter fields with AND, and return stable text or JSON results.
 - Keep search read-only and bounded to 5,000 candidates and 200 returned results.
+- Validate deadline, resource-expiry, and reminder dates as `YYYY-MM-DD`.
+- Review date events with a bounded, read-only `bkc due` command.
+- Calculate overdue, due-today, due-soon, and upcoming status at query time.
 
 ## Safety Boundary
 
@@ -87,7 +90,10 @@ bkc capture \
   --vault "/absolute/path/to/Matt_Space" \
   --url "https://example.com/public-resource" \
   --title "Public resource" \
-  --deadline "2026-08-31"
+  --deadline "2026-08-31" \
+  --resource-expiry "2026-09-15" \
+  --reminder-date "2026-08-24" \
+  --reminder-note "Review requirements before the deadline"
 ```
 
 ```bash
@@ -106,8 +112,29 @@ bkc review \
   --category "重要知識" \
   --mark summary \
   --mark classification \
-  --mark duplicate
+  --mark duplicate \
+  --mark dates
 ```
+
+Date fields can be set with `--deadline`, `--resource-expiry`,
+`--reminder-date`, and `--reminder-note`. Use `--clear-deadline`,
+`--clear-resource-expiry`, or `--clear-reminder` for explicit clearing.
+
+## Deadline and Resource-expiry Review
+
+```bash
+bkc due \
+  --vault "/absolute/path/to/Matt_Space" \
+  --as-of "2026-07-26" \
+  --window-days 14
+```
+
+The default result includes overdue, due-today, and due-soon events. Add
+`--include-upcoming` to include later events. Status is calculated dynamically;
+it is never saved into a note. Text and JSON return Vault-relative paths only.
+
+This is a foreground, read-only review command. It does not send notifications,
+write Calendar events, modify notes, move files, or create an index.
 
 ## Progress Report
 
@@ -128,7 +155,8 @@ bkc report \
 bkc search \
   --vault "/absolute/path/to/Matt_Space" \
   --category "資源" \
-  --has-deadline \
+  --has-resource-expiry \
+  --reminder-from "2026-07-26" \
   --sort deadline-asc
 ```
 
@@ -142,6 +170,7 @@ Use `--format json` for bounded machine-readable output. Both text and JSON expo
 python3 -m compileall -q src tests
 PYTHONPATH=src python3 -m unittest discover -s tests -v
 PYTHONPATH=src python3 -m business_knowledge_capture.cli --help
+PYTHONPATH=src python3 -m business_knowledge_capture.cli due --help
 PYTHONPATH=src python3 -m business_knowledge_capture.cli search --help
 bkc validate --vault "/absolute/path/to/Matt_Space"
 ```
@@ -159,6 +188,8 @@ CI runs compile, unit tests, and the CLI help smoke test on Python 3.9 through 3
 - `docs/P1A_ACCEPTANCE_REPORT.md`
 - `docs/P1B_METADATA_SEARCH.md`
 - `docs/P1B_ACCEPTANCE_REPORT.md`
+- `docs/P1C_DATE_REVIEW.md`
+- `docs/P1C_ACCEPTANCE_REPORT.md`
 - `samples/sample_capture_commands.md`
 
 ## Not Included

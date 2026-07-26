@@ -279,6 +279,23 @@ def _single_line(value: object) -> str:
     return " ".join(str(value).replace("\r", "\n").splitlines()).strip()
 
 
+def parse_iso_date(value: str, label: str) -> date:
+    try:
+        parsed = date.fromisoformat(value)
+    except ValueError as exc:
+        raise ValueError(f"{label} must be an ISO date (YYYY-MM-DD).") from exc
+    if parsed.isoformat() != value:
+        raise ValueError(f"{label} must be an ISO date (YYYY-MM-DD).")
+    return parsed
+
+
+def validate_optional_iso_date(value: str, label: str) -> str:
+    cleaned = _single_line(value)
+    if cleaned:
+        parse_iso_date(cleaned, label)
+    return cleaned
+
+
 def inbox_template_markdown() -> str:
     return """# {{title}}
 
@@ -296,6 +313,9 @@ def inbox_template_markdown() -> str:
 - Classification Confidence:
 - Action Required:
 - Deadline:
+- Resource Expiry:
+- Reminder Date:
+- Reminder Note:
 - Related Project:
 - Related Area:
 - Source Filename:
@@ -325,6 +345,7 @@ def inbox_template_markdown() -> str:
 - [ ] Related links added
 - [ ] Final destination confirmed
 - [ ] Duplicate status reviewed
+- [ ] Date and reminder fields reviewed
 """
 
 
@@ -830,7 +851,7 @@ def find_exact_duplicates(
     )
 
 
-def render_inbox_note(*, note_id: str, created: str, title: str, source: ExtractedSource, summary: SummaryResult, classification: ClassificationSuggestion, duplicate: Optional[DuplicateResult] = None, action_required: str = "", deadline: str = "", related_project: str = "", related_area: str = "") -> str:
+def render_inbox_note(*, note_id: str, created: str, title: str, source: ExtractedSource, summary: SummaryResult, classification: ClassificationSuggestion, duplicate: Optional[DuplicateResult] = None, action_required: str = "", deadline: str = "", resource_expiry: str = "", reminder_date: str = "", reminder_note: str = "", related_project: str = "", related_area: str = "") -> str:
     duplicate = duplicate or DuplicateResult("check_unavailable", "unavailable")
     source_notes = source.readable_text[:50_000] if source.source_type == "text" else source.source_notes
     if source.source_type != "text" and source.readable_text:
@@ -846,6 +867,9 @@ def render_inbox_note(*, note_id: str, created: str, title: str, source: Extract
     safe_related_project = _single_line(related_project)
     safe_related_area = _single_line(related_area)
     safe_deadline = _single_line(deadline)
+    safe_resource_expiry = _single_line(resource_expiry)
+    safe_reminder_date = _single_line(reminder_date)
+    safe_reminder_note = _single_line(reminder_note)
     safe_external_link = _single_line(source.external_file_link)
     safe_source_url = _single_line(source.source_url)
     safe_local_file = _single_line(source.local_file)
@@ -866,6 +890,9 @@ def render_inbox_note(*, note_id: str, created: str, title: str, source: Extract
 - Classification Confidence: {classification.confidence}
 - Action Required: {safe_action}
 - Deadline: {safe_deadline}
+- Resource Expiry: {safe_resource_expiry}
+- Reminder Date: {safe_reminder_date}
+- Reminder Note: {safe_reminder_note}
 - Related Project: {safe_related_project}
 - Related Area: {safe_related_area}
 - Source Filename: {safe_filename}
@@ -907,10 +934,15 @@ def render_inbox_note(*, note_id: str, created: str, title: str, source: Extract
 - [ ] Related links added
 - [ ] Final destination confirmed
 - [ ] Duplicate status reviewed
+- [ ] Date and reminder fields reviewed
 """
 
 
-def capture_inbox_note(*, vault: Path, source: ExtractedSource, title: str = "", summarizer: Optional[Summarizer] = None, manual_summary: str = "", action_required: str = "", deadline: str = "", related_project: str = "", related_area: str = "") -> tuple[Path, DuplicateResult]:
+def capture_inbox_note(*, vault: Path, source: ExtractedSource, title: str = "", summarizer: Optional[Summarizer] = None, manual_summary: str = "", action_required: str = "", deadline: str = "", resource_expiry: str = "", reminder_date: str = "", reminder_note: str = "", related_project: str = "", related_area: str = "") -> tuple[Path, DuplicateResult]:
+    deadline = validate_optional_iso_date(deadline, "Deadline")
+    resource_expiry = validate_optional_iso_date(resource_expiry, "Resource Expiry")
+    reminder_date = validate_optional_iso_date(reminder_date, "Reminder Date")
+    reminder_note = _single_line(reminder_note)
     inbox = vault / "00_Inbox"
     guard_local_path(inbox, vault, DEFAULT_PROTECTED_PATTERNS)
     if not inbox.is_dir():
@@ -930,12 +962,12 @@ def capture_inbox_note(*, vault: Path, source: ExtractedSource, title: str = "",
         output = inbox / f"{stem}-{counter}.md"
         counter += 1
     guard_local_path(output, vault, DEFAULT_PROTECTED_PATTERNS)
-    output.write_text(render_inbox_note(note_id=note_id, created=now.isoformat(timespec="seconds"), title=resolved_title, source=source, summary=summary, classification=classification, duplicate=duplicate, action_required=action_required, deadline=deadline, related_project=related_project, related_area=related_area), encoding="utf-8")
+    output.write_text(render_inbox_note(note_id=note_id, created=now.isoformat(timespec="seconds"), title=resolved_title, source=source, summary=summary, classification=classification, duplicate=duplicate, action_required=action_required, deadline=deadline, resource_expiry=resource_expiry, reminder_date=reminder_date, reminder_note=reminder_note, related_project=related_project, related_area=related_area), encoding="utf-8")
     return output, duplicate
 
 
-def create_inbox_note(*, vault: Path, source: ExtractedSource, title: str = "", summarizer: Optional[Summarizer] = None, manual_summary: str = "", action_required: str = "", deadline: str = "", related_project: str = "", related_area: str = "") -> Path:
-    output, _ = capture_inbox_note(vault=vault, source=source, title=title, summarizer=summarizer, manual_summary=manual_summary, action_required=action_required, deadline=deadline, related_project=related_project, related_area=related_area)
+def create_inbox_note(*, vault: Path, source: ExtractedSource, title: str = "", summarizer: Optional[Summarizer] = None, manual_summary: str = "", action_required: str = "", deadline: str = "", resource_expiry: str = "", reminder_date: str = "", reminder_note: str = "", related_project: str = "", related_area: str = "") -> Path:
+    output, _ = capture_inbox_note(vault=vault, source=source, title=title, summarizer=summarizer, manual_summary=manual_summary, action_required=action_required, deadline=deadline, resource_expiry=resource_expiry, reminder_date=reminder_date, reminder_note=reminder_note, related_project=related_project, related_area=related_area)
     return output
 
 
@@ -946,14 +978,67 @@ def _replace_metadata(text: str, key: str, value: str) -> str:
     return pattern.sub(f"- {key}: {_single_line(value)}", text, count=1)
 
 
-def review_note(*, vault: Path, note_path: Path, category: str = "", action_required: str = "", related_project: str = "", related_area: str = "", destination: str = "", mark: Iterable[str] = ()) -> Path:
+def _set_or_insert_metadata(text: str, key: str, value: str) -> str:
+    pattern = re.compile(rf"(?m)^- {re.escape(key)}:.*$")
+    replacement = f"- {key}: {_single_line(value)}"
+    if pattern.search(text):
+        return pattern.sub(replacement, text, count=1)
+    anchor = re.search(r"(?m)^- Related Project:.*$", text)
+    if not anchor:
+        raise ValueError(f"Metadata field not found and insertion point unavailable: {key}")
+    return text[:anchor.start()] + replacement + "\n" + text[anchor.start():]
+
+
+def _mark_review_item(text: str, label: str) -> str:
+    unchecked = f"- [ ] {label}"
+    checked = f"- [x] {label}"
+    if unchecked in text:
+        return text.replace(unchecked, checked, 1)
+    if checked in text:
+        return text
+    manual_review = re.search(r"(?m)^## Manual Review[ \t]*$", text)
+    if not manual_review:
+        raise ValueError("Manual Review section not found.")
+    insert_at = text.find("\n", manual_review.end())
+    if insert_at < 0:
+        return text + f"\n\n{checked}\n"
+    return text[:insert_at + 1] + f"\n{checked}" + text[insert_at + 1:]
+
+
+def review_note(*, vault: Path, note_path: Path, category: str = "", action_required: str = "", related_project: str = "", related_area: str = "", destination: str = "", deadline: str = "", resource_expiry: str = "", reminder_date: str = "", reminder_note: str = "", clear_deadline: bool = False, clear_resource_expiry: bool = False, clear_reminder: bool = False, mark: Iterable[str] = ()) -> Path:
     guard_vault_note(note_path, vault, load_protected_patterns(vault))
     if category and category not in CATEGORIES:
         raise ValueError(f"Category must be one of: {', '.join(CATEGORIES)}")
+    deadline = validate_optional_iso_date(deadline, "Deadline")
+    resource_expiry = validate_optional_iso_date(resource_expiry, "Resource Expiry")
+    reminder_date = validate_optional_iso_date(reminder_date, "Reminder Date")
+    reminder_note = _single_line(reminder_note)
+    if deadline and clear_deadline:
+        raise ValueError("--deadline and --clear-deadline are mutually exclusive.")
+    if resource_expiry and clear_resource_expiry:
+        raise ValueError(
+            "--resource-expiry and --clear-resource-expiry are mutually exclusive."
+        )
+    if clear_reminder and (reminder_date or reminder_note):
+        raise ValueError(
+            "--reminder-date/--reminder-note and --clear-reminder are mutually exclusive."
+        )
     text = note_path.read_text(encoding="utf-8")
     for key, value in {"Suggested Category": category, "Action Required": action_required, "Related Project": related_project, "Related Area": related_area}.items():
         if value:
             text = _replace_metadata(text, key, value)
+    for key, value, should_update in (
+        ("Deadline", deadline, bool(deadline) or clear_deadline),
+        (
+            "Resource Expiry",
+            resource_expiry,
+            bool(resource_expiry) or clear_resource_expiry,
+        ),
+        ("Reminder Date", reminder_date, bool(reminder_date) or clear_reminder),
+        ("Reminder Note", reminder_note, bool(reminder_note) or clear_reminder),
+    ):
+        if should_update:
+            text = _set_or_insert_metadata(text, key, value)
     if action_required:
         safe_action = _single_line(action_required)
         text = re.sub(
@@ -962,9 +1047,9 @@ def review_note(*, vault: Path, note_path: Path, category: str = "", action_requ
             text,
             count=1,
         )
-    mark_map = {"summary": "Summary reviewed", "classification": "Classification reviewed", "action": "Action confirmed", "links": "Related links added", "destination": "Final destination confirmed", "duplicate": "Duplicate status reviewed"}
+    mark_map = {"summary": "Summary reviewed", "classification": "Classification reviewed", "action": "Action confirmed", "links": "Related links added", "destination": "Final destination confirmed", "duplicate": "Duplicate status reviewed", "dates": "Date and reminder fields reviewed"}
     for item in mark:
-        text = text.replace(f"- [ ] {mark_map[item]}", f"- [x] {mark_map[item]}", 1)
+        text = _mark_review_item(text, mark_map[item])
     if category:
         text = re.sub(
             r"(?m)^Suggested category: \*\*.*?\*\* \((.*?) confidence\)\.$",

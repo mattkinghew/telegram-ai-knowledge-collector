@@ -36,6 +36,10 @@ Supported filters:
 - inclusive `--created-from` and `--created-to`;
 - inclusive `--deadline-from` and `--deadline-to`;
 - mutually exclusive `--has-deadline` and `--missing-deadline`;
+- inclusive `--resource-expiry-from` and `--resource-expiry-to`;
+- mutually exclusive `--has-resource-expiry` and `--missing-resource-expiry`;
+- inclusive `--reminder-from` and `--reminder-to`;
+- mutually exclusive `--has-reminder` and `--missing-reminder`;
 - `--related-project` and `--related-area` substrings;
 - repeatable `--source-type`;
 - repeatable `--file-type`, using case-insensitive exact equality;
@@ -43,7 +47,9 @@ Supported filters:
 - repeatable `--duplicate-status`;
 - mutually exclusive `--has-action` and `--missing-action`.
 
-The keyword allowlist is Title, Suggested Category, Action Required, Related Project, Related Area, Source Filename, Source Type, File Type, Processing Status, Duplicate Status, and Duplicate Match Type.
+The keyword allowlist is Title, Suggested Category, Action Required, Reminder
+Note, Related Project, Related Area, Source Filename, Source Type, File Type,
+Processing Status, Duplicate Status, and Duplicate Match Type.
 
 Repeated filters within one field use OR. Different fields use AND.
 
@@ -66,7 +72,9 @@ The result limit defaults to 50, with a minimum of 1 and maximum of 200. `total_
 
 Text output contains a compact record list. `--format json` emits UTF-8 JSON on stdout. Diagnostics and warnings go only to stderr.
 
-Results expose only title, created date, category, deadline, project, area, source type, file type, processing status, duplicate status, action required, and Vault-relative path. They never expose Source URL, Local File, External File Link, Content Hash, absolute Vault path, or note body content.
+Results may also expose Resource Expiry, Reminder Date, and Reminder Note. They
+never expose Source URL, Local File, External File Link, Content Hash, absolute
+Vault path, or note body content.
 
 ## Malformed notes
 

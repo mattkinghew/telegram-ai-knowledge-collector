@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from datetime import date
 from pathlib import Path
 from typing import Optional
 
@@ -19,7 +20,18 @@ from .core import (
     initialize_vault,
     load_protected_patterns,
     review_note,
+    validate_optional_iso_date,
     validate_vault,
+)
+from .date_review import (
+    DATE_EVENT_TYPES,
+    DATE_STATUSES,
+    DUE_SORTS,
+    DateReviewQuery,
+    format_date_diagnostics,
+    format_due_json,
+    format_due_text,
+    review_due_dates,
 )
 from .search import (
     DUPLICATE_STATUSES,
@@ -59,6 +71,9 @@ def build_parser() -> argparse.ArgumentParser:
     capture.add_argument("--manual-summary", default="")
     capture.add_argument("--action-required", default="")
     capture.add_argument("--deadline", default="")
+    capture.add_argument("--resource-expiry", default="")
+    capture.add_argument("--reminder-date", default="")
+    capture.add_argument("--reminder-note", default="")
     capture.add_argument("--related-project", default="")
     capture.add_argument("--related-area", default="")
 
@@ -70,7 +85,14 @@ def build_parser() -> argparse.ArgumentParser:
     review.add_argument("--related-project", default="")
     review.add_argument("--related-area", default="")
     review.add_argument("--destination", default="")
-    review.add_argument("--mark", action="append", choices=("summary", "classification", "action", "links", "destination", "duplicate"), default=[])
+    review.add_argument("--deadline", default="")
+    review.add_argument("--resource-expiry", default="")
+    review.add_argument("--reminder-date", default="")
+    review.add_argument("--reminder-note", default="")
+    review.add_argument("--clear-deadline", action="store_true")
+    review.add_argument("--clear-resource-expiry", action="store_true")
+    review.add_argument("--clear-reminder", action="store_true")
+    review.add_argument("--mark", action="append", choices=("summary", "classification", "action", "links", "destination", "duplicate", "dates"), default=[])
 
     report = subparsers.add_parser("report")
     report.add_argument("--vault", required=True, type=_path)
@@ -97,6 +119,16 @@ def build_parser() -> argparse.ArgumentParser:
     deadline_presence = search.add_mutually_exclusive_group()
     deadline_presence.add_argument("--has-deadline", action="store_true")
     deadline_presence.add_argument("--missing-deadline", action="store_true")
+    search.add_argument("--resource-expiry-from", default="")
+    search.add_argument("--resource-expiry-to", default="")
+    resource_expiry_presence = search.add_mutually_exclusive_group()
+    resource_expiry_presence.add_argument("--has-resource-expiry", action="store_true")
+    resource_expiry_presence.add_argument("--missing-resource-expiry", action="store_true")
+    search.add_argument("--reminder-from", default="")
+    search.add_argument("--reminder-to", default="")
+    reminder_presence = search.add_mutually_exclusive_group()
+    reminder_presence.add_argument("--has-reminder", action="store_true")
+    reminder_presence.add_argument("--missing-reminder", action="store_true")
     search.add_argument("--related-project", default="")
     search.add_argument("--related-area", default="")
     search.add_argument("--source-type", action="append", choices=SOURCE_TYPES, default=[])
@@ -109,6 +141,20 @@ def build_parser() -> argparse.ArgumentParser:
     search.add_argument("--sort", choices=SEARCH_SORTS, default="created-desc")
     search.add_argument("--limit", type=int, default=50)
     search.add_argument("--format", choices=("text", "json"), default="text")
+
+    due = subparsers.add_parser("due")
+    due.add_argument("--vault", required=True, type=_path)
+    due.add_argument("--as-of", default="")
+    due.add_argument("--window-days", type=int, default=14)
+    due.add_argument("--event-type", action="append", choices=DATE_EVENT_TYPES, default=[])
+    due.add_argument("--status", action="append", choices=DATE_STATUSES, default=[])
+    due.add_argument("--category", action="append", choices=("重要知識", "次要知識", "資源", "其他"), default=[])
+    due.add_argument("--related-project", default="")
+    due.add_argument("--related-area", default="")
+    due.add_argument("--include-upcoming", action="store_true")
+    due.add_argument("--sort", choices=DUE_SORTS, default="date-asc")
+    due.add_argument("--limit", type=int, default=50)
+    due.add_argument("--format", choices=("text", "json"), default="text")
     return parser
 
 
@@ -117,6 +163,9 @@ def _run(args: argparse.Namespace) -> int:
         print(json.dumps(initialize_vault(args.vault, args.project_root), ensure_ascii=False, indent=2))
         return 0
     if args.command == "capture":
+        validate_optional_iso_date(args.deadline, "Deadline")
+        validate_optional_iso_date(args.resource_expiry, "Resource Expiry")
+        validate_optional_iso_date(args.reminder_date, "Reminder Date")
         source = extract_source(
             vault=args.vault,
             patterns=load_protected_patterns(args.vault),
@@ -135,6 +184,9 @@ def _run(args: argparse.Namespace) -> int:
             manual_summary=args.manual_summary,
             action_required=args.action_required,
             deadline=args.deadline,
+            resource_expiry=args.resource_expiry,
+            reminder_date=args.reminder_date,
+            reminder_note=args.reminder_note,
             related_project=args.related_project,
             related_area=args.related_area,
         )
@@ -160,6 +212,13 @@ def _run(args: argparse.Namespace) -> int:
             related_project=args.related_project,
             related_area=args.related_area,
             destination=args.destination,
+            deadline=args.deadline,
+            resource_expiry=args.resource_expiry,
+            reminder_date=args.reminder_date,
+            reminder_note=args.reminder_note,
+            clear_deadline=args.clear_deadline,
+            clear_resource_expiry=args.clear_resource_expiry,
+            clear_reminder=args.clear_reminder,
             mark=args.mark,
         )
         print(output)
@@ -186,6 +245,14 @@ def _run(args: argparse.Namespace) -> int:
             created_to=parse_filter_date(args.created_to, "--created-to"),
             deadline_from=parse_filter_date(args.deadline_from, "--deadline-from"),
             deadline_to=parse_filter_date(args.deadline_to, "--deadline-to"),
+            resource_expiry_from=parse_filter_date(
+                args.resource_expiry_from, "--resource-expiry-from"
+            ),
+            resource_expiry_to=parse_filter_date(
+                args.resource_expiry_to, "--resource-expiry-to"
+            ),
+            reminder_from=parse_filter_date(args.reminder_from, "--reminder-from"),
+            reminder_to=parse_filter_date(args.reminder_to, "--reminder-to"),
             related_project=args.related_project,
             related_area=args.related_area,
             source_types=tuple(args.source_type),
@@ -194,6 +261,10 @@ def _run(args: argparse.Namespace) -> int:
             duplicate_statuses=tuple(args.duplicate_status),
             has_deadline=args.has_deadline,
             missing_deadline=args.missing_deadline,
+            has_resource_expiry=args.has_resource_expiry,
+            missing_resource_expiry=args.missing_resource_expiry,
+            has_reminder=args.has_reminder,
+            missing_reminder=args.missing_reminder,
             has_action=args.has_action,
             missing_action=args.missing_action,
             sort=args.sort,
@@ -202,6 +273,26 @@ def _run(args: argparse.Namespace) -> int:
         result = search_inbox(vault=args.vault, query=query)
         print(format_search_json(result) if args.format == "json" else format_search_text(result))
         for diagnostic in format_search_diagnostics(result):
+            print(f"WARNING: {diagnostic}", file=sys.stderr)
+        return 0
+    if args.command == "due":
+        result = review_due_dates(
+            vault=args.vault,
+            query=DateReviewQuery(
+                as_of=parse_filter_date(args.as_of, "--as-of") or date.today(),
+                window_days=args.window_days,
+                event_types=tuple(args.event_type),
+                statuses=tuple(args.status),
+                categories=tuple(args.category),
+                related_project=args.related_project,
+                related_area=args.related_area,
+                include_upcoming=args.include_upcoming,
+                sort=args.sort,
+                limit=args.limit,
+            ),
+        )
+        print(format_due_json(result) if args.format == "json" else format_due_text(result))
+        for diagnostic in format_date_diagnostics(result):
             print(f"WARNING: {diagnostic}", file=sys.stderr)
         return 0
     errors = validate_vault(args.vault)

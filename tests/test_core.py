@@ -361,12 +361,13 @@ class CoreTests(unittest.TestCase):
             action_required="Act\n## Injected",
             related_project="Project\n## Injected",
             related_area="Area\n## Injected",
-            deadline="2026-07-26\n## Injected",
+            deadline="2026-07-26",
         )
         body = note.read_text(encoding="utf-8")
         self.assertIn("# Title ## Injected", body)
         self.assertIn("- Action Required: Act ## Injected", body)
         self.assertIn("- External File Link: https://example.com ## Injected", body)
+        self.assertIn("- Deadline: 2026-07-26", body)
         self.assertIn(raw, body)
 
     def test_manual_category_updates_metadata_and_relevance(self) -> None:

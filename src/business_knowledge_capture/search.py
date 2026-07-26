@@ -11,6 +11,7 @@ from .core import (
     MAX_INBOX_CANDIDATES,
     _read_inbox_prefix,
     list_safe_inbox_candidates,
+    parse_iso_date,
 )
 
 MAX_SEARCH_RESULTS = 200
@@ -44,6 +45,9 @@ class InboxSearchRecord:
     relative_path: str
     source_filename: str = ""
     duplicate_match_type: str = ""
+    resource_expiry: Optional[date] = None
+    reminder_date: Optional[date] = None
+    reminder_note: str = ""
 
 
 @dataclass(frozen=True)
@@ -55,6 +59,10 @@ class InboxSearchQuery:
     created_to: Optional[date] = None
     deadline_from: Optional[date] = None
     deadline_to: Optional[date] = None
+    resource_expiry_from: Optional[date] = None
+    resource_expiry_to: Optional[date] = None
+    reminder_from: Optional[date] = None
+    reminder_to: Optional[date] = None
     related_project: str = ""
     related_area: str = ""
     source_types: tuple[str, ...] = ()
@@ -63,6 +71,10 @@ class InboxSearchQuery:
     duplicate_statuses: tuple[str, ...] = ()
     has_deadline: bool = False
     missing_deadline: bool = False
+    has_resource_expiry: bool = False
+    missing_resource_expiry: bool = False
+    has_reminder: bool = False
+    missing_reminder: bool = False
     has_action: bool = False
     missing_action: bool = False
     sort: str = "created-desc"
@@ -80,10 +92,7 @@ class InboxSearchResult:
 def parse_filter_date(value: str, label: str) -> Optional[date]:
     if not value:
         return None
-    try:
-        return date.fromisoformat(value)
-    except ValueError as exc:
-        raise ValueError(f"{label} must be an ISO date (YYYY-MM-DD).") from exc
+    return parse_iso_date(value, label)
 
 
 def _metadata_date(value: str) -> Optional[date]:
@@ -107,6 +116,12 @@ def validate_search_query(query: InboxSearchQuery) -> None:
         raise ValueError("--has-deadline and --missing-deadline are mutually exclusive.")
     if query.has_action and query.missing_action:
         raise ValueError("--has-action and --missing-action are mutually exclusive.")
+    if query.has_resource_expiry and query.missing_resource_expiry:
+        raise ValueError(
+            "--has-resource-expiry and --missing-resource-expiry are mutually exclusive."
+        )
+    if query.has_reminder and query.missing_reminder:
+        raise ValueError("--has-reminder and --missing-reminder are mutually exclusive.")
     invalid_categories = [value for value in query.categories if value not in CATEGORIES]
     if invalid_categories:
         raise ValueError(f"Category must be one of: {', '.join(CATEGORIES)}.")
@@ -123,6 +138,12 @@ def validate_search_query(query: InboxSearchQuery) -> None:
     for start, end, label in (
         (query.created_from, query.created_to, "Created"),
         (query.deadline_from, query.deadline_to, "Deadline"),
+        (
+            query.resource_expiry_from,
+            query.resource_expiry_to,
+            "Resource Expiry",
+        ),
+        (query.reminder_from, query.reminder_to, "Reminder"),
     ):
         if start and end and start > end:
             raise ValueError(f"{label} start date must not be after end date.")
@@ -153,6 +174,7 @@ def _matches(record: InboxSearchRecord, query: InboxSearchQuery) -> bool:
             record.processing_status,
             record.duplicate_status,
             record.duplicate_match_type,
+            record.reminder_note,
         )
         if not any(_contains(value, query.keyword) for value in keyword_fields):
             return False
@@ -170,9 +192,35 @@ def _matches(record: InboxSearchRecord, query: InboxSearchQuery) -> bool:
         record.deadline is None or record.deadline > query.deadline_to
     ):
         return False
+    if query.resource_expiry_from and (
+        record.resource_expiry is None
+        or record.resource_expiry < query.resource_expiry_from
+    ):
+        return False
+    if query.resource_expiry_to and (
+        record.resource_expiry is None
+        or record.resource_expiry > query.resource_expiry_to
+    ):
+        return False
+    if query.reminder_from and (
+        record.reminder_date is None or record.reminder_date < query.reminder_from
+    ):
+        return False
+    if query.reminder_to and (
+        record.reminder_date is None or record.reminder_date > query.reminder_to
+    ):
+        return False
     if query.has_deadline and record.deadline is None:
         return False
     if query.missing_deadline and record.deadline is not None:
+        return False
+    if query.has_resource_expiry and record.resource_expiry is None:
+        return False
+    if query.missing_resource_expiry and record.resource_expiry is not None:
+        return False
+    if query.has_reminder and record.reminder_date is None:
+        return False
+    if query.missing_reminder and record.reminder_date is not None:
         return False
     if query.related_project and not _contains(record.related_project, query.related_project):
         return False
@@ -246,8 +294,26 @@ def search_inbox(
             diagnostics.append(f"{relative}: missing H1; filename used as title.")
         created_value = metadata.get("Created", "")
         deadline_value = metadata.get("Deadline", "")
+        resource_expiry_value = metadata.get("Resource Expiry", "")
+        reminder_value = metadata.get("Reminder Date", "")
         created = _metadata_date(created_value)
         deadline = _metadata_date(deadline_value)
+        resource_expiry = None
+        reminder_date = None
+        if resource_expiry_value:
+            try:
+                resource_expiry = parse_iso_date(
+                    resource_expiry_value, "Resource Expiry"
+                )
+            except ValueError:
+                diagnostics.append(
+                    f"{relative}: invalid Resource Expiry metadata ignored."
+                )
+        if reminder_value:
+            try:
+                reminder_date = parse_iso_date(reminder_value, "Reminder Date")
+            except ValueError:
+                diagnostics.append(f"{relative}: invalid Reminder Date metadata ignored.")
         if created_value and created is None:
             diagnostics.append(f"{relative}: invalid Created metadata ignored.")
         if deadline_value and deadline is None:
@@ -257,6 +323,9 @@ def search_inbox(
             created=created,
             suggested_category=metadata.get("Suggested Category", ""),
             deadline=deadline,
+            resource_expiry=resource_expiry,
+            reminder_date=reminder_date,
+            reminder_note=metadata.get("Reminder Note", ""),
             related_project=metadata.get("Related Project", ""),
             related_area=metadata.get("Related Area", ""),
             source_type=metadata.get("Source Type", ""),
@@ -293,6 +362,9 @@ def format_search_text(result: InboxSearchResult) -> str:
                 f"   Created: {_date_text(record.created)}",
                 f"   Category: {record.suggested_category}",
                 f"   Deadline: {_date_text(record.deadline)}",
+                f"   Resource Expiry: {_date_text(record.resource_expiry)}",
+                f"   Reminder Date: {_date_text(record.reminder_date)}",
+                f"   Reminder Note: {record.reminder_note}",
                 f"   Project: {record.related_project}",
                 f"   Area: {record.related_area}",
                 f"   Source: {record.source_type}",
@@ -315,6 +387,10 @@ def _query_json(query: InboxSearchQuery) -> dict[str, object]:
         "created_to": _date_text(query.created_to),
         "deadline_from": _date_text(query.deadline_from),
         "deadline_to": _date_text(query.deadline_to),
+        "resource_expiry_from": _date_text(query.resource_expiry_from),
+        "resource_expiry_to": _date_text(query.resource_expiry_to),
+        "reminder_from": _date_text(query.reminder_from),
+        "reminder_to": _date_text(query.reminder_to),
         "related_project": query.related_project,
         "related_area": query.related_area,
         "source_types": list(query.source_types),
@@ -323,6 +399,10 @@ def _query_json(query: InboxSearchQuery) -> dict[str, object]:
         "duplicate_statuses": list(query.duplicate_statuses),
         "has_deadline": query.has_deadline,
         "missing_deadline": query.missing_deadline,
+        "has_resource_expiry": query.has_resource_expiry,
+        "missing_resource_expiry": query.missing_resource_expiry,
+        "has_reminder": query.has_reminder,
+        "missing_reminder": query.missing_reminder,
         "has_action": query.has_action,
         "missing_action": query.missing_action,
         "sort": query.sort,
@@ -337,6 +417,9 @@ def format_search_json(result: InboxSearchResult) -> str:
             "created": _date_text(record.created),
             "suggested_category": record.suggested_category,
             "deadline": _date_text(record.deadline),
+            "resource_expiry": _date_text(record.resource_expiry),
+            "reminder_date": _date_text(record.reminder_date),
+            "reminder_note": record.reminder_note,
             "related_project": record.related_project,
             "related_area": record.related_area,
             "source_type": record.source_type,

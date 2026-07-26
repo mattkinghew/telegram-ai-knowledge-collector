@@ -9,7 +9,7 @@ Build a daily-use Business Knowledge Capture & Reporting MVP for the existing Ob
 Two complementary flows exist:
 
 1. Existing no-code flow: Telegram → Make.com → optional Gemini processing → Google Sheets.
-2. New local flow: CLI input → exact duplicate suggestion from flat Inbox metadata → flat `00_Inbox` Markdown note → metadata-only Inbox search → manual review → selected-note progress report.
+2. New local flow: CLI input → exact duplicate suggestion from flat Inbox metadata → flat `00_Inbox` Markdown note → metadata-only Inbox search and date review → manual review → selected-note progress report.
 
 The local CLI is the P0 core and does not require an API key.
 
@@ -73,12 +73,28 @@ P1A acceptance completed on 2026-07-26 using Python 3.9.6. All 33 P0 tests and 3
 - A 5,000-candidate hard stop, default 50 results, maximum 200 results, and 20 displayed malformed-note diagnostics.
 - P0/P1A note compatibility without migration or Vault writes.
 
+## Implemented P1C
+
+- Strict `YYYY-MM-DD` validation for Deadline, Resource Expiry, and Reminder Date.
+- Manual reminder metadata and newline-safe Reminder Note.
+- Atomic review set/clear operations and a dates-review checkbox.
+- Read-only `bkc due` over direct flat Inbox H1 and Metadata only.
+- Dynamic overdue, due-today, due-soon, and upcoming status using explicit `as-of`.
+- Same-field OR, different-field AND filters and deterministic sorting.
+- Text and strict JSON output with Vault-relative paths only.
+- P1B resource-expiry and reminder search filters.
+- No background notification, Calendar integration, database, index, or note movement.
+
+P1C acceptance completed on 2026-07-26 using Python 3.9.6. All 124 retained
+tests and 23 P1C tests passed, together with isolated and scoped real-Vault
+acceptance. See `docs/P1C_ACCEPTANCE_REPORT.md`.
+
 ## Not Implemented
 
 - iPhone Shortcut and voice-input workflow.
 - Voice transcription.
 - Semantic or fuzzy duplicate detection.
-- Deadline notifications.
+- Background deadline notifications.
 - Search UI or persistent index.
 - OCR.
 - RAG, vector database, or chatbot.
@@ -87,4 +103,6 @@ P1A acceptance completed on 2026-07-26 using Python 3.9.6. All 33 P0 tests and 3
 
 ## Next Recommended Task
 
-Define one bounded P1C task for saved local search presets without adding a database, background index, notifications, semantic search, embeddings, or RAG.
+Define one bounded P1D task for user-selected due-event handoff into an existing
+progress-report command, without automatic Inbox scanning, background work,
+notifications, Calendar writes, or a database.

@@ -29,7 +29,10 @@ bkc capture \
   --vault "/absolute/path/to/Matt_Space" \
   --url "https://example.com/resource" \
   --title "Resource to review" \
-  --deadline "2026-08-31"
+  --deadline "2026-08-31" \
+  --resource-expiry "2026-09-15" \
+  --reminder-date "2026-08-24" \
+  --reminder-note "Review requirements"
 ```
 
 Remote fetch is off by default. Use `--fetch-url` only for public, non-sensitive HTTP/HTTPS pages. Fetching is explicit and limited to 2 MB.
@@ -81,6 +84,11 @@ The duplicate checkbox records that a human reviewed the suggestion. It does not
 
 The system never automatically deletes or moves a note.
 
+Deadline, Resource Expiry, and Reminder Date accept only `YYYY-MM-DD`. Review
+can set these fields or clear them explicitly. `--clear-reminder` clears both
+Reminder Date and Reminder Note. `--mark dates` records manual review without
+checking Action confirmed or changing classification.
+
 Review and report accept only existing regular `.md` files inside the selected Vault. Protected paths, symlink files, and symlink ancestors are rejected before content is read.
 
 ## Metadata-only Inbox Search
@@ -109,6 +117,28 @@ Sort modes are `created-desc` (default), `created-asc`, `deadline-asc`, `deadlin
 
 Use `--format json` for JSON. Diagnostics stay on stderr, so stdout remains valid JSON. Search stops without partial results above 5,000 direct candidates; the result limit defaults to 50 and must be from 1 through 200.
 
+Resource Expiry and Reminder Date support inclusive range and presence filters.
+Reminder Note participates in `--query` because it is allowlisted Metadata.
+
+## Read-only Date Review
+
+```bash
+bkc due \
+  --vault "/absolute/path/to/Matt_Space" \
+  --as-of "2026-07-26" \
+  --window-days 14
+```
+
+Each note may yield a deadline, resource-expiry, and reminder event. Status is
+calculated from the explicit reference date: negative is overdue, zero is due
+today, 1 through the window is due soon, and later is upcoming. Upcoming events
+are hidden by default.
+
+Repeated event-type and status filters use OR; different fields use AND. The
+default sort is date ascending, with reminder before deadline before resource
+expiry, then Vault-relative path. The command reads only bounded H1 and Metadata
+from direct Inbox notes and writes nothing.
+
 ## Progress Report Draft
 
 ```bash
@@ -123,6 +153,9 @@ bkc report \
 ```
 
 The report is written to `14_New_Role_90_Day/03_Progress_Reports/` under the detected existing project root.
+
+Date review does not automatically populate reports. Run `bkc due`, identify
+relevant notes, then explicitly pass selected notes to `bkc report`.
 
 ## Validation
 
