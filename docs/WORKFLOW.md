@@ -83,6 +83,32 @@ The system never automatically deletes or moves a note.
 
 Review and report accept only existing regular `.md` files inside the selected Vault. Protected paths, symlink files, and symlink ancestors are rejected before content is read.
 
+## Metadata-only Inbox Search
+
+```bash
+bkc search \
+  --vault "/absolute/path/to/Matt_Space" \
+  --related-project "14_New_Role_90_Day"
+```
+
+Search is read-only and considers only direct `00_Inbox/*.md` files. It reads the H1 title and bounded `## Metadata` section, stopping before One-line Summary, Key Points, Relevance, Suggested Actions, Source Notes, Manual Review, or any other body section.
+
+Supported filters include title, allowlisted metadata keyword, category, created/deadline ranges, deadline/action presence, related project/area, source type, exact file type, processing status, and duplicate status. Repeated values for one field use OR; filters across fields use AND.
+
+```bash
+bkc search \
+  --vault "/absolute/path/to/Matt_Space" \
+  --category "重要知識" \
+  --category "資源" \
+  --has-deadline \
+  --sort deadline-asc \
+  --limit 50
+```
+
+Sort modes are `created-desc` (default), `created-asc`, `deadline-asc`, `deadline-desc`, `title-asc`, and `title-desc`. Missing dates remain last. The Vault-relative path is the stable tie-breaker.
+
+Use `--format json` for JSON. Diagnostics stay on stderr, so stdout remains valid JSON. Search stops without partial results above 5,000 direct candidates; the result limit defaults to 50 and must be from 1 through 200.
+
 ## Progress Report Draft
 
 ```bash

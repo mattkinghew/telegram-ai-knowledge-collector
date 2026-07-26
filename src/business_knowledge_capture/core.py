@@ -684,7 +684,12 @@ def normalize_url_for_duplicate(url: str) -> str:
     return urlunsplit((scheme, netloc, parsed.path or "/", parsed.query, ""))
 
 
-def _read_inbox_metadata(path: Path) -> dict[str, str]:
+def _read_inbox_prefix(
+    path: Path,
+    *,
+    require_metadata: bool = True,
+) -> tuple[str, dict[str, str]]:
+    title = ""
     metadata_lines: list[str] = []
     in_metadata = False
     total_bytes = 0
@@ -693,21 +698,70 @@ def _read_inbox_metadata(path: Path) -> dict[str, str]:
             total_bytes += len(line.encode("utf-8"))
             if total_bytes > MAX_METADATA_BYTES:
                 raise ValueError("Inbox metadata exceeded the local read limit.")
-            if line.rstrip("\r\n") == "## Metadata":
+            stripped = line.rstrip("\r\n")
+            if not title:
+                title_match = re.match(r"^#\s+(.+)$", stripped)
+                if title_match:
+                    title = title_match.group(1).strip()
+            if stripped == "## Metadata":
                 in_metadata = True
                 continue
             if in_metadata and line.startswith("## "):
                 break
+            if not in_metadata and line.startswith("## "):
+                break
+            if not in_metadata and stripped and not stripped.startswith("# "):
+                break
             if in_metadata:
                 metadata_lines.append(line)
-    if not in_metadata:
-        raise ValueError("Inbox candidate has no Metadata section.")
-    return {
+    metadata = {
         match.group(1).strip(): match.group(2).strip()
         for line in metadata_lines
         for match in [re.match(r"^- ([^:\n]+):[ \t]*(.*)$", line.rstrip("\r\n"))]
         if match
     }
+    if require_metadata and not in_metadata:
+        raise ValueError("Inbox candidate has no Metadata section.")
+    return title, metadata
+
+
+def _read_inbox_metadata(path: Path) -> dict[str, str]:
+    return _read_inbox_prefix(path)[1]
+
+
+def list_safe_inbox_candidates(
+    *,
+    vault: Path,
+    max_candidates: int = MAX_INBOX_CANDIDATES,
+) -> tuple[tuple[Path, ...], tuple[str, ...]]:
+    inbox = vault / "00_Inbox"
+    patterns = load_protected_patterns(vault)
+    guard_local_path(inbox, vault, patterns)
+    if not inbox.is_dir():
+        raise VaultStructureError("00_Inbox is missing.")
+
+    candidates = sorted(inbox.glob("*.md"), key=lambda path: path.name)
+    if len(candidates) > max_candidates:
+        raise ValueError(f"Inbox search candidate limit exceeded (maximum {max_candidates}).")
+
+    safe_candidates: list[Path] = []
+    diagnostics: list[str] = []
+    for candidate in candidates:
+        relative = candidate.relative_to(vault).as_posix()
+        if candidate.parent != inbox or candidate.suffix.lower() != ".md":
+            diagnostics.append(f"{relative}: candidate is outside the flat Markdown Inbox scope.")
+            continue
+        try:
+            guard_local_path(candidate, vault, patterns)
+            mode = os.lstat(str(candidate)).st_mode
+            if not stat.S_ISREG(mode):
+                diagnostics.append(f"{relative}: candidate is not a regular file.")
+                continue
+        except (OSError, ProtectedPathError, UnsafePathError) as exc:
+            diagnostics.append(f"{relative}: {exc.__class__.__name__}.")
+            continue
+        safe_candidates.append(candidate)
+    return tuple(safe_candidates), tuple(diagnostics)
 
 
 def find_exact_duplicates(
@@ -727,8 +781,12 @@ def find_exact_duplicates(
     if not source_hash and not normalized_source_url:
         return DuplicateResult("check_unavailable", "unavailable")
 
-    candidates = sorted(inbox.glob("*.md"), key=lambda path: path.name)
-    if len(candidates) > max_candidates:
+    try:
+        candidates, candidate_diagnostics = list_safe_inbox_candidates(
+            vault=vault,
+            max_candidates=max_candidates,
+        )
+    except ValueError:
         return DuplicateResult(
             "check_unavailable",
             "unavailable",
@@ -737,19 +795,11 @@ def find_exact_duplicates(
 
     content_matches: set[str] = set()
     url_matches: set[str] = set()
-    skipped = 0
+    skipped = len(candidate_diagnostics)
     for candidate in candidates:
-        if candidate.parent != inbox or candidate.suffix.lower() != ".md":
-            skipped += 1
-            continue
         try:
-            guard_local_path(candidate, vault, patterns)
-            mode = os.lstat(str(candidate)).st_mode
-            if not stat.S_ISREG(mode):
-                skipped += 1
-                continue
             metadata = _read_inbox_metadata(candidate)
-        except (OSError, ProtectedPathError, UnsafePathError, ValueError):
+        except (OSError, ValueError):
             skipped += 1
             continue
 

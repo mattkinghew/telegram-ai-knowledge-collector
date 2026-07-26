@@ -32,6 +32,9 @@ The local MVP runs without an API key and never invents an AI summary when no ap
 - Suggest exact duplicates using a complete content hash or conservatively normalized HTTP/HTTPS URL.
 - Record duplicate status, match type, count, and up to five Vault-relative matching note paths.
 - Keep duplicate decisions manual; captures are never blocked, deleted, merged, or moved.
+- Search only the H1 title and an explicit metadata allowlist in direct `00_Inbox/*.md` notes.
+- Combine repeated filters with OR, different filter fields with AND, and return stable text or JSON results.
+- Keep search read-only and bounded to 5,000 candidates and 200 returned results.
 
 ## Safety Boundary
 
@@ -119,12 +122,27 @@ bkc report \
   --commitment "Complete stakeholder map"
 ```
 
+## Metadata-only Inbox Search
+
+```bash
+bkc search \
+  --vault "/absolute/path/to/Matt_Space" \
+  --category "資源" \
+  --has-deadline \
+  --sort deadline-asc
+```
+
+Repeated category, source-type, file-type, processing-status, and duplicate-status filters use OR. Different filter fields use AND. `--query` searches only the title and documented metadata fields; it is not full-text search and never searches Source Notes.
+
+Use `--format json` for bounded machine-readable output. Both text and JSON expose Vault-relative note paths only.
+
 ## Validation
 
 ```bash
 python3 -m compileall -q src tests
 PYTHONPATH=src python3 -m unittest discover -s tests -v
 PYTHONPATH=src python3 -m business_knowledge_capture.cli --help
+PYTHONPATH=src python3 -m business_knowledge_capture.cli search --help
 bkc validate --vault "/absolute/path/to/Matt_Space"
 ```
 
@@ -139,8 +157,10 @@ CI runs compile, unit tests, and the CLI help smoke test on Python 3.9 through 3
 - `docs/P0_ACCEPTANCE_REPORT.md`
 - `docs/P1A_DUPLICATE_DETECTION.md`
 - `docs/P1A_ACCEPTANCE_REPORT.md`
+- `docs/P1B_METADATA_SEARCH.md`
+- `docs/P1B_ACCEPTANCE_REPORT.md`
 - `samples/sample_capture_commands.md`
 
 ## Not Included
 
-iPhone Shortcut, voice transcription, OCR, semantic or fuzzy duplicate detection, deadline notifications, search UI, automatic classification moves, chatbot, RAG, vector database, external AI activation, deployment, and publication.
+iPhone Shortcut, voice transcription, OCR, full-text or semantic search, fuzzy duplicate detection, deadline notifications, search UI, persistent index, automatic classification moves, chatbot, RAG, vector database, external AI activation, deployment, and publication.

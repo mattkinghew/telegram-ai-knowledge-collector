@@ -9,7 +9,7 @@ Build a daily-use Business Knowledge Capture & Reporting MVP for the existing Ob
 Two complementary flows exist:
 
 1. Existing no-code flow: Telegram → Make.com → optional Gemini processing → Google Sheets.
-2. New local flow: CLI input → exact duplicate suggestion from flat Inbox metadata → flat `00_Inbox` Markdown note → manual review → selected-note progress report.
+2. New local flow: CLI input → exact duplicate suggestion from flat Inbox metadata → flat `00_Inbox` Markdown note → metadata-only Inbox search → manual review → selected-note progress report.
 
 The local CLI is the P0 core and does not require an API key.
 
@@ -62,13 +62,24 @@ P0 acceptance completed on 2026-07-26 using Python 3.9.6. Thirty-three unit test
 
 P1A acceptance completed on 2026-07-26 using Python 3.9.6. All 33 P0 tests and 34 P1A tests passed, together with isolated and scoped real-Vault acceptance. See `docs/P1A_ACCEPTANCE_REPORT.md`.
 
+## Implemented P1B
+
+- Read-only `bkc search` over direct `00_Inbox/*.md` candidates.
+- A bounded prefix reader exposes only H1 and the `## Metadata` section.
+- Title, keyword allowlist, category, created/deadline, project/area, source/file type, processing/duplicate status, and action-presence filters.
+- Repeated same-field values use OR; different fields use AND.
+- Stable created, deadline, and title sorting with Vault-relative path tie-breaking.
+- Human-readable text and UTF-8 JSON with a strict output allowlist.
+- A 5,000-candidate hard stop, default 50 results, maximum 200 results, and 20 displayed malformed-note diagnostics.
+- P0/P1A note compatibility without migration or Vault writes.
+
 ## Not Implemented
 
 - iPhone Shortcut and voice-input workflow.
 - Voice transcription.
 - Semantic or fuzzy duplicate detection.
 - Deadline notifications.
-- Simple search/index UI.
+- Search UI or persistent index.
 - OCR.
 - RAG, vector database, or chatbot.
 - Automatic moves after classification.
@@ -76,4 +87,4 @@ P1A acceptance completed on 2026-07-26 using Python 3.9.6. All 33 P0 tests and 3
 
 ## Next Recommended Task
 
-Define one bounded P1B metadata-only search task without adding semantic search, embeddings, RAG, or a database.
+Define one bounded P1C task for saved local search presets without adding a database, background index, notifications, semantic search, embeddings, or RAG.

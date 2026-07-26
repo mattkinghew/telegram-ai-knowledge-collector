@@ -6,6 +6,7 @@ PYTHON_BIN="$(command -v python3)"
 "$PYTHON_BIN" -m compileall -q src tests
 PYTHONPATH=src "$PYTHON_BIN" -m unittest discover -s tests -v
 PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli --help
+PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli search --help
 ```
 
 The minimum supported runtime is Python 3.9. GitHub Actions repeats compile, unit tests, and CLI help on Python 3.9, 3.10, 3.11, and 3.12. No API key is needed.
@@ -40,3 +41,13 @@ P1A adds exact duplicate coverage for:
 No network, API key, external AI, external upload, database, or semantic matching is required.
 
 The 2026-07-26 P1A acceptance ran 67 tests on Python 3.9.6: 33 retained P0 tests and 34 P1A tests. The isolated and scoped real-Vault flows both passed. GitHub-hosted execution remains pending because the accepted task prohibits push and pull-request creation.
+
+P1B adds metadata-only search coverage for:
+
+- flat direct Inbox scope, candidate limit, protected-path and symlink controls, read-only hashes, and Vault-relative output;
+- bounded H1/Metadata parsing, old P0/P1A notes, missing fields, invalid dates, malformed candidates, and capped diagnostics;
+- same-field OR, different-field AND, all supported filters, inclusive ISO dates, zero results, and file-type exact equality;
+- all six stable sort modes, missing-date ordering, relative-path tie-breaking, default/custom result limits, text output, and strict JSON allowlisting;
+- Source Notes, Source URL, Local File, Content Hash, and absolute Vault path exclusion.
+
+No full-text search, database, SQLite, background index, semantic search, embedding, RAG, network, or Vault write is required.

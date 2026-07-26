@@ -21,6 +21,17 @@ from .core import (
     review_note,
     validate_vault,
 )
+from .search import (
+    DUPLICATE_STATUSES,
+    SEARCH_SORTS,
+    SOURCE_TYPES,
+    InboxSearchQuery,
+    format_search_diagnostics,
+    format_search_json,
+    format_search_text,
+    parse_filter_date,
+    search_inbox,
+)
 
 
 def _path(value: str) -> Path:
@@ -73,6 +84,31 @@ def build_parser() -> argparse.ArgumentParser:
 
     validate = subparsers.add_parser("validate")
     validate.add_argument("--vault", required=True, type=_path)
+
+    search = subparsers.add_parser("search")
+    search.add_argument("--vault", required=True, type=_path)
+    search.add_argument("--title", default="")
+    search.add_argument("--query", default="")
+    search.add_argument("--category", action="append", choices=("重要知識", "次要知識", "資源", "其他"), default=[])
+    search.add_argument("--created-from", default="")
+    search.add_argument("--created-to", default="")
+    search.add_argument("--deadline-from", default="")
+    search.add_argument("--deadline-to", default="")
+    deadline_presence = search.add_mutually_exclusive_group()
+    deadline_presence.add_argument("--has-deadline", action="store_true")
+    deadline_presence.add_argument("--missing-deadline", action="store_true")
+    search.add_argument("--related-project", default="")
+    search.add_argument("--related-area", default="")
+    search.add_argument("--source-type", action="append", choices=SOURCE_TYPES, default=[])
+    search.add_argument("--file-type", action="append", default=[])
+    search.add_argument("--processing-status", action="append", default=[])
+    search.add_argument("--duplicate-status", action="append", choices=DUPLICATE_STATUSES, default=[])
+    action_presence = search.add_mutually_exclusive_group()
+    action_presence.add_argument("--has-action", action="store_true")
+    action_presence.add_argument("--missing-action", action="store_true")
+    search.add_argument("--sort", choices=SEARCH_SORTS, default="created-desc")
+    search.add_argument("--limit", type=int, default=50)
+    search.add_argument("--format", choices=("text", "json"), default="text")
     return parser
 
 
@@ -140,6 +176,33 @@ def _run(args: argparse.Namespace) -> int:
             commitments=args.commitment,
         )
         print(output)
+        return 0
+    if args.command == "search":
+        query = InboxSearchQuery(
+            title=args.title,
+            keyword=args.query,
+            categories=tuple(args.category),
+            created_from=parse_filter_date(args.created_from, "--created-from"),
+            created_to=parse_filter_date(args.created_to, "--created-to"),
+            deadline_from=parse_filter_date(args.deadline_from, "--deadline-from"),
+            deadline_to=parse_filter_date(args.deadline_to, "--deadline-to"),
+            related_project=args.related_project,
+            related_area=args.related_area,
+            source_types=tuple(args.source_type),
+            file_types=tuple(args.file_type),
+            processing_statuses=tuple(args.processing_status),
+            duplicate_statuses=tuple(args.duplicate_status),
+            has_deadline=args.has_deadline,
+            missing_deadline=args.missing_deadline,
+            has_action=args.has_action,
+            missing_action=args.missing_action,
+            sort=args.sort,
+            limit=args.limit,
+        )
+        result = search_inbox(vault=args.vault, query=query)
+        print(format_search_json(result) if args.format == "json" else format_search_text(result))
+        for diagnostic in format_search_diagnostics(result):
+            print(f"WARNING: {diagnostic}", file=sys.stderr)
         return 0
     errors = validate_vault(args.vault)
     if errors:

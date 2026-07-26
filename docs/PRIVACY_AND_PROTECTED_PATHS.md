@@ -41,3 +41,14 @@ Symbolic-link files and paths with symbolic-link ancestors are rejected. Review 
 - No automatic upload exists.
 - Private company documents are out of scope.
 - The CLI does not require `.env` or API keys.
+
+## Metadata search boundary
+
+- `bkc search` lists only direct `00_Inbox/*.md` candidates and never recurses.
+- The shared candidate scanner applies Vault, Protected Paths, regular-file, and symlink guards before a candidate is opened.
+- The bounded reader stops after H1 and `## Metadata`; it does not read body sections to answer a query.
+- Keyword search uses only Title, Suggested Category, Action Required, Related Project, Related Area, Source Filename, Source Type, File Type, Processing Status, Duplicate Status, and Duplicate Match Type.
+- Source URL, Local File, External File Link, Content Hash, and all body content are excluded from matching and output.
+- Text and JSON output use Vault-relative paths only.
+- Search writes no Vault files, creates no database or persistent index, and calls no external AI or service.
+- More than 5,000 direct candidates is a hard failure rather than a partial result.
