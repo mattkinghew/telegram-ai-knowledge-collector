@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "handoff_id": "sample-voice-20260726-001",
+  "source_type": "voice_transcript",
+  "title": "Follow-up checklist idea",
+  "content": "Review the onboarding workflow and prepare the next action list.",
+  "source_url": "",
+  "captured_at": "2026-07-26T21:00:00+02:00",
+  "action_required": "Check the transcript, then classify it.",
+  "deadline": "2026-08-20",
+  "resource_expiry": "",
+  "reminder_date": "2026-08-13",
+  "reminder_note": "Review the transcript before its test deadline.",
+  "related_project": "14_New_Role_90_Day",
+  "related_area": "New Role"
+}

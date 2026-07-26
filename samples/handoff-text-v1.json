@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "handoff_id": "sample-text-20260726-001",
+  "source_type": "text",
+  "title": "Onboarding workflow idea",
+  "content": "Create a short checklist for the next onboarding review.",
+  "source_url": "",
+  "captured_at": "2026-07-26T19:00:00Z",
+  "action_required": "Review and classify the idea.",
+  "deadline": "",
+  "resource_expiry": "",
+  "reminder_date": "",
+  "reminder_note": "",
+  "related_project": "14_New_Role_90_Day",
+  "related_area": "New Role"
+}
