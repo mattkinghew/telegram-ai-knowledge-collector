@@ -1,0 +1,23 @@
+{
+  "suggested_title": "Connect user evidence to product decisions",
+  "one_sentence_insight": "Use a repeatable evidence checkpoint before turning an observation into a product decision.",
+  "key_points": [
+    "Keep the original observation separate from interpretation.",
+    "Record which project decision the evidence may inform.",
+    "Verify the source before treating its claims as factual."
+  ],
+  "note_type": "resource",
+  "related_project": "AI PM Radar",
+  "immediate_applications": [
+    "Add an evidence checkpoint to the project review."
+  ],
+  "next_action": "Compare the framework with the current evidence checklist.",
+  "content_output_angle": null,
+  "facts_to_verify": [
+    "The linked page was not fetched, so its detailed claims remain unverified."
+  ],
+  "missing_information": [
+    "The page content is not included in the request."
+  ],
+  "confidence": "medium"
+}

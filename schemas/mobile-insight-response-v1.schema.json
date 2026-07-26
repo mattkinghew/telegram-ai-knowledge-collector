@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/mobile-insight-response-v1.schema.json",
+  "title": "Mobile Insight Enrichment Response v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "suggested_title",
+    "one_sentence_insight",
+    "key_points",
+    "note_type",
+    "related_project",
+    "immediate_applications",
+    "next_action",
+    "content_output_angle",
+    "facts_to_verify",
+    "missing_information",
+    "confidence"
+  ],
+  "properties": {
+    "suggested_title": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 200
+    },
+    "one_sentence_insight": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 500
+    },
+    "key_points": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      }
+    },
+    "note_type": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "idea",
+        "resource",
+        "action",
+        "decision",
+        "evidence",
+        "reference",
+        null
+      ]
+    },
+    "related_project": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 200
+    },
+    "immediate_applications": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      }
+    },
+    "next_action": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 500
+    },
+    "content_output_angle": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 500
+    },
+    "facts_to_verify": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      }
+    },
+    "missing_information": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      }
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "source_type": "url",
+  "source": "https://example.com/public-ai-product-guide",
+  "raw_content": "A public guide shared for later review. The page was not fetched.",
+  "why_keep": "It may provide a reusable way to connect user evidence to product decisions.",
+  "immediate_application": "AI PM Radar",
+  "next_action": "Compare the framework with the current evidence checklist.",
+  "output_goal": "專案知識",
+  "allowed_projects": [
+    "AI PM Radar",
+    "Cyber Kuma",
+    "Content Creation"
+  ]
+}

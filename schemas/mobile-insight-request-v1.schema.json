@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/mobile-insight-request-v1.schema.json",
+  "title": "Mobile Insight Enrichment Request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_type",
+    "source",
+    "raw_content",
+    "why_keep",
+    "immediate_application",
+    "next_action",
+    "output_goal",
+    "allowed_projects"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "url",
+        "text",
+        "rich_text",
+        "voice_transcript",
+        "clipboard",
+        "image",
+        "file"
+      ]
+    },
+    "source": {
+      "type": "string",
+      "maxLength": 2048
+    },
+    "raw_content": {
+      "type": "string",
+      "maxLength": 50000
+    },
+    "why_keep": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "immediate_application": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "next_action": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "output_goal": {
+      "type": "string",
+      "enum": [
+        "只收藏",
+        "任務",
+        "內容素材",
+        "專案知識",
+        "工作進度",
+        "決策記錄"
+      ]
+    },
+    "allowed_projects": {
+      "type": "array",
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "source_type": {
+            "const": "url"
+          }
+        },
+        "required": [
+          "source_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048,
+            "format": "uri",
+            "pattern": "^https?://(?![^/?#]*@)(?:\\[[0-9A-Fa-f:.]+\\]|[^\\s/?#:@]+)(?::[0-9]{1,5})?(?:[/?#][^\\s]*)?$"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "maxLength": 500,
+            "pattern": "^(?!/)(?![A-Za-z]:[\\\\/]).*$"
+          }
+        }
+      }
+    }
+  ]
+}
