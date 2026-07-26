@@ -9,7 +9,7 @@ Build a daily-use Business Knowledge Capture & Reporting MVP for the existing Ob
 Two complementary flows exist:
 
 1. Existing no-code flow: Telegram → Make.com → optional Gemini processing → Google Sheets.
-2. New local flow: CLI input → flat `00_Inbox` Markdown note → manual review → selected-note progress report.
+2. New local flow: CLI input → exact duplicate suggestion from flat Inbox metadata → flat `00_Inbox` Markdown note → manual review → selected-note progress report.
 
 The local CLI is the P0 core and does not require an API key.
 
@@ -50,11 +50,23 @@ The supported runtime is Python 3.9 or newer. CI validates Python 3.9, 3.10, 3.1
 
 P0 acceptance completed on 2026-07-26 using Python 3.9.6. Thirty-three unit tests, an isolated 11-input Vault flow, protected-path and symlink rejection, manual review, and a scoped real-Vault daily report all passed. See `docs/P0_ACCEPTANCE_REPORT.md`.
 
+## Implemented P1A
+
+- Exact SHA-256 match against existing `Content Hash` metadata.
+- Conservative HTTP/HTTPS normalization: lower-case scheme/IDNA hostname, remove default port and fragment, and use `/` for an empty path.
+- Path case, non-empty trailing slash, query text/order/value, percent encoding, and HTTP/HTTPS remain distinct.
+- Direct `00_Inbox/*.md` candidates only; metadata sections only; no recursive or Vault-wide scan.
+- A 5,000-candidate safety limit and five recorded Vault-relative match paths.
+- Duplicate metadata, stderr warning, and optional `--mark duplicate` manual review.
+- No capture blocking, automatic deletion, merge, canonical selection, or movement.
+
+P1A acceptance completed on 2026-07-26 using Python 3.9.6. All 33 P0 tests and 34 P1A tests passed, together with isolated and scoped real-Vault acceptance. See `docs/P1A_ACCEPTANCE_REPORT.md`.
+
 ## Not Implemented
 
 - iPhone Shortcut and voice-input workflow.
 - Voice transcription.
-- Deduplication.
+- Semantic or fuzzy duplicate detection.
 - Deadline notifications.
 - Simple search/index UI.
 - OCR.
@@ -64,4 +76,4 @@ P0 acceptance completed on 2026-07-26 using Python 3.9.6. Thirty-three unit test
 
 ## Next Recommended Task
 
-Complete and record the scoped P0 acceptance with non-sensitive sample data before selecting a separate P1 task.
+Define one bounded P1B metadata-only search task without adding semantic search, embeddings, RAG, or a database.

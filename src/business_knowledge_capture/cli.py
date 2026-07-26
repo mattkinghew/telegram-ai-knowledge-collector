@@ -13,7 +13,7 @@ from .core import (
     ProtectedPathError,
     UnsafePathError,
     VaultStructureError,
-    create_inbox_note,
+    capture_inbox_note,
     extract_source,
     generate_progress_report,
     initialize_vault,
@@ -59,7 +59,7 @@ def build_parser() -> argparse.ArgumentParser:
     review.add_argument("--related-project", default="")
     review.add_argument("--related-area", default="")
     review.add_argument("--destination", default="")
-    review.add_argument("--mark", action="append", choices=("summary", "classification", "action", "links", "destination"), default=[])
+    review.add_argument("--mark", action="append", choices=("summary", "classification", "action", "links", "destination", "duplicate"), default=[])
 
     report = subparsers.add_parser("report")
     report.add_argument("--vault", required=True, type=_path)
@@ -91,7 +91,7 @@ def _run(args: argparse.Namespace) -> int:
             fetch_url=args.fetch_url,
         )
         summarizers = {"disabled": DisabledSummarizer(), "manual": ManualSummarizer(), "optional-ai-disabled": OptionalAIAdapter()}
-        output = create_inbox_note(
+        output, duplicate = capture_inbox_note(
             vault=args.vault,
             source=source,
             title=args.title,
@@ -103,6 +103,17 @@ def _run(args: argparse.Namespace) -> int:
             related_area=args.related_area,
         )
         print(output)
+        if duplicate.status == "exact_duplicate_suggested":
+            print("WARNING: Exact duplicate suggested.", file=sys.stderr)
+            print(f"Match type: {duplicate.match_type}", file=sys.stderr)
+            print(f"Existing notes: {duplicate.match_count}", file=sys.stderr)
+            if duplicate.matches:
+                safe_matches = " ".join(", ".join(duplicate.matches).replace("\r", "\n").splitlines())
+                print(f"Matches: {safe_matches}", file=sys.stderr)
+        elif duplicate.status == "check_unavailable":
+            print("WARNING: Duplicate check unavailable.", file=sys.stderr)
+        for diagnostic in duplicate.diagnostics:
+            print(f"WARNING: {diagnostic}", file=sys.stderr)
         return 0
     if args.command == "review":
         output = review_note(

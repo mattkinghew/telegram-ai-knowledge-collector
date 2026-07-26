@@ -14,7 +14,7 @@ This repository contains two complementary workflows:
 
 The local MVP runs without an API key and never invents an AI summary when no approved provider is configured.
 
-## P0 Features
+## Local MVP Features
 
 - Capture one text item, URL, or local file path.
 - Register PDF, DOCX, TXT, MD, JPG/JPEG, PNG, MP3, and MP4.
@@ -29,6 +29,9 @@ The local MVP runs without an API key and never invents an AI summary when no ap
 - Generate New Role daily/weekly progress-report Markdown from selected notes.
 - Keep `00_Inbox` flat.
 - Avoid vault-wide scanning, RAG, vector databases, and automatic file moves.
+- Suggest exact duplicates using a complete content hash or conservatively normalized HTTP/HTTPS URL.
+- Record duplicate status, match type, count, and up to five Vault-relative matching note paths.
+- Keep duplicate decisions manual; captures are never blocked, deleted, merged, or moved.
 
 ## Safety Boundary
 
@@ -99,7 +102,8 @@ bkc review \
   --note "/absolute/path/to/Matt_Space/00_Inbox/NOTE.md" \
   --category "重要知識" \
   --mark summary \
-  --mark classification
+  --mark classification \
+  --mark duplicate
 ```
 
 ## Progress Report
@@ -133,8 +137,10 @@ CI runs compile, unit tests, and the CLI help smoke test on Python 3.9 through 3
 - `docs/PRIVACY_AND_PROTECTED_PATHS.md`
 - `docs/TESTING.md`
 - `docs/P0_ACCEPTANCE_REPORT.md`
+- `docs/P1A_DUPLICATE_DETECTION.md`
+- `docs/P1A_ACCEPTANCE_REPORT.md`
 - `samples/sample_capture_commands.md`
 
-## Not Included in P0
+## Not Included
 
-iPhone Shortcut, voice transcription, OCR, deduplication, deadline notifications, simple search UI, automatic classification moves, chatbot, RAG, vector database, external AI activation, deployment, and publication.
+iPhone Shortcut, voice transcription, OCR, semantic or fuzzy duplicate detection, deadline notifications, search UI, automatic classification moves, chatbot, RAG, vector database, external AI activation, deployment, and publication.

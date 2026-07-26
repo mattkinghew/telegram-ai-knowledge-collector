@@ -16,7 +16,7 @@ from datetime import date, datetime
 from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
 from typing import Callable, Iterable, Optional, Protocol
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlsplit, urlunsplit
 from xml.etree import ElementTree
 
 DEFAULT_PROTECTED_PATTERNS = (
@@ -32,6 +32,9 @@ MEDIA_EXTENSIONS = {".mp3", ".mp4"}
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 TEXT_EXTENSIONS = {".txt", ".md"}
 CATEGORIES = ("重要知識", "次要知識", "資源", "其他")
+MAX_INBOX_CANDIDATES = 5_000
+MAX_DUPLICATE_MATCHES_RECORDED = 5
+MAX_METADATA_BYTES = 64 * 1024
 
 IMPORTANT_KEYWORDS = {
     "新工作": 4, "onboarding": 4, "stakeholder": 3, "職涯": 4, "career": 3,
@@ -126,6 +129,15 @@ class ExtractedSource:
     readable_text: str = ""
     source_notes: str = ""
     content_hash: str = ""
+
+
+@dataclass(frozen=True)
+class DuplicateResult:
+    status: str
+    match_type: str
+    matches: tuple[str, ...] = ()
+    match_count: int = 0
+    diagnostics: tuple[str, ...] = ()
 
 
 class _TextExtractor(HTMLParser):
@@ -290,6 +302,10 @@ def inbox_template_markdown() -> str:
 - File Type:
 - File Size:
 - Content Hash:
+- Duplicate Status:
+- Duplicate Match Type:
+- Duplicate Of:
+- Duplicate Match Count:
 
 ## One-line Summary
 
@@ -308,6 +324,7 @@ def inbox_template_markdown() -> str:
 - [ ] Action confirmed
 - [ ] Related links added
 - [ ] Final destination confirmed
+- [ ] Duplicate status reviewed
 """
 
 
@@ -650,7 +667,121 @@ def _safe_title(title: str, source: ExtractedSource) -> str:
     return _single_line(first[:80]) or "Inbox Capture"
 
 
-def render_inbox_note(*, note_id: str, created: str, title: str, source: ExtractedSource, summary: SummaryResult, classification: ClassificationSuggestion, action_required: str = "", deadline: str = "", related_project: str = "", related_area: str = "") -> str:
+def normalize_url_for_duplicate(url: str) -> str:
+    try:
+        parsed = urlsplit(url)
+        scheme = parsed.scheme.lower()
+        if scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password:
+            return ""
+        hostname = parsed.hostname.encode("idna").decode("ascii").lower()
+        if ":" in hostname:
+            hostname = f"[{hostname}]"
+        port = parsed.port
+    except (UnicodeError, ValueError):
+        return ""
+    default_port = (scheme == "http" and port == 80) or (scheme == "https" and port == 443)
+    netloc = hostname if port is None or default_port else f"{hostname}:{port}"
+    return urlunsplit((scheme, netloc, parsed.path or "/", parsed.query, ""))
+
+
+def _read_inbox_metadata(path: Path) -> dict[str, str]:
+    metadata_lines: list[str] = []
+    in_metadata = False
+    total_bytes = 0
+    with path.open("r", encoding="utf-8", errors="replace") as handle:
+        for line in handle:
+            total_bytes += len(line.encode("utf-8"))
+            if total_bytes > MAX_METADATA_BYTES:
+                raise ValueError("Inbox metadata exceeded the local read limit.")
+            if line.rstrip("\r\n") == "## Metadata":
+                in_metadata = True
+                continue
+            if in_metadata and line.startswith("## "):
+                break
+            if in_metadata:
+                metadata_lines.append(line)
+    if not in_metadata:
+        raise ValueError("Inbox candidate has no Metadata section.")
+    return {
+        match.group(1).strip(): match.group(2).strip()
+        for line in metadata_lines
+        for match in [re.match(r"^- ([^:\n]+):[ \t]*(.*)$", line.rstrip("\r\n"))]
+        if match
+    }
+
+
+def find_exact_duplicates(
+    *,
+    vault: Path,
+    source: ExtractedSource,
+    max_candidates: int = MAX_INBOX_CANDIDATES,
+) -> DuplicateResult:
+    inbox = vault / "00_Inbox"
+    patterns = load_protected_patterns(vault)
+    guard_local_path(inbox, vault, patterns)
+    if not inbox.is_dir():
+        raise VaultStructureError("00_Inbox is missing; refusing to create a duplicate vault.")
+
+    source_hash = source.content_hash.lower() if re.fullmatch(r"[0-9a-fA-F]{64}", source.content_hash) else ""
+    normalized_source_url = normalize_url_for_duplicate(source.source_url)
+    if not source_hash and not normalized_source_url:
+        return DuplicateResult("check_unavailable", "unavailable")
+
+    candidates = sorted(inbox.glob("*.md"), key=lambda path: path.name)
+    if len(candidates) > max_candidates:
+        return DuplicateResult(
+            "check_unavailable",
+            "unavailable",
+            diagnostics=(f"Inbox candidate limit exceeded ({max_candidates}).",),
+        )
+
+    content_matches: set[str] = set()
+    url_matches: set[str] = set()
+    skipped = 0
+    for candidate in candidates:
+        if candidate.parent != inbox or candidate.suffix.lower() != ".md":
+            skipped += 1
+            continue
+        try:
+            guard_local_path(candidate, vault, patterns)
+            mode = os.lstat(str(candidate)).st_mode
+            if not stat.S_ISREG(mode):
+                skipped += 1
+                continue
+            metadata = _read_inbox_metadata(candidate)
+        except (OSError, ProtectedPathError, UnsafePathError, ValueError):
+            skipped += 1
+            continue
+
+        relative = candidate.relative_to(vault).as_posix()
+        candidate_hash = metadata.get("Content Hash", "")
+        if source_hash and re.fullmatch(r"[0-9a-fA-F]{64}", candidate_hash) and candidate_hash.lower() == source_hash:
+            content_matches.add(relative)
+        candidate_url = normalize_url_for_duplicate(metadata.get("Source URL", ""))
+        if normalized_source_url and candidate_url == normalized_source_url:
+            url_matches.add(relative)
+
+    matches = sorted(content_matches | url_matches)
+    diagnostics = (f"{skipped} unsafe or malformed Inbox candidate(s) skipped.",) if skipped else ()
+    if not matches:
+        return DuplicateResult("unique", "none", diagnostics=diagnostics)
+    if content_matches and url_matches:
+        match_type = "content_hash_and_url"
+    elif content_matches:
+        match_type = "content_hash"
+    else:
+        match_type = "normalized_url"
+    return DuplicateResult(
+        "exact_duplicate_suggested",
+        match_type,
+        tuple(matches[:MAX_DUPLICATE_MATCHES_RECORDED]),
+        len(matches),
+        diagnostics,
+    )
+
+
+def render_inbox_note(*, note_id: str, created: str, title: str, source: ExtractedSource, summary: SummaryResult, classification: ClassificationSuggestion, duplicate: Optional[DuplicateResult] = None, action_required: str = "", deadline: str = "", related_project: str = "", related_area: str = "") -> str:
+    duplicate = duplicate or DuplicateResult("check_unavailable", "unavailable")
     source_notes = source.readable_text[:50_000] if source.source_type == "text" else source.source_notes
     if source.source_type != "text" and source.readable_text:
         source_notes = f"{source_notes}\n\n### Extracted Text\n\n{source.readable_text[:50_000]}".strip()
@@ -691,6 +822,10 @@ def render_inbox_note(*, note_id: str, created: str, title: str, source: Extract
 - File Type: {source.file_type}
 - File Size: {size}
 - Content Hash: {source.content_hash}
+- Duplicate Status: {duplicate.status}
+- Duplicate Match Type: {duplicate.match_type}
+- Duplicate Of: {_single_line(", ".join(duplicate.matches))}
+- Duplicate Match Count: {duplicate.match_count}
 
 ## One-line Summary
 
@@ -721,15 +856,17 @@ def render_inbox_note(*, note_id: str, created: str, title: str, source: Extract
 - [ ] Action confirmed
 - [ ] Related links added
 - [ ] Final destination confirmed
+- [ ] Duplicate status reviewed
 """
 
 
-def create_inbox_note(*, vault: Path, source: ExtractedSource, title: str = "", summarizer: Optional[Summarizer] = None, manual_summary: str = "", action_required: str = "", deadline: str = "", related_project: str = "", related_area: str = "") -> Path:
+def capture_inbox_note(*, vault: Path, source: ExtractedSource, title: str = "", summarizer: Optional[Summarizer] = None, manual_summary: str = "", action_required: str = "", deadline: str = "", related_project: str = "", related_area: str = "") -> tuple[Path, DuplicateResult]:
     inbox = vault / "00_Inbox"
     guard_local_path(inbox, vault, DEFAULT_PROTECTED_PATTERNS)
     if not inbox.is_dir():
         raise VaultStructureError("00_Inbox is missing; refusing to create a duplicate vault.")
     summarizer = summarizer or DisabledSummarizer()
+    duplicate = find_exact_duplicates(vault=vault, source=source)
     summary = summarizer.summarize(source.readable_text, manual_summary)
     classification = classify("\n".join(filter(None, [source.readable_text, title, action_required, related_project, related_area])), deadline=deadline)
     now = datetime.now().astimezone()
@@ -743,7 +880,12 @@ def create_inbox_note(*, vault: Path, source: ExtractedSource, title: str = "", 
         output = inbox / f"{stem}-{counter}.md"
         counter += 1
     guard_local_path(output, vault, DEFAULT_PROTECTED_PATTERNS)
-    output.write_text(render_inbox_note(note_id=note_id, created=now.isoformat(timespec="seconds"), title=resolved_title, source=source, summary=summary, classification=classification, action_required=action_required, deadline=deadline, related_project=related_project, related_area=related_area), encoding="utf-8")
+    output.write_text(render_inbox_note(note_id=note_id, created=now.isoformat(timespec="seconds"), title=resolved_title, source=source, summary=summary, classification=classification, duplicate=duplicate, action_required=action_required, deadline=deadline, related_project=related_project, related_area=related_area), encoding="utf-8")
+    return output, duplicate
+
+
+def create_inbox_note(*, vault: Path, source: ExtractedSource, title: str = "", summarizer: Optional[Summarizer] = None, manual_summary: str = "", action_required: str = "", deadline: str = "", related_project: str = "", related_area: str = "") -> Path:
+    output, _ = capture_inbox_note(vault=vault, source=source, title=title, summarizer=summarizer, manual_summary=manual_summary, action_required=action_required, deadline=deadline, related_project=related_project, related_area=related_area)
     return output
 
 
@@ -770,7 +912,7 @@ def review_note(*, vault: Path, note_path: Path, category: str = "", action_requ
             text,
             count=1,
         )
-    mark_map = {"summary": "Summary reviewed", "classification": "Classification reviewed", "action": "Action confirmed", "links": "Related links added", "destination": "Final destination confirmed"}
+    mark_map = {"summary": "Summary reviewed", "classification": "Classification reviewed", "action": "Action confirmed", "links": "Related links added", "destination": "Final destination confirmed", "duplicate": "Duplicate status reviewed"}
     for item in mark:
         text = text.replace(f"- [ ] {mark_map[item]}", f"- [x] {mark_map[item]}", 1)
     if category:

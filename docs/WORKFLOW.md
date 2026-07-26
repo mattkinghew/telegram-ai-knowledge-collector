@@ -55,6 +55,14 @@ Supported registration: PDF, DOCX, TXT, MD, JPG/JPEG, PNG, MP3, MP4.
 
 No provider means no fabricated summary.
 
+## Exact Duplicate Suggestion
+
+Before writing a new note, capture checks only the metadata section of direct `00_Inbox/*.md` files. It compares complete SHA-256 content hashes and conservatively normalized HTTP/HTTPS URLs.
+
+The check does not recurse, read note bodies, call a website, infer semantic similarity, or choose a canonical note. A duplicate warning never blocks saving. The new note records `unique`, `exact_duplicate_suggested`, or `check_unavailable`.
+
+URL normalization lower-cases the scheme and IDNA hostname, removes the HTTP/HTTPS default port and fragment, and maps an empty path to `/`. It preserves path case, a non-empty trailing slash, query text/order/value, percent encoding, and the HTTP/HTTPS distinction.
+
 ## Human Review
 
 ```bash
@@ -65,8 +73,11 @@ bkc review \
   --action-required "Discuss with manager" \
   --mark summary \
   --mark classification \
-  --mark action
+  --mark action \
+  --mark duplicate
 ```
+
+The duplicate checkbox records that a human reviewed the suggestion. It does not confirm, delete, merge, or move either note.
 
 The system never automatically deletes or moves a note.
 

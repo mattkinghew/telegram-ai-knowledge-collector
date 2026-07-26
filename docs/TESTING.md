@@ -28,3 +28,15 @@ PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli validate --vault 
 Safety coverage includes duplicate project detection, Protected Paths merging, template conflicts, symlink blocking, Vault note scope, URL/redirect validation, metadata newline sanitization, and manual classification consistency.
 
 The 2026-07-26 P0 acceptance ran 33 tests on local Python 3.9.6 and completed an isolated 11-input end-to-end flow plus a scoped real-Vault acceptance. GitHub-hosted matrix execution remains observable only after a future push or pull request.
+
+P1A adds exact duplicate coverage for:
+
+- direct-only flat Inbox scope, candidate limit, malformed candidates, protected paths, symlinks, and Vault-external files;
+- identical text and file bytes, unavailable fingerprints, and non-matching content;
+- conservative URL normalization and false-positive boundaries;
+- unique, hash, URL, combined, count, capped relative-path, CLI warning, and manual-review metadata;
+- P0 note review/report backward compatibility and an isolated end-to-end flow.
+
+No network, API key, external AI, external upload, database, or semantic matching is required.
+
+The 2026-07-26 P1A acceptance ran 67 tests on Python 3.9.6: 33 retained P0 tests and 34 P1A tests. The isolated and scoped real-Vault flows both passed. GitHub-hosted execution remains pending because the accepted task prohibits push and pull-request creation.
