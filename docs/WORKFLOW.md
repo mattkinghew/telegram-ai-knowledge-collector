@@ -84,6 +84,18 @@ The duplicate checkbox records that a human reviewed the suggestion. It does not
 
 The system never automatically deletes or moves a note.
 
+Mobile handoff notes add `Mobile handoff reviewed`. Voice-transcript notes also
+add `Voice transcript checked`; marking it updates `Transcript Review Status`
+from `pending` to `reviewed`.
+
+```bash
+bkc review \
+  --vault "/absolute/path/to/Matt_Space" \
+  --note "/absolute/path/to/Matt_Space/00_Inbox/NOTE.md" \
+  --mark handoff \
+  --mark transcript
+```
+
 Deadline, Resource Expiry, and Reminder Date accept only `YYYY-MM-DD`. Review
 can set these fields or clear them explicitly. `--clear-reminder` clears both
 Reminder Date and Reminder Note. `--mark dates` records manual review without
@@ -191,6 +203,25 @@ bkc validate --vault "/absolute/path/to/Matt_Space"
 ```
 
 Validation checks only known MVP paths. It does not scan the entire vault.
+
+## Explicit Mobile Handoff
+
+One handoff file contains one schema-v1 object. The CLI reads only the exact
+path supplied by the user and never scans its parent folder:
+
+```bash
+bkc handoff validate --file "/path/to/handoff.json"
+bkc handoff preview --file "/path/to/handoff.json"
+bkc handoff import \
+  --vault "/absolute/path/to/Matt_Space" \
+  --file "/path/to/handoff.json"
+```
+
+The first two commands do not read the Vault. Import validates the complete
+handoff before using the existing capture pipeline. It creates one direct Inbox
+note atomically, keeps the handoff file unchanged, and emits duplicate warnings
+on stderr. No command deletes, moves, archives, watches, uploads, or batches
+handoff files. See `HANDOFF_SCHEMA_V1.md` and `IPHONE_SHORTCUT_HANDOFF.md`.
 
 ## Runtime
 

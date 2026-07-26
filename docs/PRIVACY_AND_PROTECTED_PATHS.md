@@ -81,3 +81,25 @@ Symbolic-link files and paths with symbolic-link ancestors are rejected. Review 
   URLs, local files, external links, content hashes, or note bodies.
 - The handoff creates no index, database, notification, Calendar event,
   background job, external AI call, upload, move, archive, or deadline change.
+
+## Mobile handoff boundary
+
+- Validate and preview read only one exact user-supplied `.json` file and never
+  access the Vault or recursively inspect the file's parent folder.
+- The handoff must be a non-symlink regular UTF-8 file, have no symlink
+  ancestor, and be no larger than 256 KB.
+- Preview hides content and URL values by default. Explicit `--show-content`
+  displays at most 2,000 characters and may be retained in terminal history or
+  screen recordings.
+- Import validates the complete payload before any Vault write, creates one
+  direct flat-Inbox note atomically, and does not place the handoff absolute
+  path in the note.
+- URL import does not fetch, resolve, or contact the source host.
+- Handoff files are never deleted, moved, archived, uploaded, watched, or
+  automatically imported.
+- Voice transcription privacy depends on the device, operating-system settings,
+  keyboard/dictation provider and user configuration. This repository only
+  receives the resulting text file and does not perform transcription.
+- Confidential employer, client, health, credential, or personal data is out of
+  scope unless the user is authorized to process it using the selected device,
+  transcription provider, and transfer method.

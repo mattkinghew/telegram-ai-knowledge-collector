@@ -852,10 +852,10 @@ def find_exact_duplicates(
     )
 
 
-def render_inbox_note(*, note_id: str, created: str, title: str, source: ExtractedSource, summary: SummaryResult, classification: ClassificationSuggestion, duplicate: Optional[DuplicateResult] = None, action_required: str = "", deadline: str = "", resource_expiry: str = "", reminder_date: str = "", reminder_note: str = "", related_project: str = "", related_area: str = "") -> str:
+def render_inbox_note(*, note_id: str, created: str, title: str, source: ExtractedSource, summary: SummaryResult, classification: ClassificationSuggestion, duplicate: Optional[DuplicateResult] = None, action_required: str = "", deadline: str = "", resource_expiry: str = "", reminder_date: str = "", reminder_note: str = "", related_project: str = "", related_area: str = "", extra_metadata: Iterable[tuple[str, str]] = (), extra_review_items: Iterable[str] = ()) -> str:
     duplicate = duplicate or DuplicateResult("check_unavailable", "unavailable")
-    source_notes = source.readable_text[:50_000] if source.source_type == "text" else source.source_notes
-    if source.source_type != "text" and source.readable_text:
+    source_notes = source.readable_text[:50_000] if source.source_type in {"text", "voice_transcript"} else source.source_notes
+    if source.source_type not in {"text", "voice_transcript"} and source.readable_text:
         source_notes = f"{source_notes}\n\n### Extracted Text\n\n{source.readable_text[:50_000]}".strip()
     relevance = f"Suggested category: **{classification.category}** ({classification.confidence} confidence)."
     if classification.reasons:
@@ -875,6 +875,13 @@ def render_inbox_note(*, note_id: str, created: str, title: str, source: Extract
     safe_source_url = _single_line(source.source_url)
     safe_local_file = _single_line(source.local_file)
     safe_filename = _single_line(source.filename)
+    metadata_lines = "".join(
+        f"- {_single_line(key)}: {_single_line(value)}\n"
+        for key, value in extra_metadata
+    )
+    review_lines = "".join(
+        f"- [ ] {_single_line(label)}\n" for label in extra_review_items
+    )
     return f"""# {safe_title}
 
 ## Metadata
@@ -904,6 +911,7 @@ def render_inbox_note(*, note_id: str, created: str, title: str, source: Extract
 - Duplicate Match Type: {duplicate.match_type}
 - Duplicate Of: {_single_line(", ".join(duplicate.matches))}
 - Duplicate Match Count: {duplicate.match_count}
+{metadata_lines.rstrip()}
 
 ## One-line Summary
 
@@ -936,10 +944,11 @@ def render_inbox_note(*, note_id: str, created: str, title: str, source: Extract
 - [ ] Final destination confirmed
 - [ ] Duplicate status reviewed
 - [ ] Date and reminder fields reviewed
+{review_lines.rstrip()}
 """
 
 
-def capture_inbox_note(*, vault: Path, source: ExtractedSource, title: str = "", summarizer: Optional[Summarizer] = None, manual_summary: str = "", action_required: str = "", deadline: str = "", resource_expiry: str = "", reminder_date: str = "", reminder_note: str = "", related_project: str = "", related_area: str = "") -> tuple[Path, DuplicateResult]:
+def capture_inbox_note(*, vault: Path, source: ExtractedSource, title: str = "", summarizer: Optional[Summarizer] = None, manual_summary: str = "", action_required: str = "", deadline: str = "", resource_expiry: str = "", reminder_date: str = "", reminder_note: str = "", related_project: str = "", related_area: str = "", extra_metadata: Iterable[tuple[str, str]] = (), extra_review_items: Iterable[str] = ()) -> tuple[Path, DuplicateResult]:
     deadline = validate_optional_iso_date(deadline, "Deadline")
     resource_expiry = validate_optional_iso_date(resource_expiry, "Resource Expiry")
     reminder_date = validate_optional_iso_date(reminder_date, "Reminder Date")
@@ -963,7 +972,27 @@ def capture_inbox_note(*, vault: Path, source: ExtractedSource, title: str = "",
         output = inbox / f"{stem}-{counter}.md"
         counter += 1
     guard_local_path(output, vault, DEFAULT_PROTECTED_PATTERNS)
-    output.write_text(render_inbox_note(note_id=note_id, created=now.isoformat(timespec="seconds"), title=resolved_title, source=source, summary=summary, classification=classification, duplicate=duplicate, action_required=action_required, deadline=deadline, resource_expiry=resource_expiry, reminder_date=reminder_date, reminder_note=reminder_note, related_project=related_project, related_area=related_area), encoding="utf-8")
+    _atomic_write_text(
+        output,
+        render_inbox_note(
+            note_id=note_id,
+            created=now.isoformat(timespec="seconds"),
+            title=resolved_title,
+            source=source,
+            summary=summary,
+            classification=classification,
+            duplicate=duplicate,
+            action_required=action_required,
+            deadline=deadline,
+            resource_expiry=resource_expiry,
+            reminder_date=reminder_date,
+            reminder_note=reminder_note,
+            related_project=related_project,
+            related_area=related_area,
+            extra_metadata=extra_metadata,
+            extra_review_items=extra_review_items,
+        ),
+    )
     return output, duplicate
 
 
@@ -1024,7 +1053,21 @@ def review_note(*, vault: Path, note_path: Path, category: str = "", action_requ
         raise ValueError(
             "--reminder-date/--reminder-note and --clear-reminder are mutually exclusive."
         )
+    mark_values = tuple(mark)
+    mark_map = {"summary": "Summary reviewed", "classification": "Classification reviewed", "action": "Action confirmed", "links": "Related links added", "destination": "Final destination confirmed", "duplicate": "Duplicate status reviewed", "dates": "Date and reminder fields reviewed", "handoff": "Mobile handoff reviewed", "transcript": "Voice transcript checked"}
+    invalid_marks = [item for item in mark_values if item not in mark_map]
+    if invalid_marks:
+        raise ValueError(f"Unsupported review mark: {invalid_marks[0]}")
     text = note_path.read_text(encoding="utf-8")
+    if "transcript" in mark_values:
+        source_type = re.search(
+            r"(?m)^- Source Type:[ \t]*(.*)$",
+            text,
+        )
+        if not source_type or source_type.group(1).strip() != "voice_transcript":
+            raise ValueError(
+                "Voice transcript review is not applicable to this note."
+            )
     for key, value in {"Suggested Category": category, "Action Required": action_required, "Related Project": related_project, "Related Area": related_area}.items():
         if value:
             text = _replace_metadata(text, key, value)
@@ -1048,8 +1091,13 @@ def review_note(*, vault: Path, note_path: Path, category: str = "", action_requ
             text,
             count=1,
         )
-    mark_map = {"summary": "Summary reviewed", "classification": "Classification reviewed", "action": "Action confirmed", "links": "Related links added", "destination": "Final destination confirmed", "duplicate": "Duplicate status reviewed", "dates": "Date and reminder fields reviewed"}
-    for item in mark:
+    if "transcript" in mark_values:
+        text = _set_or_insert_metadata(
+            text,
+            "Transcript Review Status",
+            "reviewed",
+        )
+    for item in mark_values:
         text = _mark_review_item(text, mark_map[item])
     if category:
         text = re.sub(
@@ -1064,7 +1112,7 @@ def review_note(*, vault: Path, note_path: Path, category: str = "", action_requ
             text = re.sub(r"(?m)^Final destination:.*$", f"Final destination: {safe_destination}", text, count=1)
         else:
             text = text.replace("## Manual Review", f"Final destination: {safe_destination}\n\n## Manual Review", 1)
-    note_path.write_text(text, encoding="utf-8")
+    _atomic_write_text(note_path, text)
     return note_path
 
 

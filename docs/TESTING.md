@@ -9,6 +9,10 @@ PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli --help
 PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli due --help
 PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli search --help
 PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli report --help
+PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli handoff --help
+PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli handoff validate --help
+PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli handoff preview --help
+PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli handoff import --help
 ```
 
 The minimum supported runtime is Python 3.9. GitHub Actions repeats compile, unit tests, and CLI help on Python 3.9, 3.10, 3.11, and 3.12. No API key is needed.
@@ -80,3 +84,13 @@ P1D adds focused coverage for:
 - metadata-only selected-note reads, relative source traceability, unchanged
   selected notes, and no automatic event inclusion;
 - daily/weekly compatibility, atomic report creation, Python 3.9, and CLI help.
+
+P1E adds 83 focused tests for exact-file safety, strict JSON parsing, schema and
+source-type rules, timezone-aware timestamps, no-network URL import,
+content-hidden preview, existing duplicate/date/capture integration, atomic
+single-note creation, retained handoff files, manual handoff/transcript review,
+protected paths, Python 3.9, search compatibility, and CLI parsing.
+
+The retained baseline is 208 tests. With P1E the expected local total is 291.
+GitHub-hosted matrix execution remains pending until a future approved push or
+pull request.

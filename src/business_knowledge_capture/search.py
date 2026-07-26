@@ -25,7 +25,7 @@ SEARCH_SORTS = (
     "title-asc",
     "title-desc",
 )
-SOURCE_TYPES = ("text", "url", "file")
+SOURCE_TYPES = ("text", "url", "file", "voice_transcript")
 DUPLICATE_STATUSES = ("unique", "exact_duplicate_suggested", "check_unavailable")
 
 

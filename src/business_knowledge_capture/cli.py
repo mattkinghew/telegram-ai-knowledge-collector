@@ -9,6 +9,7 @@ from typing import Optional
 
 from .core import (
     DisabledSummarizer,
+    DuplicateResult,
     ManualSummarizer,
     OptionalAIAdapter,
     ProtectedPathError,
@@ -34,6 +35,13 @@ from .date_review import (
     review_due_dates,
 )
 from .due_selection import validate_due_selections
+from .mobile_handoff import (
+    HandoffFileSafetyError,
+    HandoffValidationError,
+    format_handoff_preview,
+    import_handoff,
+    load_handoff,
+)
 from .search import (
     DUPLICATE_STATUSES,
     SEARCH_SORTS,
@@ -93,7 +101,7 @@ def build_parser() -> argparse.ArgumentParser:
     review.add_argument("--clear-deadline", action="store_true")
     review.add_argument("--clear-resource-expiry", action="store_true")
     review.add_argument("--clear-reminder", action="store_true")
-    review.add_argument("--mark", action="append", choices=("summary", "classification", "action", "links", "destination", "duplicate", "dates"), default=[])
+    review.add_argument("--mark", action="append", choices=("summary", "classification", "action", "links", "destination", "duplicate", "dates", "handoff", "transcript"), default=[])
 
     report = subparsers.add_parser("report")
     report.add_argument("--vault", required=True, type=_path)
@@ -159,7 +167,37 @@ def build_parser() -> argparse.ArgumentParser:
     due.add_argument("--sort", choices=DUE_SORTS, default="date-asc")
     due.add_argument("--limit", type=int, default=50)
     due.add_argument("--format", choices=("text", "json"), default="text")
+
+    handoff = subparsers.add_parser("handoff")
+    handoff_commands = handoff.add_subparsers(
+        dest="handoff_command",
+        required=True,
+    )
+    handoff_validate = handoff_commands.add_parser("validate")
+    handoff_validate.add_argument("--file", required=True, type=_path)
+    handoff_preview = handoff_commands.add_parser("preview")
+    handoff_preview.add_argument("--file", required=True, type=_path)
+    handoff_preview.add_argument("--show-content", action="store_true")
+    handoff_import = handoff_commands.add_parser("import")
+    handoff_import.add_argument("--vault", required=True, type=_path)
+    handoff_import.add_argument("--file", required=True, type=_path)
     return parser
+
+
+def _print_duplicate_result(duplicate: DuplicateResult) -> None:
+    if duplicate.status == "exact_duplicate_suggested":
+        print("WARNING: Exact duplicate suggested.", file=sys.stderr)
+        print(f"Match type: {duplicate.match_type}", file=sys.stderr)
+        print(f"Existing notes: {duplicate.match_count}", file=sys.stderr)
+        if duplicate.matches:
+            safe_matches = " ".join(
+                ", ".join(duplicate.matches).replace("\r", "\n").splitlines()
+            )
+            print(f"Matches: {safe_matches}", file=sys.stderr)
+    elif duplicate.status == "check_unavailable":
+        print("WARNING: Duplicate check unavailable.", file=sys.stderr)
+    for diagnostic in duplicate.diagnostics:
+        print(f"WARNING: {diagnostic}", file=sys.stderr)
 
 
 def _run(args: argparse.Namespace) -> int:
@@ -195,17 +233,7 @@ def _run(args: argparse.Namespace) -> int:
             related_area=args.related_area,
         )
         print(output)
-        if duplicate.status == "exact_duplicate_suggested":
-            print("WARNING: Exact duplicate suggested.", file=sys.stderr)
-            print(f"Match type: {duplicate.match_type}", file=sys.stderr)
-            print(f"Existing notes: {duplicate.match_count}", file=sys.stderr)
-            if duplicate.matches:
-                safe_matches = " ".join(", ".join(duplicate.matches).replace("\r", "\n").splitlines())
-                print(f"Matches: {safe_matches}", file=sys.stderr)
-        elif duplicate.status == "check_unavailable":
-            print("WARNING: Duplicate check unavailable.", file=sys.stderr)
-        for diagnostic in duplicate.diagnostics:
-            print(f"WARNING: {diagnostic}", file=sys.stderr)
+        _print_duplicate_result(duplicate)
         return 0
     if args.command == "review":
         output = review_note(
@@ -309,6 +337,27 @@ def _run(args: argparse.Namespace) -> int:
         for diagnostic in format_date_diagnostics(result):
             print(f"WARNING: {diagnostic}", file=sys.stderr)
         return 0
+    if args.command == "handoff":
+        if args.handoff_command == "validate":
+            load_handoff(args.file)
+            print("Handoff is valid.")
+            return 0
+        if args.handoff_command == "preview":
+            handoff = load_handoff(args.file)
+            print(
+                format_handoff_preview(
+                    handoff,
+                    show_content=args.show_content,
+                )
+            )
+            return 0
+        output, duplicate = import_handoff(
+            vault=args.vault,
+            file_path=args.file,
+        )
+        print(output)
+        _print_duplicate_result(duplicate)
+        return 0
     errors = validate_vault(args.vault)
     if errors:
         for error in errors:
@@ -322,6 +371,12 @@ def main(argv: Optional[list[str]] = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         return _run(args)
+    except HandoffValidationError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+    except HandoffFileSafetyError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
     except (ProtectedPathError, UnsafePathError, VaultStructureError, ValueError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2

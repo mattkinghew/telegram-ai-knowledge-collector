@@ -102,10 +102,31 @@ acceptance. See `docs/P1C_ACCEPTANCE_REPORT.md`.
 - Full validation before one atomic report write; selected notes stay unchanged.
 - No automatic Inbox or project event inclusion.
 
+## Implemented P1E
+
+- Versioned, strict schema-v1 JSON for one reviewed mobile entry.
+- `bkc handoff validate`, `preview`, and explicit single-file `import`.
+- Text, URL-without-fetch, and device-produced voice transcript text.
+- 256 KB exact-file limit, UTF-8, regular-file, extension, symlink-file, and
+  symlink-ancestor enforcement.
+- Duplicate-key, unknown/missing-field, type, length, date, timestamp, ID, and
+  URL validation with no added dependency.
+- Content-hidden preview with explicit 2,000-character display limit.
+- Existing capture, exact duplicate, date, search, due, report, review, and
+  atomic-write integration.
+- Manual handoff and voice-transcript review flags with synchronized transcript
+  review metadata.
+- Anonymous samples and manual iPhone/AirDrop/user-approved transfer guidance.
+- No watcher, batch import, automatic file consumption, network service,
+  transcription engine, upload, credential, database, or external AI.
+
+P1A through P1E are complete locally. P1 overall is complete at the tested
+local branch boundary; no push, merge, deployment, or publication has occurred.
+
 ## Not Implemented
 
-- iPhone Shortcut and voice-input workflow.
-- Voice transcription.
+- Installed or device-executed iPhone Shortcut.
+- Audio transcription or audio-file handoff input.
 - Semantic or fuzzy duplicate detection.
 - Background deadline notifications.
 - Search UI or persistent index.
@@ -116,6 +137,5 @@ acceptance. See `docs/P1C_ACCEPTANCE_REPORT.md`.
 
 ## Next Recommended Task
 
-Define one bounded P1E task only after P1D acceptance. Preserve explicit
-selection, metadata-only reads, and no background work, notifications, Calendar
-writes, database, or automatic note movement.
+Integrate the accepted P0 through P1E branch history, run a public-sharing
+sensitivity scan, and only after explicit approval push and open a Draft PR.

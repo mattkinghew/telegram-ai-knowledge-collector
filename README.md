@@ -40,6 +40,8 @@ The local MVP runs without an API key and never invents an AI summary when no ap
 - Calculate overdue, due-today, due-soon, and upcoming status at query time.
 - Copy stable due-event selection keys into an explicit progress-report handoff.
 - Reject stale or unsafe selections before atomically creating a report.
+- Validate, safely preview, and explicitly import one versioned mobile handoff JSON file.
+- Accept reviewed text, URL, or voice-transcript text without a watcher, network service, or automatic file consumption.
 
 ## Safety Boundary
 
@@ -175,6 +177,28 @@ No selection means no `Date Review` section. Any invalid or stale selection
 stops the full report. Duplicate keys appear once with a stderr warning; at
 most 50 keys may be supplied.
 
+## Mobile Handoff
+
+Create and review one schema-version-1 JSON file on the mobile device, transfer
+it manually, then validate and explicitly import the exact file:
+
+```bash
+bkc handoff validate --file "/path/to/handoff.json"
+bkc handoff preview --file "/path/to/handoff.json"
+bkc handoff import \
+  --vault "/absolute/path/to/Matt_Space" \
+  --file "/path/to/handoff.json"
+```
+
+Preview hides content by default. `--show-content` displays at most 2,000
+characters and may leave sensitive text in terminal history or screen
+recordings. Import never deletes, moves, archives, uploads, or watches the
+handoff file. URL handoffs are recorded without fetching the URL.
+
+Voice transcription privacy depends on the device, operating-system settings,
+keyboard/dictation provider and user configuration. This repository only
+receives the resulting text file and does not perform transcription.
+
 ## Metadata-only Inbox Search
 
 ```bash
@@ -218,8 +242,16 @@ CI runs compile, unit tests, and the CLI help smoke test on Python 3.9 through 3
 - `docs/P1C_ACCEPTANCE_REPORT.md`
 - `docs/P1D_DUE_REPORT_HANDOFF.md`
 - `docs/P1D_ACCEPTANCE_REPORT.md`
+- `docs/HANDOFF_SCHEMA_V1.md`
+- `docs/IPHONE_SHORTCUT_HANDOFF.md`
+- `docs/P1E_MOBILE_HANDOFF.md`
+- `docs/P1E_ACCEPTANCE_REPORT.md`
 - `samples/sample_capture_commands.md`
+- `samples/handoff-text-v1.json`
+- `samples/handoff-url-v1.json`
+- `samples/handoff-voice-transcript-v1.json`
+- `samples/handoff-invalid-examples.md`
 
 ## Not Included
 
-iPhone Shortcut, voice transcription, OCR, full-text or semantic search, fuzzy duplicate detection, deadline notifications, Calendar integration, scheduled/background reports, search UI, persistent index, automatic classification moves, chatbot, RAG, vector database, external AI activation, deployment, and publication.
+Installed or device-executed iPhone Shortcut, audio transcription, audio-file handoff ingestion, OCR, full-text or semantic search, fuzzy duplicate detection, deadline notifications, Calendar integration, scheduled/background reports, watcher, batch import, HTTP API, search UI, persistent index, automatic classification moves, chatbot, RAG, vector database, external AI activation, deployment, and publication.
