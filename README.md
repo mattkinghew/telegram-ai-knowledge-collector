@@ -1,49 +1,257 @@
 # Telegram AI Knowledge Collector
 
-An AI-powered personal signal intelligence pipeline that turns noisy Telegram messages into structured, searchable knowledge notes.
+A personal signal-intelligence and Obsidian knowledge-capture project for turning text, links, and files into reviewable knowledge records and work-progress drafts.
 
-## Problem
+## Current Product Scope
 
-Social media feeds are noisy. Algorithms often miss high-signal job posts, AI product updates, cybersecurity news, and practical learning resources.
+This repository contains two complementary workflows:
 
-This project helps me collect, summarize, classify, and review useful information from Telegram for career transition and personal knowledge management.
+1. **Existing no-code prototype**
+   Telegram Bot → Make.com → optional Gemini processing → Google Sheets.
 
-## Features
+2. **Business Knowledge Capture & Reporting MVP**
+   CLI input → flat Obsidian `00_Inbox` note → classification suggestion → human review → selected-note daily/weekly progress report.
 
-- Capture Telegram messages automatically
-- Summarize content with Gemini
-- Extract action items, job opportunities, and technical keywords
-- Store structured notes in Google Sheets
-- Prepare content for Notion / Obsidian review
+The local MVP runs without an API key and never invents an AI summary when no approved provider is configured.
 
-## Architecture
+## Local MVP Features
 
-Telegram Bot → Make.com Webhook → Gemini API → Google Sheets
+- Capture one text item, URL, or local file path.
+- Register PDF, DOCX, TXT, MD, JPG/JPEG, PNG, MP3, and MP4.
+- Extract readable local text from TXT, MD, and DOCX.
+- Optionally extract PDF text with the `pypdf` extra.
+- Register images without OCR.
+- Mark MP3/MP4 as `awaiting_transcription`.
+- Store filename, MIME type, file size, processing status, original path/link, and optional Google Drive evidence link.
+- Suggest `重要知識`, `次要知識`, `資源`, or `其他`.
+- Keep all decisions subject to human review.
+- Enforce Protected Paths before file access.
+- Generate New Role daily/weekly progress-report Markdown from selected notes.
+- Keep `00_Inbox` flat.
+- Avoid vault-wide scanning, RAG, vector databases, and automatic file moves.
+- Suggest exact duplicates using a complete content hash or conservatively normalized HTTP/HTTPS URL.
+- Record duplicate status, match type, count, and up to five Vault-relative matching note paths.
+- Keep duplicate decisions manual; captures are never blocked, deleted, merged, or moved.
+- Search only the H1 title and an explicit metadata allowlist in direct `00_Inbox/*.md` notes.
+- Combine repeated filters with OR, different filter fields with AND, and return stable text or JSON results.
+- Keep search read-only and bounded to 5,000 candidates and 200 returned results.
+- Validate deadline, resource-expiry, and reminder dates as `YYYY-MM-DD`.
+- Review date events with a bounded, read-only `bkc due` command.
+- Calculate overdue, due-today, due-soon, and upcoming status at query time.
+- Copy stable due-event selection keys into an explicit progress-report handoff.
+- Reject stale or unsafe selections before atomically creating a report.
+- Validate, safely preview, and explicitly import one versioned mobile handoff JSON file.
+- Accept reviewed text, URL, or voice-transcript text without a watcher, network service, or automatic file consumption.
 
-## Data Schema
+## Safety Boundary
 
-| Field | Description |
-|---|---|
-| created_at | Collection timestamp |
-| source_text | Original Telegram message |
-| source_url | Extracted URL if available |
-| title | AI-generated title |
-| summary | 3-5 bullet summary |
-| tags | Knowledge tags |
-| action_items | Suggested next actions |
-| job_signal | Whether it contains job/course/opportunity signal |
-| relevance_score | 1-5 usefulness score |
-| status | processed / failed / skipped |
+The CLI blocks:
 
-## Security Notes
+- `20_Areas/25_Self_Management/**`
+- `25_Self_Management/**`
+- `Private/**`
+- `Credentials/**`
+- `.env`
+- `.obsidian/**`
 
-- No API keys are committed
-- Personal account IDs are replaced with placeholders
-- Blueprint is provided as a reusable template
+It does not request credentials, upload files, auto-publish, or process private company documents.
 
-## Roadmap
+## Install
 
-- Add deduplication
-- Add error handling and retry flow
-- Add weekly digest
-- Add semantic search / RAG
+Python 3.9 or newer. A system-wide Python 3.12 installation is not required:
+
+```bash
+python3 -m pip install -e .
+```
+
+Optional local PDF text extraction:
+
+```bash
+python3 -m pip install -e ".[pdf]"
+```
+
+## Initialize the Existing Vault
+
+Do not point this at a new or guessed directory.
+
+```bash
+bkc init --vault "/absolute/path/to/Example_Business_Vault"
+```
+
+The initializer requires an existing `00_Inbox`. It detects migrated `10_Work/11_Projects` first and falls back to an existing `10_Projects`. It refuses to create a speculative duplicate project root.
+
+## Capture Examples
+
+```bash
+bkc capture \
+  --vault "/absolute/path/to/Example_Business_Vault" \
+  --text "AI PM onboarding note" \
+  --title "Week 1 onboarding"
+```
+
+```bash
+bkc capture \
+  --vault "/absolute/path/to/Example_Business_Vault" \
+  --url "https://example.com/public-resource" \
+  --title "Public resource" \
+  --deadline "2026-08-31" \
+  --resource-expiry "2026-09-15" \
+  --reminder-date "2026-08-24" \
+  --reminder-note "Review requirements before the deadline"
+```
+
+```bash
+bkc capture \
+  --vault "/absolute/path/to/Example_Business_Vault" \
+  --file "/absolute/path/to/document.docx" \
+  --external-file-link "https://drive.google.com/..."
+```
+
+## Manual Review
+
+```bash
+bkc review \
+  --vault "/absolute/path/to/Example_Business_Vault" \
+  --note "/absolute/path/to/Example_Business_Vault/00_Inbox/NOTE.md" \
+  --category "重要知識" \
+  --mark summary \
+  --mark classification \
+  --mark duplicate \
+  --mark dates
+```
+
+Date fields can be set with `--deadline`, `--resource-expiry`,
+`--reminder-date`, and `--reminder-note`. Use `--clear-deadline`,
+`--clear-resource-expiry`, or `--clear-reminder` for explicit clearing.
+
+## Deadline and Resource-expiry Review
+
+```bash
+bkc due \
+  --vault "/absolute/path/to/Example_Business_Vault" \
+  --as-of "2026-07-26" \
+  --window-days 14
+```
+
+The default result includes overdue, due-today, and due-soon events. Add
+`--include-upcoming` to include later events. Status is calculated dynamically;
+it is never saved into a note. Text and JSON return Vault-relative paths only.
+
+Each event also exposes a readable key such as:
+
+```text
+deadline::2026-08-15::00_Inbox/example.md
+```
+
+This is a foreground, read-only review command. It does not send notifications,
+write Calendar events, modify notes, move files, or create an index.
+
+## Progress Report
+
+```bash
+bkc report \
+  --vault "/absolute/path/to/Example_Business_Vault" \
+  --type weekly \
+  --period "2026-07-20 to 2026-07-26" \
+  --completed "/absolute/path/to/completed-note.md" \
+  --in-progress "/absolute/path/to/in-progress-note.md" \
+  --blocker "Awaiting access approval" \
+  --commitment "Complete stakeholder map"
+```
+
+Date events enter a report only through repeated explicit `--due-selection`
+arguments. The command revalidates current selected-note Metadata before
+writing:
+
+```bash
+bkc report \
+  --vault "/absolute/path/to/Example_Business_Vault" \
+  --type daily \
+  --period "2026-08-01" \
+  --as-of "2026-08-01" \
+  --window-days 14 \
+  --due-selection "deadline::2026-08-15::00_Inbox/example.md"
+```
+
+No selection means no `Date Review` section. Any invalid or stale selection
+stops the full report. Duplicate keys appear once with a stderr warning; at
+most 50 keys may be supplied.
+
+## Mobile Handoff
+
+Create and review one schema-version-1 JSON file on the mobile device, transfer
+it manually, then validate and explicitly import the exact file:
+
+```bash
+bkc handoff validate --file "/path/to/handoff.json"
+bkc handoff preview --file "/path/to/handoff.json"
+bkc handoff import \
+  --vault "/absolute/path/to/Example_Business_Vault" \
+  --file "/path/to/handoff.json"
+```
+
+Preview hides content by default. `--show-content` displays at most 2,000
+characters and may leave sensitive text in terminal history or screen
+recordings. Import never deletes, moves, archives, uploads, or watches the
+handoff file. URL handoffs are recorded without fetching the URL.
+
+Voice transcription privacy depends on the device, operating-system settings,
+keyboard/dictation provider and user configuration. This repository only
+receives the resulting text file and does not perform transcription.
+
+## Metadata-only Inbox Search
+
+```bash
+bkc search \
+  --vault "/absolute/path/to/Example_Business_Vault" \
+  --category "資源" \
+  --has-resource-expiry \
+  --reminder-from "2026-07-26" \
+  --sort deadline-asc
+```
+
+Repeated category, source-type, file-type, processing-status, and duplicate-status filters use OR. Different filter fields use AND. `--query` searches only the title and documented metadata fields; it is not full-text search and never searches Source Notes.
+
+Use `--format json` for bounded machine-readable output. Both text and JSON expose Vault-relative note paths only.
+
+## Validation
+
+```bash
+python3 -m compileall -q src tests
+PYTHONPATH=src python3 -m unittest discover -s tests -v
+PYTHONPATH=src python3 -m business_knowledge_capture.cli --help
+PYTHONPATH=src python3 -m business_knowledge_capture.cli due --help
+PYTHONPATH=src python3 -m business_knowledge_capture.cli search --help
+bkc validate --vault "/absolute/path/to/Example_Business_Vault"
+```
+
+CI runs compile, unit tests, and the CLI help smoke test on Python 3.9 through 3.12. The core flow has no required dependencies and does not require an API key.
+
+## Documentation
+
+- `docs/CONTEXT_SUMMARY.md`
+- `docs/WORKFLOW.md`
+- `docs/PRIVACY_AND_PROTECTED_PATHS.md`
+- `docs/TESTING.md`
+- `docs/P0_ACCEPTANCE_REPORT.md`
+- `docs/P1A_DUPLICATE_DETECTION.md`
+- `docs/P1A_ACCEPTANCE_REPORT.md`
+- `docs/P1B_METADATA_SEARCH.md`
+- `docs/P1B_ACCEPTANCE_REPORT.md`
+- `docs/P1C_DATE_REVIEW.md`
+- `docs/P1C_ACCEPTANCE_REPORT.md`
+- `docs/P1D_DUE_REPORT_HANDOFF.md`
+- `docs/P1D_ACCEPTANCE_REPORT.md`
+- `docs/HANDOFF_SCHEMA_V1.md`
+- `docs/IPHONE_SHORTCUT_HANDOFF.md`
+- `docs/P1E_MOBILE_HANDOFF.md`
+- `docs/P1E_ACCEPTANCE_REPORT.md`
+- `samples/sample_capture_commands.md`
+- `samples/handoff-text-v1.json`
+- `samples/handoff-url-v1.json`
+- `samples/handoff-voice-transcript-v1.json`
+- `samples/handoff-invalid-examples.md`
+
+## Not Included
+
+Installed or device-executed iPhone Shortcut, audio transcription, audio-file handoff ingestion, OCR, full-text or semantic search, fuzzy duplicate detection, deadline notifications, Calendar integration, scheduled/background reports, watcher, batch import, HTTP API, search UI, persistent index, automatic classification moves, chatbot, RAG, vector database, external AI activation, deployment, and publication.
