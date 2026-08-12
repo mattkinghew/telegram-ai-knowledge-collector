@@ -2,14 +2,16 @@
 
 ## Status
 
-Future combined specification. `DEVICE_ACCEPTANCE_PENDING`.
+Future combined specification. P1.0 is user-reported device accepted; P1.1
+Share Sheet Gate C and P1.2 AI device acceptance are pending.
 
-For P1.0, use `IPHONE_SHORTCUT_P1_0_ACTION_MAP.md`. Its Quick Save-only scope
-supersedes this document. The Share Sheet parts below belong to P1.1 and the AI
-parts belong to P1.2; neither is part of the current build.
+For P1.0, use `IPHONE_SHORTCUT_P1_0_ACTION_MAP.md`. For the current P1.1 Share
+Sheet build, use `IPHONE_SHORTCUT_P1_1_SHARE_SHEET_ACTION_MAP.md`; it supersedes
+the Share Sheet steps below. AI parts remain deferred to P1.2.
 
-No Shortcut was created or run by Codex during this offline stage. Gate A was
-accepted from the user's report, not repository or automatic verification.
+No Shortcut was created or run by Codex during this offline stage. Gate A and
+Gate B were accepted from the user's report, not repository or automatic
+verification.
 
 Build exactly one primary Shortcut named:
 

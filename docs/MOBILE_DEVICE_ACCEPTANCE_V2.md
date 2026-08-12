@@ -6,12 +6,14 @@ Manual test pack. No case has been executed by Codex.
 
 ```text
 GATE A USER-ACCEPTED
-FULL P1 DEVICE ACCEPTANCE PENDING
+GATE B USER-REPORTED PASS
+P1.0 DEVICE ACCEPTED BY USER REPORT
+GATE C SHARE SHEET DEVICE ACCEPTANCE PENDING
 ```
 
-Gate A is accepted from the user's report. It was not verified by repository
-automation, and no individual timings, screenshots, or device identifiers were
-supplied.
+Gate A and Gate B are accepted from the user's report. They were not verified
+by repository automation or Codex, and no individual timings, screenshots, or
+device identifiers were supplied.
 
 Use only fictional or public-safe content. Do not record a real Vault
 identifier, local path, credential, webhook URL, account detail, or private
@@ -52,8 +54,7 @@ fixed Markdown → Obsidian URI → direct Inbox note → Remotely Save
 7. Confirm one readable copy on the intended second device or approved target.
 8. Record the result without private identifiers.
 
-Stage A is user-accepted. Build only the P1.0 Action Map for Gate B; do not yet
-build the combined V3 Share Sheet or AI branches.
+Stage A is user-accepted.
 
 Gate A record:
 
@@ -86,9 +87,15 @@ For each case confirm:
 - a same-second collision does not overwrite an existing note;
 - Remotely Save does not produce an unexplained conflict copy.
 
+Stage B is `USER_REPORTED_GATE_B_COMPLETE`. The user reports that typed,
+voice, clipboard, blank optional fields, cancel, rapid double capture, direct
+save, and Remotely Save work. Codex did not reproduce these observations.
+
 ## Stage C — Share Sheet
 
-Deferred to P1.1; not implemented in P1.0.
+P1.1 is implemented offline. Build by editing the existing Shortcut from
+`IPHONE_SHORTCUT_P1_1_SHARE_SHEET_ACTION_MAP.md`, then run the full eight-case
+pack in `MOBILE_P1_1_DEVICE_ACCEPTANCE.md`.
 
 | Case | Input | Expected stored representation |
 |---|---|---|
@@ -151,7 +158,8 @@ Until each stage is directly observed:
 
 ```text
 GATE A USER-ACCEPTED
-FULL P1 DEVICE ACCEPTANCE PENDING
+GATE B USER-REPORTED PASS
+GATE C SHARE SHEET DEVICE ACCEPTANCE PENDING
 AI_SERVICE_ACCEPTANCE_PENDING
 ```
 

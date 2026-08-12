@@ -5,13 +5,16 @@
 ```text
 GATE A USER-ACCEPTED
 P1.0 OFFLINE CONTRACT VERIFIED
-FULL P1 DEVICE ACCEPTANCE PENDING
-SHARE SHEET NOT IMPLEMENTED
+GATE B USER-REPORTED PASS
+P1.0 DEVICE ACCEPTED BY USER REPORT
+P1.1 SHARE SHEET OFFLINE IMPLEMENTED
+GATE C SHARE SHEET DEVICE ACCEPTANCE PENDING
 AI NOT IMPLEMENTED ON DEVICE
 ```
 
-Gate A is a user-reported architecture smoke-test result. It was not verified
-by repository automation and no device evidence is stored here.
+Gate A and Gate B are user-reported device results. They were not verified by
+repository automation or Codex, and no private device evidence is stored here.
+This file remains the frozen P1.0 scope; P1.1 is specified separately.
 
 ## Frozen Scope
 

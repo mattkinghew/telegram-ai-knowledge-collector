@@ -2,17 +2,18 @@
 
 ## Status
 
-Gate A is `USER-REPORTED PASS` and accepted for progression to P1.0. It was not
-verified by repository automation or Codex, and individual measurements were
-not supplied. Gate B and all later cases remain `NOT RUN` until manually
-executed on the real device.
+Gate A and Gate B are `USER-REPORTED PASS`. They were not verified by
+repository automation or Codex, and individual measurements were not supplied.
+P1.0 is device accepted at that user-report boundary. Gate C and all later
+service cases remain `NOT RUN` until manually executed.
 
 Use sanitized test data and record only privacy-safe evidence references.
 
 This checklist preserves the detailed original cases. Use
-`MOBILE_DEVICE_ACCEPTANCE_V2.md` as the current staged execution order and
-`IPHONE_SHORTCUT_P1_0_ACTION_MAP.md` for the current Quick Save-only Shortcut.
-Share Sheet and AI cases are deferred to P1.1 and P1.2.
+`MOBILE_DEVICE_ACCEPTANCE_V2.md` as the current staged execution order,
+`IPHONE_SHORTCUT_P1_0_ACTION_MAP.md` for the accepted Quick Save behavior, and
+`IPHONE_SHORTCUT_P1_1_SHARE_SHEET_ACTION_MAP.md` for the current build. AI
+cases remain deferred to P1.2.
 
 ## Stage 1 — Minimal Architecture Smoke Test
 
@@ -59,7 +60,7 @@ Result: Accepted for progression to P1.0
 ```
 
 The detailed checkboxes remain unmarked because no individual evidence was
-supplied. Continue only with P1.0 Gate B.
+supplied. Continue with P1.1 Gate C.
 
 ## Global Acceptance
 

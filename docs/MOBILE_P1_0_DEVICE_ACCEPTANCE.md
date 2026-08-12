@@ -5,13 +5,19 @@
 ```text
 GATE A USER-ACCEPTED
 P1.0 OFFLINE CONTRACT VERIFIED
-GATE B NOT RUN
+GATE B USER-REPORTED PASS
+P1.0 DEVICE ACCEPTED BY USER REPORT
 ```
 
-Codex did not operate an iPhone, build a Shortcut, access a real Vault, or
-verify Remotely Save. Use fictional or public-safe content. Do not record a
-Vault identifier, local path, credential, account detail, or private screenshot
-in this repository.
+The user reports typed, voice, clipboard, blank optional fields, cancel, rapid
+double capture, direct save, and Remotely Save all work. Record this as
+`USER_REPORTED_GATE_B_COMPLETE`. Codex did not operate an iPhone, build the
+Shortcut, access a real Vault, verify Remotely Save, or receive individual
+timings/screenshots. The detailed fields below remain a reusable regression
+pack rather than repository-verified evidence.
+
+Use fictional or public-safe content. Do not record a Vault identifier, local
+path, credential, account detail, or private screenshot in this repository.
 
 For every test record:
 
@@ -102,8 +108,11 @@ Remotely Save still syncs
 normal capture feels acceptable
 ```
 
-Until then:
+User-reported result:
 
 ```text
-FULL P1 DEVICE ACCEPTANCE PENDING
+USER_REPORTED_GATE_B_COMPLETE
+P1.0 DEVICE ACCEPTED BY USER REPORT
+Repository verification: No
+Codex device execution: No
 ```

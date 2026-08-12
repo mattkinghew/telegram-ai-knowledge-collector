@@ -2,10 +2,34 @@
 
 ## Status
 
-Offline design decisions for P0.9 and P1.0. Gate A is user-accepted; full P1
-device evidence remains `DEVICE_TEST_PENDING`.
+Offline design decisions through P1.1. Gate A and Gate B are user-accepted;
+P1.0 is device accepted at the user-report boundary. P1.1 Share Sheet Gate C
+remains `DEVICE_TEST_PENDING`. Codex did not reproduce device execution.
 
 ## Decisions
+
+### Extend the accepted Shortcut for Share Sheet
+
+- **Decision:** Add URL, shared text, image reference, and file/PDF reference
+  routing inside the existing `收集靈感到 Obsidian` Shortcut.
+- **Reason:** One entry point preserves the accepted P1.0 habit and removes
+  manual URL copying without creating a second production flow.
+- **Tradeoff:** Native app Share Sheet types can vary and require Gate C on the
+  user's actual device.
+- **Evidence status:** `P1_1_OFFLINE_VERIFIED`; `GATE_C_PENDING`.
+- **Revisit trigger:** Gate C shows repeated wrong detection or materially more
+  friction than copying into Obsidian.
+
+### Reference-only image and file capture
+
+- **Decision:** Images and files require a user description; only an optional
+  public-safe filename may be retained.
+- **Reason:** P1.1 must not inspect attachment contents, add OCR/parsing, or
+  introduce upload and privacy dependencies.
+- **Tradeoff:** The note contains user interpretation, not extracted evidence.
+- **Evidence status:** offline validation passed; device behavior pending.
+- **Revisit trigger:** A later approved phase defines attachment storage,
+  privacy, and extraction requirements.
 
 ### One Shortcut, not many
 

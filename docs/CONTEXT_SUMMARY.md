@@ -123,9 +123,22 @@ acceptance. See `docs/P1C_ACCEPTANCE_REPORT.md`.
 P1A through P1E are complete locally. P1 overall is complete at the tested
 local branch boundary; no push, merge, deployment, or publication has occurred.
 
-## Not Implemented
+## Mobile-first P1.0 and P1.1
 
-- Installed or device-executed iPhone Shortcut.
+- Gate A and Gate B are accepted from the user's report; neither result was
+  reproduced by Codex or repository automation.
+- The user reports that P1.0 typed, voice, clipboard, blank optional fields,
+  cancel, rapid double capture, direct save, and Remotely Save work on device.
+- P1.0 is therefore device accepted at the user-report boundary.
+- P1.1 Share Sheet support is implemented and validated offline for URL,
+  shared text, image reference, and file/PDF reference inputs.
+- P1.1 performs no webpage fetch, OCR, file parsing, attachment upload,
+  Make.com call, Gemini call, or real Vault access.
+- Gate C real-device Share Sheet acceptance remains pending.
+
+## Not Implemented or Not Repository-verified
+
+- Repository-verified iPhone Shortcut execution or Share Sheet routing.
 - Audio transcription or audio-file handoff input.
 - Semantic or fuzzy duplicate detection.
 - Background deadline notifications.
@@ -137,5 +150,5 @@ local branch boundary; no push, merge, deployment, or publication has occurred.
 
 ## Next Recommended Task
 
-Integrate the accepted P0 through P1E branch history, run a public-sharing
-sensitivity scan, and only after explicit approval push and open a Draft PR.
+Edit the existing `收集靈感到 Obsidian` Shortcut using the P1.1 Share Sheet
+Action Map and complete the eight-case Gate C device acceptance pack.

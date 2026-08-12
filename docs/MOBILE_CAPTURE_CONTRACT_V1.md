@@ -2,13 +2,13 @@
 
 ## Status
 
-`P1_0_IMPLEMENTATION_CONTRACT_COMPLETE` for offline reference use.
+`P1_1_IMPLEMENTATION_CONTRACT_COMPLETE` for offline reference use.
 
-`GATE_A_USER_ACCEPTED`; this is a user-reported architecture result, not a
-repository or automatic verification.
+`GATE_A_USER_ACCEPTED` and `GATE_B_USER_ACCEPTED`; these are user-reported
+device results, not repository or automatic verification.
 
-`FULL_P1_DEVICE_ACCEPTANCE_PENDING`. P1.0 has not been proven through the full
-typed, voice, clipboard, cancel, rapid-capture, and Remotely Save Gate B pack.
+P1.0 is device accepted at the user-report boundary. P1.1 Share Sheet Gate C
+device acceptance remains pending.
 
 ## Purpose
 
@@ -54,7 +54,7 @@ must never be overwritten, summarized in place, trimmed, or corrected by AI.
 
 ### Source
 
-The origin of the capture. The active P1.0 profile supports only:
+The origin of the capture. The accepted P1.0 no-input profile supports:
 
 ```text
 personal
@@ -62,8 +62,7 @@ clipboard
 voice_transcript
 ```
 
-The broader reference contract retains these already-defined values for later
-P1.1 compatibility, but the P1.0 Shortcut must not create them:
+P1.1 adds these Share Sheet values without changing the P1.0 menu:
 
 ```text
 url
@@ -72,9 +71,11 @@ image_reference
 file_reference
 ```
 
-For `url`, Source must be the original HTTP or HTTPS URL. P0 does not fetch the
-page. For image or file references, Source may contain a public-safe filename;
-it must not contain an absolute local path or attachment bytes.
+For `url`, Source must be the original HTTP or HTTPS URL. P1.1 does not fetch
+the page. For `shared_text`, Source must be blank. For image or file
+references, Source may contain one public-safe filename basename; it must not
+contain a path or attachment bytes. Image and file Raw Content must be the
+user's non-blank description, not extracted content.
 
 ### Insight
 
