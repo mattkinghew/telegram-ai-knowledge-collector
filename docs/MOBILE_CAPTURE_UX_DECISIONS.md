@@ -2,8 +2,8 @@
 
 ## Status
 
-Offline design decisions for P0.9. Most evidence remains
-`DEVICE_TEST_PENDING`; none is a claim about actual iPhone behavior.
+Offline design decisions for P0.9 and P1.0. Gate A is user-accepted; full P1
+device evidence remains `DEVICE_TEST_PENDING`.
 
 ## Decisions
 
@@ -19,17 +19,21 @@ Offline design decisions for P0.9. Most evidence remains
 
 ### No required title
 
-- **Decision:** Use timestamp filenames and `# Quick Capture` during capture.
-- **Reason:** A useful title often becomes clear only during later review.
+- **Decision:** Use timestamp-plus-four-digit-suffix filenames and the
+  user-written Insight as H1 during capture.
+- **Reason:** No separate title prompt is needed, while the reflection answer
+  makes the Inbox note recognizable.
 - **Tradeoff:** Inbox scanning is less descriptive before processing.
 - **Evidence status:** `DEVICE_TEST_PENDING`.
 - **Revisit trigger:** The 7-day pilot finds note recognition unacceptably slow.
 
 ### Three-question model
 
-- **Decision:** Standardize user reflection as Insight, Context, and Action.
+- **Decision:** Standardize user reflection as required Insight, optional
+  Context, and optional Action.
 - **Reason:** It records meaning and reuse intent without classification work.
-- **Tradeoff:** Two required answers add friction compared with raw dumping.
+- **Tradeoff:** One required answer still adds friction compared with raw
+  dumping.
 - **Evidence status:** `DEVICE_TEST_PENDING`.
 - **Revisit trigger:** Median capture time or abandonment exceeds the pilot
   threshold chosen by the user.
@@ -41,6 +45,15 @@ Offline design decisions for P0.9. Most evidence remains
 - **Tradeoff:** Some notes require later action review.
 - **Evidence status:** `DEVICE_TEST_PENDING`.
 - **Revisit trigger:** Blank Actions strongly correlate with non-reuse.
+
+### Question 2 is optional in P1.0
+
+- **Decision:** Context may be blank.
+- **Reason:** The first reflection is the only required meaning-making step in
+  the low-friction P1.0 flow.
+- **Tradeoff:** Some notes require later context review.
+- **Evidence status:** `DEVICE_TEST_PENDING`.
+- **Revisit trigger:** Blank Context materially reduces later reuse.
 
 ### No mandatory category
 

@@ -2,10 +2,14 @@
 
 ## Status
 
-Implementation-oriented specification. `DEVICE_ACCEPTANCE_PENDING`.
+Future combined specification. `DEVICE_ACCEPTANCE_PENDING`.
 
-No Shortcut was created or run during this offline stage. V2 remains available
-for the minimal architecture smoke test; V3 defines the later full Shortcut.
+For P1.0, use `IPHONE_SHORTCUT_P1_0_ACTION_MAP.md`. Its Quick Save-only scope
+supersedes this document. The Share Sheet parts below belong to P1.1 and the AI
+parts belong to P1.2; neither is part of the current build.
+
+No Shortcut was created or run by Codex during this offline stage. Gate A was
+accepted from the user's report, not repository or automatic verification.
 
 Build exactly one primary Shortcut named:
 
@@ -334,8 +338,9 @@ the note exists or synchronized until those outcomes are observed directly.
 
 ## Acceptance Boundary
 
-This specification is ready for manual construction only after Stage A in
-`MOBILE_DEVICE_ACCEPTANCE_V2.md` passes. Until the complete test pack is run:
+This combined specification is not the P1.0 build guide. Complete the P1.0
+Gate B pack before beginning its P1.1 or P1.2 sections. Until those later test
+packs are run:
 
 ```text
 DEVICE_ACCEPTANCE_PENDING

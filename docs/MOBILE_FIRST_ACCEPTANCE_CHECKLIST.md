@@ -2,15 +2,17 @@
 
 ## Status
 
-Not yet device-accepted. Every case below is `NOT RUN` until manually executed
-on the real device. This file defines acceptance; it is not evidence that the
-Shortcut, URI, Remotely Save, Make.com, or Gemini works.
+Gate A is `USER-REPORTED PASS` and accepted for progression to P1.0. It was not
+verified by repository automation or Codex, and individual measurements were
+not supplied. Gate B and all later cases remain `NOT RUN` until manually
+executed on the real device.
 
 Use sanitized test data and record only privacy-safe evidence references.
 
 This checklist preserves the detailed original cases. Use
 `MOBILE_DEVICE_ACCEPTANCE_V2.md` as the current staged execution order and
-`IPHONE_SHORTCUT_BUILD_SPEC_V3.md` for the full Shortcut after Stage 1 passes.
+`IPHONE_SHORTCUT_P1_0_ACTION_MAP.md` for the current Quick Save-only Shortcut.
+Share Sheet and AI cases are deferred to P1.1 and P1.2.
 
 ## Stage 1 — Minimal Architecture Smoke Test
 
@@ -46,8 +48,18 @@ Record the observed result exactly as follows:
 - Screenshot available: yes / no
 ```
 
-After recording the result, stop. Later device cases remain `NOT RUN` until
-Stage 1 is accepted and a later goal is explicitly started.
+Current phase record:
+
+```text
+User reported architecture smoke test completed.
+Verified by repository: No
+Verified automatically: No
+Device evidence: User-reported
+Result: Accepted for progression to P1.0
+```
+
+The detailed checkboxes remain unmarked because no individual evidence was
+supplied. Continue only with P1.0 Gate B.
 
 ## Global Acceptance
 

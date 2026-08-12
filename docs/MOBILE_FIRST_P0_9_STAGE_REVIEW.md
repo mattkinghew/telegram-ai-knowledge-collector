@@ -8,13 +8,39 @@ validated offline on 2026-08-13 with Python 3.9.6.
 ```text
 IMPLEMENTATION CONTRACT COMPLETE
 OFFLINE VALIDATION COMPLETE
+P1.0 OFFLINE CONTRACT VERIFIED
 
-DEVICE ACCEPTANCE PENDING
+GATE A USER-ACCEPTED
+FULL P1 DEVICE ACCEPTANCE PENDING
+SHARE SHEET NOT IMPLEMENTED
+AI NOT IMPLEMENTED ON DEVICE
 AI SERVICE ACCEPTANCE PENDING
 ```
 
-This review does not claim that an iPhone Shortcut, Obsidian URI, Remotely
-Save, Make.com scenario, or Gemini integration works on a real service.
+Gate A was accepted for progression to P1.0 from the user's report. It was not
+verified by repository automation or Codex, and no device measurement or
+screenshot evidence was supplied. This review does not claim that the full
+P1.0 Shortcut, Make.com scenario, or Gemini integration works on a real device
+or service.
+
+## Gate A Record
+
+```text
+Gate A:
+User reported architecture smoke test completed.
+
+Verified by repository:
+No
+
+Verified automatically:
+No
+
+Device evidence:
+User-reported
+
+Result:
+Accepted for progression to P1.0
+```
 
 ## Architecture Preserved
 
@@ -95,18 +121,33 @@ unknown fields, bounds, enums, URL rules, local-path rejection, project
 allowlisting, success envelopes, and failure codes. Full draft-2020-12 semantic
 schema validation remains pending in an approved development environment.
 
-## Still Requires a Real Device
+## P1.0 Offline Implementation Addendum
 
-- Actual creation of `BKC Mobile Test`.
-- Actual Obsidian URI opening.
-- Actual direct `00_Inbox` write.
-- Actual Traditional Chinese and Markdown rendering in Obsidian Mobile.
-- Actual Remotely Save synchronization and conflict behavior.
-- Actual full V3 Shortcut construction.
+P1.0 keeps one Shortcut and Quick Save only. The reference implementation now
+uses Insight as H1, accepts blank Context and Action, defaults Output Goal to
+`collect`, emits `ai_status: none`, and requires a supplied four-digit filename
+suffix. The P1.0 action map excludes Share Sheet and AI.
+
+| Check | Result |
+|---|---|
+| Retained baseline | 312 tests |
+| New P1.0 tests | 15 tests |
+| Total discovered and executed | 327 tests; passed |
+| P1.0 golden fixtures | 10 fictional cases |
+| P1.0 input sources | typed, voice transcript, clipboard |
+| Real device or service action | none |
+
+## Still Requires a Real Device — Gate B
+
+- Actual construction or sync of the P1.0 Shortcut from
+  `IPHONE_SHORTCUT_P1_0_ACTION_MAP.md`.
 - Actual typed, clipboard, and Dictate Text behavior.
-- Actual Share Sheet URL, selected text, image, and file behavior.
-- Actual iOS permission prompts, cancellation, and state preservation.
-- Actual URI size limits with long content.
+- Actual required Insight and optional Context/Action behavior.
+- Actual preview cancellation and direct `00_Inbox` write.
+- Actual rapid double-capture filename behavior.
+- Actual iOS permission prompts and practical URI limits at about 1,000 and
+  5,000 characters.
+- Actual Remotely Save synchronization and conflict behavior for P1.0 notes.
 
 ## Still Requires External-service Acceptance
 
@@ -125,7 +166,11 @@ Allowed wording:
 ```text
 IMPLEMENTATION CONTRACT COMPLETE
 OFFLINE VALIDATION COMPLETE
-DEVICE ACCEPTANCE PENDING
+P1.0 OFFLINE CONTRACT VERIFIED
+GATE A USER-ACCEPTED
+FULL P1 DEVICE ACCEPTANCE PENDING
+SHARE SHEET NOT IMPLEMENTED
+AI NOT IMPLEMENTED ON DEVICE
 AI SERVICE ACCEPTANCE PENDING
 ```
 
@@ -146,8 +191,8 @@ product-claim update.
 1. `obsidian://new` behavior and practical URI length limits are not proven on
    the user's iPhone/Obsidian versions. The 50,000-character contract bound is
    an input-safety bound, not a device acceptance claim.
-2. Seconds-level timestamp filenames can collide. The contract supports an
-   explicit suffix, but the real Shortcut collision UX must be observed.
+2. Timestamp filenames include a four-digit random suffix, but real iOS
+   generation and collision behavior must still be observed.
 3. Dictate Text privacy and availability depend on current device settings and
    provider behavior.
 4. Remotely Save conflicts, duplicate creation, and remote retention require
@@ -161,12 +206,13 @@ product-claim update.
 
 ### Gate A — Architecture
 
-Build and run only the four-action fixed-Markdown `BKC Mobile Test`; confirm
-one direct-Inbox note, intact Chinese/Markdown, and one Remotely Save copy.
+`USER-REPORTED PASS`; accepted for progression. Repository verification: No.
+Automatic verification: No. Device evidence: user-reported.
 
 ### Gate B — Full Shortcut
 
-After Gate A passes, build V3 and test typed, voice, and clipboard Quick Save.
+Build or sync the P1.0 Shortcut from `IPHONE_SHORTCUT_P1_0_ACTION_MAP.md` and
+run the eight cases in `MOBILE_P1_0_DEVICE_ACCEPTANCE.md`.
 
 ### Gate C — Share Sheet
 
@@ -179,5 +225,4 @@ timeout, invalid JSON, schema mismatch, and fallback Quick Save.
 
 ## Recommended Next Manual Action
 
-Build `BKC Mobile Test` on the iPhone, insert the real Vault identifier only on
-the device, and run the fixed Markdown architecture test once.
+Build or sync the completed P1.0 Shortcut and run Gate B.

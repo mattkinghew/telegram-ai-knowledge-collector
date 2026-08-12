@@ -4,6 +4,15 @@
 
 Manual test pack. No case has been executed by Codex.
 
+```text
+GATE A USER-ACCEPTED
+FULL P1 DEVICE ACCEPTANCE PENDING
+```
+
+Gate A is accepted from the user's report. It was not verified by repository
+automation, and no individual timings, screenshots, or device identifiers were
+supplied.
+
 Use only fictional or public-safe content. Do not record a real Vault
 identifier, local path, credential, webhook URL, account detail, or private
 screenshot in this repository.
@@ -43,15 +52,28 @@ fixed Markdown → Obsidian URI → direct Inbox note → Remotely Save
 7. Confirm one readable copy on the intended second device or approved target.
 8. Record the result without private identifiers.
 
-Do not build the full V3 Shortcut until Stage A passes.
+Stage A is user-accepted. Build only the P1.0 Action Map for Gate B; do not yet
+build the combined V3 Share Sheet or AI branches.
+
+Gate A record:
+
+```text
+User reported architecture smoke test completed.
+Verified by repository: No
+Verified automatically: No
+Device evidence: User-reported
+Result: Accepted for progression to P1.0
+```
 
 ## Stage B — Manual Quick Capture
 
-Build the V3 Shortcut using the stable contract, then test:
+Build the Quick Save-only Shortcut using
+`IPHONE_SHORTCUT_P1_0_ACTION_MAP.md`, then run the complete Gate B pack in
+`MOBILE_P1_0_DEVICE_ACCEPTANCE.md`:
 
 | Case | Input | Required observation |
 |---|---|---|
-| B1 | typed text | Raw Content is exact; two required answers and blank Action save |
+| B1 | typed text | Raw Content is exact; required Insight and blank optional Context/Action save |
 | B2 | voice | Transcript is shown, editable, and must be confirmed |
 | B3 | clipboard | Clipboard is read only after explicit selection and preview |
 
@@ -61,11 +83,12 @@ For each case confirm:
 - no title, category, tags, priority, deadline, or AI is required;
 - `## AI 整理建議` is absent;
 - cancel creates no note;
-- returning to edit preserves all prior values;
 - a same-second collision does not overwrite an existing note;
 - Remotely Save does not produce an unexplained conflict copy.
 
 ## Stage C — Share Sheet
+
+Deferred to P1.1; not implemented in P1.0.
 
 | Case | Input | Expected stored representation |
 |---|---|---|
@@ -78,6 +101,8 @@ Also test Chinese, English, emoji, `&`, `#`, `%`, `?`, `=`, `/`, `:`, Markdown
 punctuation, and multiline text. Compare the decoded note with the preview.
 
 ## Stage D — AI Knowledge Enrichment
+
+Deferred to P1.2; not implemented on device in P1.0.
 
 Use sanitized content only after the Make.com scenario and provider settings
 are reviewed and approved.
@@ -125,7 +150,8 @@ Decision: ACCEPTED / NOT ACCEPTED
 Until each stage is directly observed:
 
 ```text
-DEVICE_ACCEPTANCE_PENDING
+GATE A USER-ACCEPTED
+FULL P1 DEVICE ACCEPTANCE PENDING
 AI_SERVICE_ACCEPTANCE_PENDING
 ```
 
