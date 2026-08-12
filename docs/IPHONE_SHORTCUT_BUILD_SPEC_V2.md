@@ -4,6 +4,11 @@
 
 Proposed and specified. Not yet built or device-accepted.
 
+Stage 1 in this document remains the authoritative minimal architecture smoke
+test. The full-workflow sections below are retained as V2 history and have been
+superseded for later construction by `IPHONE_SHORTCUT_BUILD_SPEC_V3.md` and
+`MOBILE_CAPTURE_CONTRACT_V1.md`.
+
 Build exactly one primary Shortcut named:
 
 ```text

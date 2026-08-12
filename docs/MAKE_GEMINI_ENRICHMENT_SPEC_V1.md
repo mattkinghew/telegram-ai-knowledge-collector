@@ -5,6 +5,11 @@
 Proposed and specified. Not configured or executed. No importable Make.com
 blueprint is supplied because no sanitized exported blueprint was provided.
 
+This file is preserved as the V1 contract. New P0.9 implementation should use
+`MAKE_GEMINI_ENRICHMENT_SPEC_V2.md`, the version-2 schemas, and the version-2
+Knowledge Enrichment prompt. V1 field names and response semantics are not
+silently changed.
+
 ## Purpose
 
 This optional P1 scenario enriches one user-reviewed mobile request. It returns

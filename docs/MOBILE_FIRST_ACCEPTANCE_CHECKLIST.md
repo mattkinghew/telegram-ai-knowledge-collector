@@ -8,6 +8,10 @@ Shortcut, URI, Remotely Save, Make.com, or Gemini works.
 
 Use sanitized test data and record only privacy-safe evidence references.
 
+This checklist preserves the detailed original cases. Use
+`MOBILE_DEVICE_ACCEPTANCE_V2.md` as the current staged execution order and
+`IPHONE_SHORTCUT_BUILD_SPEC_V3.md` for the full Shortcut after Stage 1 passes.
+
 ## Stage 1 — Minimal Architecture Smoke Test
 
 Run this test before every later device case. Build only the temporary
