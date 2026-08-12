@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/mobile-insight-request-v2.schema.json",
+  "title": "Mobile Knowledge Enrichment Request v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_type",
+    "source",
+    "raw_content",
+    "user_insight",
+    "user_context",
+    "user_action",
+    "output_goal",
+    "project",
+    "allowed_projects"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "2"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "clipboard",
+        "voice_transcript",
+        "url",
+        "shared_text",
+        "image_reference",
+        "file_reference"
+      ]
+    },
+    "source": {
+      "type": "string",
+      "maxLength": 2048
+    },
+    "raw_content": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 50000
+    },
+    "user_insight": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "user_context": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "user_action": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "output_goal": {
+      "type": "string",
+      "enum": [
+        "collect",
+        "task",
+        "content",
+        "project_knowledge",
+        "progress",
+        "decision"
+      ]
+    },
+    "project": {
+      "type": "string",
+      "maxLength": 200,
+      "pattern": "^[^\\r\\n]*$"
+    },
+    "allowed_projects": {
+      "type": "array",
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200,
+        "pattern": "^[^\\r\\n]+$"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "source_type": {
+            "const": "url"
+          }
+        },
+        "required": [
+          "source_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048,
+            "format": "uri",
+            "pattern": "^https?://(?![^/?#]*@)(?:\\[[0-9A-Fa-f:.]+\\]|[^\\s/?#:@]+)(?::[0-9]{1,5})?(?:[/?#][^\\s]*)?$"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "maxLength": 500,
+            "pattern": "^(?!/)(?!\\\\)(?![A-Za-z]:[\\\\/]).*$"
+          }
+        }
+      }
+    }
+  ]
+}

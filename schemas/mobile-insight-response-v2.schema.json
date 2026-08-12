@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/mobile-insight-response-v2.schema.json",
+  "title": "Mobile Knowledge Enrichment Response v2",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/success"
+    },
+    {
+      "$ref": "#/$defs/failure"
+    }
+  ],
+  "$defs": {
+    "success": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ok",
+        "schema_version",
+        "result"
+      ],
+      "properties": {
+        "ok": {
+          "const": true
+        },
+        "schema_version": {
+          "const": "2"
+        },
+        "result": {
+          "$ref": "#/$defs/enrichment_result"
+        }
+      }
+    },
+    "failure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ok",
+        "error_code",
+        "message"
+      ],
+      "properties": {
+        "ok": {
+          "const": false
+        },
+        "error_code": {
+          "type": "string",
+          "enum": [
+            "INVALID_REQUEST",
+            "AI_UNAVAILABLE",
+            "AI_TIMEOUT",
+            "INVALID_AI_JSON",
+            "SCHEMA_MISMATCH",
+            "INTERNAL_ERROR"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      }
+    },
+    "enrichment_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "suggested_title",
+        "one_sentence_insight",
+        "supporting_points",
+        "possible_applications",
+        "suggested_next_action",
+        "output_angle",
+        "related_project",
+        "facts_to_verify",
+        "missing_information",
+        "confidence"
+      ],
+      "properties": {
+        "suggested_title": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "one_sentence_insight": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "supporting_points": {
+          "type": "array",
+          "maxItems": 3,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "possible_applications": {
+          "type": "array",
+          "maxItems": 3,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "suggested_next_action": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "output_angle": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "related_project": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "facts_to_verify": {
+          "type": "array",
+          "maxItems": 5,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "missing_information": {
+          "type": "array",
+          "maxItems": 5,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "confidence": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        }
+      }
+    }
+  }
+}
