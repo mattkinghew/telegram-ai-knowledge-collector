@@ -1,0 +1,1 @@
+{"capture":{"schema_version":"1","captured_at":"2026-08-13T09:00:02+08:00","source_type":"personal","source":"","raw_content":"第一段原文。\n\n第二段保留空行。\n  第三行保留縮排。","insight":"多行內容不可被壓平。","context":"測試 Markdown rendering。","action":"核對換行。","output_goal":"collect","project":""}}

@@ -1,0 +1,1 @@
+{"capture":{"schema_version":"1","captured_at":"2026-08-13T09:00:10+08:00","source_type":"url","source":"https://example.com/a%20b?q=100%25","raw_content":"https://example.com/a%20b?q=100%25","insight":"Existing percent escapes must remain unchanged.","context":"Double-encoding regression test.","action":"Decode the final URI once.","output_goal":"collect","project":""}}

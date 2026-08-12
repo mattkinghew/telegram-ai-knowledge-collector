@@ -1,0 +1,1 @@
+{"capture":{"schema_version":"1","captured_at":"2026-08-13T09:00:19+08:00","source_type":"personal","source":"","raw_content":"Reserved: & # % ? = / : and spaces.","insight":"Each query value must be encoded independently.","context":"Obsidian URI oracle test.","action":"Parse and compare the decoded content.","output_goal":"collect","project":""}}

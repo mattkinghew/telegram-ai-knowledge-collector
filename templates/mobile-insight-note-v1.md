@@ -4,18 +4,18 @@ created:
 source_type:
 source:
 project:
-output_type:
+output_goal:
 ai_status:
 ---
 
-# Title
+# Quick Capture
 
 ## 原始內容
 
-## 為甚麼值得保留
+## 最值得記住
 
-## 可立即應用
+## 可以幫我處理
 
 ## 下一步
 
-## AI 整理建議
+{{AI_SUGGESTIONS_SECTION}}

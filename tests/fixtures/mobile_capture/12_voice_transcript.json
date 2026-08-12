@@ -1,0 +1,1 @@
+{"capture":{"schema_version":"1","captured_at":"2026-08-13T09:00:12+08:00","source_type":"voice_transcript","source":"","raw_content":"This is an edited fictional voice transcript.","insight":"The user must confirm the transcript.","context":"Use in device acceptance.","action":"Check dictation settings on device.","output_goal":"task","project":"Demo Project"}}

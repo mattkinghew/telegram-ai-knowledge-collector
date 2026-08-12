@@ -1,0 +1,1 @@
+{"capture":{"schema_version":"1","captured_at":"2026-08-13T09:00:06+08:00","source_type":"shared_text","source":"","raw_content":"# Heading\n- item\n**bold** and `code`\n> quote\n[link](https://example.com/)","insight":"Markdown punctuation should remain verbatim.","context":"Renderer oracle test.","action":"Inspect the preview.","output_goal":"collect","project":""}}
