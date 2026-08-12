@@ -1,0 +1,14 @@
+{
+  "capture": {
+    "schema_version": "1",
+    "captured_at": "2026-08-13T08:09:10+08:00",
+    "source_type": "personal",
+    "source": "",
+    "raw_content": "兩次快速保存不應互相覆蓋。",
+    "insight": "每次 capture 都需要獨立 filename suffix",
+    "context": "用於 fictional collision test。",
+    "action": "以 4821 和 7394 建立兩個參考路徑。",
+    "project": ""
+  },
+  "deterministic_test_suffixes": ["4821", "7394"]
+}

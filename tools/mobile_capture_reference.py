@@ -47,6 +47,15 @@ CAPTURE_FIELDS = frozenset(
         "project",
     }
 )
+REQUIRED_CAPTURE_FIELDS = frozenset(
+    {
+        "schema_version",
+        "captured_at",
+        "source_type",
+        "raw_content",
+        "insight",
+    }
+)
 
 
 class MobileCaptureValidationError(ValueError):
@@ -122,7 +131,7 @@ def normalize_capture_input(payload: Mapping[str, Any]) -> dict[str, str]:
     if not isinstance(payload, Mapping):
         raise MobileCaptureValidationError("capture must be an object")
     unknown = set(payload) - CAPTURE_FIELDS
-    missing = CAPTURE_FIELDS - set(payload)
+    missing = REQUIRED_CAPTURE_FIELDS - set(payload)
     if unknown:
         raise MobileCaptureValidationError(
             "unexpected fields: " + ", ".join(sorted(unknown))
@@ -143,7 +152,7 @@ def normalize_capture_input(payload: Mapping[str, Any]) -> dict[str, str]:
     if source_type not in SOURCE_TYPES:
         raise MobileCaptureValidationError("unsupported source_type")
 
-    output_goal_value = payload["output_goal"]
+    output_goal_value = payload.get("output_goal", "collect")
     if not isinstance(output_goal_value, str):
         raise MobileCaptureValidationError("output_goal must be a string")
     output_goal = output_goal_value.strip().lower()
@@ -166,14 +175,12 @@ def normalize_capture_input(payload: Mapping[str, Any]) -> dict[str, str]:
         "insight": _require_string(
             payload, "insight", max_length=2_000, allow_empty=False
         ),
-        "context": _require_string(
-            payload, "context", max_length=2_000, allow_empty=False
-        ),
+        "context": _require_string(payload, "context", max_length=2_000),
         "action": _require_string(payload, "action", max_length=1_000),
         "output_goal": output_goal,
         "project": _require_string(payload, "project", max_length=200),
     }
-    for name in ("project",):
+    for name in ("insight", "project"):
         if "\n" in normalized[name]:
             raise MobileCaptureValidationError(f"{name} must be a single line")
     return normalized
@@ -229,54 +236,51 @@ def render_mobile_markdown(
     """Render deterministic Markdown while preserving source and user layers."""
 
     normalized = normalize_capture_input(capture)
-    ai_status = "suggested" if ai_suggestions is not None else "not-requested"
+    ai_status = "suggested" if ai_suggestions is not None else "none"
+    source = _yaml_string(normalized["source"]) if normalized["source"] else ""
+    project = _yaml_string(normalized["project"]) if normalized["project"] else ""
     lines = [
         "---",
         "status: inbox",
-        f"created: {_yaml_string(normalized['captured_at'])}",
-        f"source_type: {_yaml_string(normalized['source_type'])}",
-        f"source: {_yaml_string(normalized['source'])}",
-        f"project: {_yaml_string(normalized['project'])}",
-        f"output_goal: {_yaml_string(normalized['output_goal'])}",
-        f"ai_status: {_yaml_string(ai_status)}",
+        f"created: {normalized['captured_at']}",
+        f"source_type: {normalized['source_type']}",
+        f"source: {source}",
+        f"project: {project}",
+        f"output_goal: {normalized['output_goal']}",
+        f"ai_status: {ai_status}",
         "---",
         "",
-        "# Quick Capture",
-        "",
-        "## 原始內容",
-        "",
-        normalized["raw_content"],
-        "",
-        "## 最值得記住",
-        "",
-        normalized["insight"],
-        "",
-        "## 可以幫我處理",
-        "",
-        normalized["context"],
-        "",
-        "## 下一步",
-        "",
-        normalized["action"],
+        f"# {normalized['insight']}",
     ]
+    for heading, value in (
+        ("## 原始內容", normalized["raw_content"]),
+        ("## 最值得記住", normalized["insight"]),
+        ("## 可以幫我處理", normalized["context"]),
+        ("## 下一步", normalized["action"]),
+    ):
+        if lines[-1] != "":
+            lines.append("")
+        lines.extend((heading, ""))
+        if value:
+            lines.append(value)
     if ai_suggestions is not None:
         lines.extend(("", *_render_ai_suggestions(ai_suggestions)))
-    return "\n".join(lines).rstrip() + "\n"
+    return "\n".join(lines) + "\n"
 
 
-def build_mobile_filename(captured_at: str, *, collision_index: int = 1) -> str:
-    """Return a flat-Inbox timestamp path with an explicit collision suffix."""
+def build_mobile_filename(captured_at: str, *, unique_suffix: str) -> str:
+    """Return a flat-Inbox timestamp path with a supplied four-digit suffix."""
 
     normalized = _normalize_timestamp(captured_at)
     parsed = datetime.fromisoformat(
         normalized[:-1] + "+00:00" if normalized.endswith("Z") else normalized
     )
+    if not isinstance(unique_suffix, str) or not re.fullmatch(
+        r"[0-9]{4}", unique_suffix
+    ):
+        raise MobileCaptureValidationError("unique_suffix must be four digits")
     base = f"00_Inbox/{parsed.strftime('%Y-%m-%d-%H%M%S')}"
-    if not isinstance(collision_index, int) or isinstance(collision_index, bool):
-        raise MobileCaptureValidationError("collision_index must be an integer")
-    if collision_index < 1:
-        raise MobileCaptureValidationError("collision_index must be at least 1")
-    return base if collision_index == 1 else f"{base}-{collision_index}"
+    return f"{base}-{unique_suffix}"
 
 
 def build_obsidian_uri(vault: str, file_path: str, content: str) -> str:
@@ -302,6 +306,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     )
     parser.add_argument("capture", type=Path, help="Path to canonical capture JSON")
     parser.add_argument("--vault", default="EXAMPLE_VAULT_ID")
+    parser.add_argument(
+        "--suffix",
+        required=True,
+        help="Deterministic four-digit filename suffix for this offline oracle",
+    )
     args = parser.parse_args(argv)
     payload = json.loads(args.capture.read_text(encoding="utf-8"))
     capture = payload["capture"] if "capture" in payload else payload
@@ -310,7 +319,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print(
         build_obsidian_uri(
             args.vault,
-            build_mobile_filename(normalized["captured_at"]),
+            build_mobile_filename(
+                normalized["captured_at"], unique_suffix=args.suffix
+            ),
             markdown,
         )
     )

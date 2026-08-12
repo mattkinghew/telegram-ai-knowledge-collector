@@ -1,0 +1,13 @@
+{
+  "capture": {
+    "schema_version": "1",
+    "captured_at": "2026-08-13T08:01:02+08:00",
+    "source_type": "personal",
+    "source": "",
+    "raw_content": "如果收集流程要求太多分類選擇，使用者可能在真正記錄想法之前便放棄。\n\n較好的測試方式，是先保留原始內容，再要求一個最重要的反思問題，最後把其餘欄位維持為可選。這個 fictional case 只用來驗證長段落、空行與中文標點能否完整保存。",
+    "insight": "低摩擦流程應先保存內容再補充結構",
+    "context": "比較不同 capture flow 的完成率。",
+    "action": "在裝置測試記錄最煩擾的一次點按。",
+    "project": ""
+  }
+}

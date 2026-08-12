@@ -109,17 +109,18 @@ class MobileCaptureReferenceTests(unittest.TestCase):
 
     def test_filename_is_stable_and_collision_suffix_is_explicit(self) -> None:
         captured_at = "2026-08-13T09:05:07+08:00"
-        self.assertEqual(build_mobile_filename(captured_at), "00_Inbox/2026-08-13-090507")
         self.assertEqual(
-            build_mobile_filename(captured_at, collision_index=2),
-            "00_Inbox/2026-08-13-090507-2",
+            build_mobile_filename(captured_at, unique_suffix="4821"),
+            "00_Inbox/2026-08-13-090507-4821",
         )
 
     def test_uri_has_one_of_each_parameter_and_decodes_to_markdown(self) -> None:
         markdown = render_mobile_markdown(normalize_capture_input(self.capture))
         uri = build_obsidian_uri(
             "EXAMPLE_VAULT_ID",
-            build_mobile_filename(self.capture["captured_at"]),
+            build_mobile_filename(
+                self.capture["captured_at"], unique_suffix="4821"
+            ),
             markdown,
         )
         parsed = urlparse(uri)

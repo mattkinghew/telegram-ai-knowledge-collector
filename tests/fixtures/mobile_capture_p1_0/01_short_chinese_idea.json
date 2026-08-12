@@ -1,0 +1,13 @@
+{
+  "capture": {
+    "schema_version": "1",
+    "captured_at": "2026-08-13T08:00:01+08:00",
+    "source_type": "personal",
+    "source": "",
+    "raw_content": "先以一個小型流程驗證核心假設。",
+    "insight": "小型驗證應先於功能擴張",
+    "context": "用於規劃下一輪 fictional prototype。",
+    "action": "寫下一個可觀察的成功條件。",
+    "project": ""
+  }
+}

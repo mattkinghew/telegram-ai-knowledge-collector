@@ -2,10 +2,13 @@
 
 ## Status
 
-`IMPLEMENTATION_CONTRACT_COMPLETE` for offline reference use.
+`P1_0_IMPLEMENTATION_CONTRACT_COMPLETE` for offline reference use.
 
-`DEVICE_ACCEPTANCE_PENDING`. This contract has not been proven on an iPhone,
-in Obsidian Mobile, or through Remotely Save.
+`GATE_A_USER_ACCEPTED`; this is a user-reported architecture result, not a
+repository or automatic verification.
+
+`FULL_P1_DEVICE_ACCEPTANCE_PENDING`. P1.0 has not been proven through the full
+typed, voice, clipboard, cancel, rapid-capture, and Remotely Save Gate B pack.
 
 ## Purpose
 
@@ -32,15 +35,15 @@ AI output must never overwrite or silently upgrade source or user content.
 | `source` | yes | URL, public-safe filename, or blank | 2,048 characters |
 | `raw_content` | yes | Original user-entered or shared material | 50,000 characters |
 | `insight` | yes | User answer to the first reflection question | 2,000 characters |
-| `context` | yes | User answer to the second reflection question | 2,000 characters |
-| `action` | yes; blank allowed | User answer to the optional third question | 1,000 characters |
-| `output_goal` | yes | One output goal enum below | fixed enum |
-| `project` | yes; blank allowed | User-confirmed project, never an AI guess | 200 characters |
+| `context` | no; blank allowed | User answer to the second reflection question | 2,000 characters |
+| `action` | no; blank allowed | User answer to the optional third question | 1,000 characters |
+| `output_goal` | no | Defaults to `collect` | fixed enum |
+| `project` | no; blank allowed | User-confirmed project, never an AI guess | 200 characters |
 
 Unknown fields are rejected by the offline reference validator. Line endings
 are normalized to `LF`; whitespace inside Raw Content is otherwise preserved.
-Raw Content, Insight, and Context must contain non-whitespace text. Action and
-Project may be blank.
+Raw Content and Insight must contain non-whitespace text. Insight is one line
+so it can be the Markdown H1. Context, Action, and Project may be blank.
 
 ## Canonical Concepts
 
@@ -51,12 +54,18 @@ must never be overwritten, summarized in place, trimmed, or corrected by AI.
 
 ### Source
 
-The origin of the capture. Supported source types are:
+The origin of the capture. The active P1.0 profile supports only:
 
 ```text
 personal
 clipboard
 voice_transcript
+```
+
+The broader reference contract retains these already-defined values for later
+P1.1 compatibility, but the P1.0 Shortcut must not create them:
+
+```text
 url
 shared_text
 image_reference
@@ -111,8 +120,9 @@ The optional compact menu is normalized to one English enum:
 | `progress` | 工作進度 |
 | `decision` | 決策記錄 |
 
-The Shortcut may default to `collect`; it must not ask for category, tags,
-priority, deadline, confidence, or duplicate status during normal capture.
+P1.0 always defaults to `collect` and provides no output-goal menu. It must not
+ask for category, tags, priority, deadline, confidence, or duplicate status
+during normal capture. Other enum values remain reserved for later phases.
 
 ### Project
 
@@ -123,15 +133,15 @@ separate until the user accepts it.
 ### AI Suggestions
 
 Optional, unconfirmed enrichment returned in a versioned response envelope.
-It is never part of Raw Content, Insight, Context, or Action. Quick Save omits
-the entire `## AI 整理建議` section. AI failure must preserve every confirmed
-field and offer Quick Save.
+It is never part of Raw Content, Insight, Context, or Action. P1.0 Quick Save
+uses `ai_status: none` and omits the entire `## AI 整理建議` section. AI is
+deferred to P1.2.
 
 ## Markdown Mapping
 
 ```text
 raw_content → ## 原始內容
-insight     → ## 最值得記住
+insight     → H1 and ## 最值得記住
 context     → ## 可以幫我處理
 action      → ## 下一步
 AI result   → ## AI 整理建議 (only after user review)
@@ -145,14 +155,13 @@ stays in body sections. Project may be blank; no large tag array is generated.
 The default direct-Inbox filename is:
 
 ```text
-00_Inbox/YYYY-MM-DD-HHmmss
+00_Inbox/YYYY-MM-DD-HHmmss-NNNN
 ```
 
-No title is required during capture. A later review may rename the file or
-improve `# Quick Capture`. If a second capture occurs in the same second, the
-caller must add an explicit numeric suffix such as `-2` before opening
-Obsidian. The reference renderer exposes this behavior deterministically; it
-does not inspect a Vault for collisions.
+No title is required during capture. The H1 is the user-written Insight, while
+the filename is independent of title and content. `NNNN` is a locally generated
+four-digit suffix. The reference helper requires a deterministic supplied
+suffix for tests; it does not generate randomness or inspect a Vault.
 
 ## Obsidian URI Contract
 
@@ -172,7 +181,7 @@ constructs this string but never opens it or infers a Vault identifier.
 normalize_capture_input
 validate_mobile_capture
 render_mobile_markdown
-build_mobile_filename
+build_mobile_filename(captured_at, unique_suffix=...)
 build_obsidian_uri
 ```
 

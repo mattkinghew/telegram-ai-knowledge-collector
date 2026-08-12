@@ -1,0 +1,13 @@
+{
+  "capture": {
+    "schema_version": "1",
+    "captured_at": "2026-08-13T08:03:04+08:00",
+    "source_type": "personal",
+    "source": "",
+    "raw_content": "Quick Save 應該保持 local-first，並將 review 留給之後。",
+    "insight": "Capture reliability 比 metadata completeness 更重要",
+    "context": "用於 fictional mobile UX 檢查。",
+    "action": "Run one offline parity test。",
+    "project": ""
+  }
+}

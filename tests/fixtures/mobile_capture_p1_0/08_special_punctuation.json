@@ -1,0 +1,13 @@
+{
+  "capture": {
+    "schema_version": "1",
+    "captured_at": "2026-08-13T08:07:08+08:00",
+    "source_type": "clipboard",
+    "source": "",
+    "raw_content": "保留 & # % ? = / : \"quotes\"、（括號）與 Markdown `code`。",
+    "insight": "URI 保留字必須在解碼後完整還原",
+    "context": "驗證 fictional URI encoding。",
+    "action": "解析 URI 並比較 Markdown。",
+    "project": ""
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "capture": {
+    "schema_version": "1",
+    "captured_at": "2026-08-13T08:04:05+08:00",
+    "source_type": "voice_transcript",
+    "source": "",
+    "raw_content": "這是已由使用者檢查和修改的示範語音轉錄。",
+    "insight": "語音轉錄必須先經人工確認",
+    "context": "用於 fictional device acceptance。",
+    "action": "比較修改後文字與最終筆記。",
+    "project": ""
+  }
+}

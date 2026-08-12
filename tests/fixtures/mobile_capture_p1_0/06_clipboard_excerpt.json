@@ -1,0 +1,13 @@
+{
+  "capture": {
+    "schema_version": "1",
+    "captured_at": "2026-08-13T08:05:06+08:00",
+    "source_type": "clipboard",
+    "source": "",
+    "raw_content": "Fictional article excerpt: A useful system makes its review boundary visible.",
+    "insight": "Review boundaries should be visible to the user",
+    "context": "Use in a fictional product note.",
+    "action": "",
+    "project": ""
+  }
+}
