@@ -9,6 +9,35 @@ Use sanitized test content first. Do not use employer, client, health,
 credential, or personal data until the complete device, sync, webhook, provider
 retention, and access policy has been approved.
 
+## Stage 1 — Minimal Architecture Smoke Test
+
+Do only this stage now. Do not build the Share Sheet, input menu, dictation,
+Gemini, OCR, PDF extraction, or other full-workflow branches.
+
+1. In iOS Shortcuts, create a temporary Shortcut named `BKC Mobile Test`.
+2. Add **Text** and paste the exact fixed Markdown from
+   `IPHONE_SHORTCUT_BUILD_SPEC_V2.md`.
+3. Add **URL Encode** for the complete Markdown.
+4. Add a **Text** action that builds the documented `obsidian://new` URI using
+   the local Vault identifier, `00_Inbox/BKC-Mobile-Test`, and the encoded
+   Markdown. Keep the repository placeholder as `EXAMPLE_VAULT_ID`.
+5. Add **Open URLs** and run the Shortcut once with sanitized content.
+6. Inspect Obsidian directly. Confirm the note is a direct child of
+   `00_Inbox`, and verify the Chinese text and Markdown/YAML.
+7. Run or wait for the approved Remotely Save sync, then inspect the intended
+   second device or approved destination directly.
+8. Record the complete Stage 1 result in
+   `MOBILE_FIRST_ACCEPTANCE_CHECKLIST.md` without a Vault identifier, private
+   path, account detail, webhook URL, or private screenshot.
+
+Stop after Step 8. Do not infer success from Shortcuts or Obsidian opening;
+record only directly observed note creation and synchronization.
+
+## Later Full Workflow Steps — Not Yet Authorized
+
+The following steps remain proposed for later goals. Do not execute them until
+Stage 1 is accepted and the next goal is explicitly started.
+
 | Step | Manual action | Expected result | Failure symptoms |
 |---:|---|---|---|
 | 1 | In iOS Shortcuts, create one Shortcut named `收集靈感到 Obsidian` using `IPHONE_SHORTCUT_BUILD_SPEC_V2.md`. | One editable Shortcut contains the no-input, Share Sheet, preview, Quick Save, and optional AI branches. | Multiple competing capture Shortcuts, missing cancel paths, or raw content replaced during editing. |
@@ -27,9 +56,10 @@ retention, and access policy has been approved.
 ## Exact First iPhone Action
 
 Open the Shortcuts app, tap `+`, rename the new Shortcut to
-`收集靈感到 Obsidian`, then add **If** to test whether **Shortcut Input** has
-any value. Do not enter the real Vault ID or webhook URL until the local Quick
-Save structure and cancel paths have been reviewed.
+`BKC Mobile Test`, then add **Text** with the fixed Markdown in
+`IPHONE_SHORTCUT_BUILD_SPEC_V2.md`. Enter the real Vault identifier only in
+the local Shortcut. Do not enter a webhook URL or build the full input flow at
+this stage.
 
 ## Evidence Boundary
 

@@ -14,6 +14,85 @@ It supports Share Sheet, Home Screen widget, Siri, Back Tap, and direct launch
 from the Shortcuts app. Quick Save is the P0 path. Optional AI enrichment is
 the P1 path. Normal capture must not require a Mac, Terminal, or JSON handoff.
 
+## Stage 1 — Minimal Architecture Smoke Test
+
+Complete and accept this temporary proof before building the primary Shortcut
+described later in this document. Do not add Share Sheet input, menus,
+dictation, Gemini, OCR, or file handling to this test.
+
+Create one temporary Shortcut named:
+
+```text
+BKC Mobile Test
+```
+
+Use only these four actions:
+
+1. **Text** — paste the fixed Markdown below.
+2. **URL Encode** — encode the complete Text output.
+3. **Build Obsidian URI** — use a **Text** action to place the encoded Markdown
+   in the URI shown below.
+4. **Open URLs** — open that URI in Obsidian.
+
+Fixed Markdown:
+
+```markdown
+---
+status: inbox
+source_type: test
+---
+
+# Mobile Capture Test
+
+## 原始內容
+
+這是一則由 iPhone Shortcut 直接建立的測試筆記。
+
+## 為甚麼值得保留
+
+測試 mobile-first capture 是否可行。
+
+## 可立即應用
+
+Business Knowledge Capture。
+
+## 下一步
+
+確認 Remotely Save 同步。
+```
+
+Use only the public-safe placeholder `EXAMPLE_VAULT_ID` in repository
+documentation. Enter the real Vault identifier locally on the iPhone; do not
+record it in this repository or acceptance evidence.
+
+The intended test note path is:
+
+```text
+00_Inbox/BKC-Mobile-Test
+```
+
+The URI pattern is:
+
+```text
+obsidian://new?vault=<ENCODED_VAULT>&file=<ENCODED_FILE>&content=<ENCODED_MARKDOWN>
+```
+
+To keep the Shortcut at four actions, replace `EXAMPLE_VAULT_ID` locally with
+the URL-encoded Vault identifier and use the fixed encoded file value
+`00_Inbox%2FBKC-Mobile-Test` in the URI-building Text action. The complete
+Markdown is the only input to the Shortcut's **URL Encode** action. Do not use
+`overwrite`, do not add `silent=true`, and execute the test once before
+checking the result.
+
+Passing Stage 1 requires direct observation that Obsidian opens, one note is
+created directly in `00_Inbox`, Chinese text and Markdown/YAML are intact, and
+Remotely Save produces one readable copy on the intended second device. A
+Shortcut success notification alone is not evidence of note creation or sync.
+
+Stop after this test and report the result using the Stage 1 record in
+`MOBILE_FIRST_ACCEPTANCE_CHECKLIST.md`. Do not build the full workflow until
+the architecture test is accepted.
+
 ## Configuration
 
 Create these Shortcut text variables. Do not commit their real values:
@@ -64,7 +143,7 @@ When launched without Shortcut Input, show:
 
 `取消` stops without opening Obsidian or making a network request.
 
-## Stage 1 — Normalize the Input
+## Full Workflow Stage 1 — Normalize the Input
 
 Keep separate variables for `SourceType`, `Source`, `RawContent`, and
 `SourceDescription`. Never replace `RawContent` with an AI result.
@@ -119,7 +198,7 @@ The user must verify the actual dictation provider and privacy settings.
 The P0 note records the source type, safe filename, and description. It does
 not claim that the original binary was copied into Obsidian.
 
-## Stage 2 — Ask the Core Questions
+## Full Workflow Stage 2 — Ask the Core Questions
 
 The default path asks no more than three questions.
 
@@ -175,7 +254,7 @@ Only one additional context question may follow, and only when necessary to
 make the selected output usable. The preview must identify it as optional
 context.
 
-## Stage 3 — Build a Safe Draft
+## Full Workflow Stage 3 — Build a Safe Draft
 
 1. Create a timestamp with **Current Date** and **Format Date** using custom
    format `yyyy-MM-dd-HHmmss`.
@@ -201,7 +280,7 @@ render reviewed AI suggestions under that heading and label them as
 unconfirmed suggestions. Never overwrite `## 原始內容` or merge AI text into
 the user's answers.
 
-## Stage 4 — Preview and Save Choice
+## Full Workflow Stage 4 — Preview and Save Choice
 
 Show title, source type, safe source, raw content, three answers, output goal,
 and whether AI will be used. Then show:

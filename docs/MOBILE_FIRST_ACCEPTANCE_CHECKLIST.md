@@ -8,6 +8,43 @@ Shortcut, URI, Remotely Save, Make.com, or Gemini works.
 
 Use sanitized test data and record only privacy-safe evidence references.
 
+## Stage 1 — Minimal Architecture Smoke Test
+
+Run this test before every later device case. Build only the temporary
+four-action `BKC Mobile Test` Shortcut specified in
+`IPHONE_SHORTCUT_BUILD_SPEC_V2.md`.
+
+- [ ] The Obsidian URI opens without adding Share Sheet, Gemini, OCR, PDF
+      extraction, or menus.
+- [ ] Exactly one test note is directly visible at
+      `00_Inbox/BKC-Mobile-Test`.
+- [ ] Traditional Chinese text is intact.
+- [ ] Frontmatter and Markdown headings are intact.
+- [ ] Remotely Save produces one readable synchronized note at the intended
+      approved destination.
+- [ ] No duplicate note or sync conflict is observed.
+- [ ] No Vault identifier, private path, credential, or private content is
+      recorded in repository evidence.
+
+Record the observed result exactly as follows:
+
+```markdown
+## Mobile Architecture Test
+
+- Obsidian URI: success / failure
+- 00_Inbox note: success / failure
+- Chinese: correct / incorrect
+- Markdown/YAML: correct / incorrect
+- Remotely Save: success / failure
+- Duplicate: yes / no
+- Sync conflict: yes / no
+- Error:
+- Screenshot available: yes / no
+```
+
+After recording the result, stop. Later device cases remain `NOT RUN` until
+Stage 1 is accepted and a later goal is explicitly started.
+
 ## Global Acceptance
 
 - [ ] No Mac required.
