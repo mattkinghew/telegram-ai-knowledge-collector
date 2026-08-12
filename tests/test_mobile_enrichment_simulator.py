@@ -86,6 +86,12 @@ class MobileEnrichmentSimulatorTests(unittest.TestCase):
             dict(self.request, source_type="pdf_bytes"),
             dict(self.request, extra="unknown"),
             dict(self.request, project="Unlisted Project"),
+            dict(self.request, source="x" * 501),
+            dict(
+                self.request,
+                project="Example\nProject",
+                allowed_projects=["Example\nProject"],
+            ),
         )
         for request in cases:
             with self.subTest(request=request), self.assertRaises(
@@ -104,6 +110,17 @@ class MobileEnrichmentSimulatorTests(unittest.TestCase):
         self.assertEqual(validate_enrichment_request(request)["source"], source)
         with self.assertRaises(EnrichmentContractError):
             validate_enrichment_request(dict(request, source="file:///tmp/note"))
+        with self.assertRaises(EnrichmentContractError):
+            validate_enrichment_request(dict(request, source="https://"))
+
+    def test_nullable_response_strings_reject_empty_non_null_values(self) -> None:
+        response = simulate_enrichment(self.request, mode="success")
+        response["result"]["suggested_title"] = ""
+        with self.assertRaises(EnrichmentContractError):
+            validate_success_response(
+                response,
+                allowed_projects=self.request["allowed_projects"],
+            )
 
     def test_all_twelve_prompt_fixtures_define_expected_behavior(self) -> None:
         fixture_paths = sorted(FIXTURE_DIR.glob("*.json"))

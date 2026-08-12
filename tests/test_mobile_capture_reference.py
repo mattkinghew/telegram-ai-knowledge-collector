@@ -96,6 +96,7 @@ class MobileCaptureReferenceTests(unittest.TestCase):
             dict(self.capture, raw_content=" \n "),
             dict(self.capture, source_type="unknown"),
             dict(self.capture, source_type="url", source="ftp://example.com"),
+            dict(self.capture, source_type="url", source="https://"),
             dict(self.capture, output_goal="urgent"),
             dict(self.capture, raw_content="x" * 50_001),
             dict(self.capture, unexpected="field"),

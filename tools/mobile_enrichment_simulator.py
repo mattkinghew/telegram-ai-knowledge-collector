@@ -118,8 +118,13 @@ def validate_enrichment_request(payload: Mapping[str, Any]) -> dict[str, Any]:
             or any(character.isspace() for character in source)
         ):
             raise EnrichmentContractError("source must be an HTTP or HTTPS URL")
-    elif source.startswith(('/', '\\')) or re.match(r"^[A-Za-z]:[\\/]", source):
-        raise EnrichmentContractError("source must not be an absolute local path")
+    else:
+        if len(source) > 500:
+            raise EnrichmentContractError("source exceeds 500 characters")
+        if source.startswith(('/', '\\')) or re.match(
+            r"^[A-Za-z]:[\\/]", source
+        ):
+            raise EnrichmentContractError("source must not be an absolute local path")
 
     output_goal = _string(payload, "output_goal", 40, required=True)
     if output_goal not in OUTPUT_GOALS:
@@ -165,7 +170,9 @@ def validate_enrichment_request(payload: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def _validate_optional_string(value: Any, name: str, max_length: int) -> None:
-    if value is not None and (not isinstance(value, str) or len(value) > max_length):
+    if value is not None and (
+        not isinstance(value, str) or not value or len(value) > max_length
+    ):
         raise EnrichmentContractError(f"invalid {name}")
 
 

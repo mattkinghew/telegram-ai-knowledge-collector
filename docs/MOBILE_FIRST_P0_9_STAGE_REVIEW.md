@@ -76,14 +76,14 @@ reliability.
 | Check | Result |
 |---|---|
 | Existing test baseline | 291 retained tests |
-| New contract tests | 20 tests |
-| Total discovered and executed | 311 tests; passing command exit status |
+| New contract tests | 21 tests |
+| Total discovered and executed | 312 tests; passing command exit status |
 | Compile | `src`, `tests`, and `tools` compiled successfully |
 | Desktop CLI smoke | `business_knowledge_capture.cli --help` passed |
 | Reference tool smoke | both development tool `--help` commands passed |
 | JSON syntax | every tracked/repository JSON file parsed with `json.tool` |
 | Focused capture tests | 11 passed |
-| Focused enrichment tests | 9 passed |
+| Focused enrichment tests | 10 passed |
 | Diff whitespace | `git diff --check` passed |
 | Network or service call | none |
 | Real Vault access | none |
