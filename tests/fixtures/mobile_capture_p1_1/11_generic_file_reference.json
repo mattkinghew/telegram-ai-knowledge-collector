@@ -1,0 +1,1 @@
+{"capture":{"schema_version":"1","captured_at":"2026-08-13T10:01:11+08:00","source_type":"file_reference","source":"example-notes.txt","raw_content":"這是 fictional generic file 的人工描述。","insight":"一般檔案也只保存安全 reference。","context":"用於 generic file 驗收。","action":"稍後人工檢查內容。","output_goal":"collect","project":""}}

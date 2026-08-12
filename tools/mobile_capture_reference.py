@@ -121,6 +121,18 @@ def _validate_source(source_type: str, source: str) -> None:
                 "URL source must be a valid HTTP or HTTPS URL without credentials"
             )
         return
+    if source_type in {"personal", "clipboard", "voice_transcript", "shared_text"}:
+        if source:
+            raise MobileCaptureValidationError(
+                f"source must be blank for {source_type}"
+            )
+        return
+    if source_type in {"image_reference", "file_reference"}:
+        if "/" in source or "\\" in source or source in {".", ".."}:
+            raise MobileCaptureValidationError(
+                "reference source must be a filename, not a path"
+            )
+        return
     if source.startswith(('/', '\\')) or re.match(r"^[A-Za-z]:[\\/]", source):
         raise MobileCaptureValidationError("source must not contain an absolute path")
 

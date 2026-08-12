@@ -1,0 +1,1 @@
+{"capture":{"schema_version":"1","captured_at":"2026-08-13T10:01:02+08:00","source_type":"url","source":"http://example.com/public-guide","raw_content":"http://example.com/public-guide","insight":"HTTP remains a supported reference scheme.","context":"Fictional URL acceptance case.","action":"Review the source manually.","output_goal":"collect","project":""}}

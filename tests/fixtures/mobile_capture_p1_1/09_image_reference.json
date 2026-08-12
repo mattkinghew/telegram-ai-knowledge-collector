@@ -1,0 +1,1 @@
+{"capture":{"schema_version":"1","captured_at":"2026-08-13T10:01:09+08:00","source_type":"image_reference","source":"example-screenshot.png","raw_content":"截圖顯示 fictional 表格；沒有進行 OCR。","insight":"圖片在 P1.1 只能保存人工描述。","context":"用於 image reference 驗收。","action":"需要時人工查看原圖。","output_goal":"collect","project":""}}
