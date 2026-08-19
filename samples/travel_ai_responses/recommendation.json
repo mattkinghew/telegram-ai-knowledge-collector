@@ -1,0 +1,27 @@
+{
+  "ok": true,
+  "schema_version": "3",
+  "result": {
+    "suggested_title": "Fictional travel knowledge suggestion",
+    "one_sentence_insight": "Use a bounded, offline-first capture before optional enrichment.",
+    "core_points": [
+      "Situation: The user is preparing a bounded fictional project workflow.",
+      "Insight: A smaller pilot makes gaps easier to verify.",
+      "Reason: Explicit acceptance criteria reduce unsupported progress claims."
+    ],
+    "why_it_matters": "The workflow preserves evidence and remains usable with intermittent connectivity.",
+    "practical_applications": [
+      "Create a reviewed knowledge note.",
+      "Connect the result to the explicitly selected project."
+    ],
+    "suggested_next_action": "Test one shared update format.",
+    "recommended_output": "recommendation",
+    "short_article_draft": null,
+    "facts_to_verify": [
+      "Risk: Confirm the pilot evidence before reuse."
+    ],
+    "missing_information": [],
+    "related_project": "Project Beta",
+    "confidence": "medium"
+  }
+}

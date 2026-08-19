@@ -1,0 +1,16 @@
+{
+  "schema_version": "3",
+  "source_type": "video_transcript",
+  "source": "https://video.example/fictional-validation-lesson",
+  "raw_content": "A reviewed fictional transcript excerpt explains that a passing test proves only its covered behavior.",
+  "user_insight": "Match evidence scope to the claim.",
+  "user_context": "Professional learning for Project Alpha.",
+  "user_action": "Write one example of an over-broad claim.",
+  "output_goal": "collect",
+  "requested_output": "learning_note",
+  "project": "Project Alpha",
+  "allowed_projects": [
+    "Project Alpha",
+    "Project Beta"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": "3",
+  "source_type": "personal",
+  "source": "",
+  "raw_content": "Run the fictional travel workflow checklist on the backup device.",
+  "user_insight": "One explicit device check remains.",
+  "user_context": "Project Alpha readiness.",
+  "user_action": "Run Scenario 1 with public-safe data.",
+  "output_goal": "task",
+  "requested_output": "task",
+  "project": "Project Alpha",
+  "allowed_projects": [
+    "Project Alpha",
+    "Project Beta"
+  ]
+}

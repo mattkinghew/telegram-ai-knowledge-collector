@@ -1,0 +1,16 @@
+{
+  "schema_version": "3",
+  "source_type": "clipboard",
+  "source": "",
+  "raw_content": "Keep Quick Save as the default travel path and make AI opt-in.",
+  "user_insight": "Reliability and privacy are the default decision criteria.",
+  "user_context": "Project Beta workflow decision.",
+  "user_action": "Record the decision and review trigger.",
+  "output_goal": "decision",
+  "requested_output": "decision",
+  "project": "Project Beta",
+  "allowed_projects": [
+    "Project Alpha",
+    "Project Beta"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "schema_version": "3",
+  "result": {
+    "suggested_title": "Fictional travel knowledge suggestion",
+    "one_sentence_insight": "Use a bounded, offline-first capture before optional enrichment.",
+    "core_points": [
+      "The supplied material supports a bounded, reviewable next step.",
+      "Source facts, user interpretation, and AI suggestions remain separate."
+    ],
+    "why_it_matters": "The workflow preserves evidence and remains usable with intermittent connectivity.",
+    "practical_applications": [
+      "Create a reviewed knowledge note.",
+      "Connect the result to the explicitly selected project."
+    ],
+    "suggested_next_action": "Review the draft before reuse.",
+    "recommended_output": "short_article",
+    "short_article_draft": "AI draft\n旅途中整理知識，重點不是把每段內容變成長摘要，而是保留來源、寫下自己的理解，再選一個可驗證的下一步。先以快速儲存保存原始內容，網路穩定且資料獲准外傳時，才啟用 AI 協助整理。這種做法能避免連線中斷造成遺失，也能把來源事實、個人判斷與 AI 建議清楚分開。實際使用時，可先完成一個小型專案更新或知識卡片，再以人工審核確認重點、風險與證據，最後才納入進度報告。",
+    "facts_to_verify": [],
+    "missing_information": [],
+    "related_project": null,
+    "confidence": "medium"
+  }
+}

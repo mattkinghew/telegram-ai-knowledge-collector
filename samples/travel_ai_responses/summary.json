@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "schema_version": "3",
+  "result": {
+    "suggested_title": "Fictional travel knowledge suggestion",
+    "one_sentence_insight": "Use a bounded, offline-first capture before optional enrichment.",
+    "core_points": [
+      "The supplied material supports a bounded, reviewable next step.",
+      "Source facts, user interpretation, and AI suggestions remain separate."
+    ],
+    "why_it_matters": "The workflow preserves evidence and remains usable with intermittent connectivity.",
+    "practical_applications": [
+      "Create a reviewed knowledge note.",
+      "Connect the result to the explicitly selected project."
+    ],
+    "suggested_next_action": "Define the pilot acceptance criteria.",
+    "recommended_output": "summary",
+    "short_article_draft": null,
+    "facts_to_verify": [],
+    "missing_information": [],
+    "related_project": "Project Alpha",
+    "confidence": "medium"
+  }
+}

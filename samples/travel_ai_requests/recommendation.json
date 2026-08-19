@@ -1,0 +1,16 @@
+{
+  "schema_version": "3",
+  "source_type": "shared_text",
+  "source": "",
+  "raw_content": "A fictional team currently records the same update in three separate places.",
+  "user_insight": "Reduce duplicate reporting steps.",
+  "user_context": "Use this in Project Beta workflow review.",
+  "user_action": "Test one shared update format.",
+  "output_goal": "project_knowledge",
+  "requested_output": "recommendation",
+  "project": "Project Beta",
+  "allowed_projects": [
+    "Project Alpha",
+    "Project Beta"
+  ]
+}

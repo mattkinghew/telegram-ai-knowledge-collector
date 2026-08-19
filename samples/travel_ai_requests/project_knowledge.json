@@ -1,0 +1,16 @@
+{
+  "schema_version": "3",
+  "source_type": "personal",
+  "source": "",
+  "raw_content": "A fictional pilot worked best when every acceptance check had one observable result.",
+  "user_insight": "Use observable evidence for each project gate.",
+  "user_context": "Project Alpha operating knowledge.",
+  "user_action": "Add one evidence field to the next review.",
+  "output_goal": "project_knowledge",
+  "requested_output": "project_knowledge",
+  "project": "Project Alpha",
+  "allowed_projects": [
+    "Project Alpha",
+    "Project Beta"
+  ]
+}

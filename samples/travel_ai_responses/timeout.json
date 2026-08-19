@@ -1,0 +1,6 @@
+{
+  "ok": false,
+  "error_code": "AI_TIMEOUT",
+  "message": "AI enrichment timed out.",
+  "quick_save_available": true
+}

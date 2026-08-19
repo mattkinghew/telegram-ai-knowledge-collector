@@ -1,0 +1,16 @@
+{
+  "schema_version": "3",
+  "source_type": "selected_text",
+  "source": "",
+  "raw_content": "A fictional excerpt describes why offline-first capture protects unfinished ideas during travel.",
+  "user_insight": "Capture reliability should come before optional enrichment.",
+  "user_context": "Draft a public-safe learning post.",
+  "user_action": "Review the draft before reuse.",
+  "output_goal": "content",
+  "requested_output": "short_article",
+  "project": "",
+  "allowed_projects": [
+    "Project Alpha",
+    "Project Beta"
+  ]
+}
