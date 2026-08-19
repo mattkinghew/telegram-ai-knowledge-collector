@@ -1,0 +1,1 @@
+{"request":{"schema_version":"3","source_type":"personal","source":"","raw_content":"Run the fictional checklist.","user_insight":"One next action is enough.","user_context":"Project Alpha.","user_action":"Run the checklist.","output_goal":"task","requested_output":"task","project":"Project Alpha","allowed_projects":["Project Alpha"]},"mode":"success","expected_kind":"object"}

@@ -1,0 +1,1 @@
+{"request":{"schema_version":"3","source_type":"shared_text","source":"","raw_content":"Fictional schema mismatch case.","user_insight":"Bounds matter.","user_context":"Contract testing.","user_action":"Reject the response.","output_goal":"collect","requested_output":"summary","project":"","allowed_projects":["Project Alpha"]},"mode":"schema_mismatch","expected_kind":"object"}

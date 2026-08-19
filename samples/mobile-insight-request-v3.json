@@ -1,0 +1,16 @@
+{
+  "schema_version": "3",
+  "source_type": "article",
+  "source": "https://example.com/public-article",
+  "raw_content": "A fictional article says a smaller pilot can expose workflow gaps.",
+  "user_insight": "Start with one bounded pilot.",
+  "user_context": "Use this in Project Alpha planning.",
+  "user_action": "Define the pilot acceptance criteria.",
+  "output_goal": "project_knowledge",
+  "requested_output": "summary",
+  "project": "Project Alpha",
+  "allowed_projects": [
+    "Project Alpha",
+    "Project Beta"
+  ]
+}

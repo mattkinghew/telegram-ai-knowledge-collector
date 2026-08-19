@@ -1,0 +1,1 @@
+{"request":{"schema_version":"3","source_type":"shared_text","source":"","raw_content":"Fictional invalid JSON case.","user_insight":"Reject invalid output.","user_context":"Schema validation.","user_action":"Quick Save.","output_goal":"collect","requested_output":"summary","project":"","allowed_projects":["Project Alpha"]},"mode":"invalid_json","expected_kind":"text"}

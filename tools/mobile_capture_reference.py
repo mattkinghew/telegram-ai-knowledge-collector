@@ -28,6 +28,8 @@ SOURCE_TYPES = frozenset(
         "shared_text",
         "image_reference",
         "file_reference",
+        "video_url",
+        "video_transcript",
     }
 )
 OUTPUT_GOALS = frozenset(
@@ -108,7 +110,7 @@ def _normalize_timestamp(value: str) -> str:
 def _validate_source(source_type: str, source: str) -> None:
     if "\n" in source:
         raise MobileCaptureValidationError("source must be a single line")
-    if source_type == "url":
+    if source_type in {"url", "video_url", "video_transcript"}:
         parsed = urlparse(source)
         if (
             parsed.scheme not in {"http", "https"}
@@ -216,14 +218,18 @@ def _render_ai_suggestions(ai_suggestions: Mapping[str, Any]) -> list[str]:
     lines = ["## AI 整理建議", "", "> 以下內容是未確認建議；不得視為來源事實。"]
     scalar_fields = (
         ("one_sentence_insight", "一句洞見"),
+        ("why_it_matters", "為何重要"),
         ("suggested_next_action", "建議下一步"),
         ("output_angle", "可形成的輸出"),
+        ("recommended_output", "建議輸出類型"),
         ("related_project", "建議關聯專案"),
         ("confidence", "信心"),
     )
     list_fields = (
         ("supporting_points", "支持重點"),
+        ("core_points", "核心重點"),
         ("possible_applications", "可能應用"),
+        ("practical_applications", "實際應用"),
         ("facts_to_verify", "需要核實"),
         ("missing_information", "缺失資料"),
     )
@@ -237,6 +243,9 @@ def _render_ai_suggestions(ai_suggestions: Mapping[str, Any]) -> list[str]:
             rendered = _render_list(value)
             if rendered:
                 lines.extend(("", f"### {label}", "", *rendered))
+    short_article = ai_suggestions.get("short_article_draft")
+    if isinstance(short_article, str) and short_article:
+        lines.extend(("", "### 短文草稿", "", short_article))
     return lines
 
 

@@ -1,0 +1,1 @@
+{"request":{"schema_version":"3","source_type":"shared_text","source":"","raw_content":"Fictional timeout case.","user_insight":"Preserve the draft.","user_context":"Offline fallback.","user_action":"Quick Save.","output_goal":"collect","requested_output":"summary","project":"","allowed_projects":["Project Alpha"]},"mode":"timeout","expected_kind":"object"}
