@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/voice-capture-response-v1.schema.json",
+  "title": "Universal Voice Capture Structured Output V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "suggested_title",
+    "capture_type",
+    "one_sentence_summary",
+    "completed",
+    "in_progress",
+    "next_actions",
+    "blockers",
+    "decisions",
+    "knowledge",
+    "content_ideas",
+    "project_updates",
+    "facts_to_verify",
+    "related_projects",
+    "confidence"
+  ],
+  "properties": {
+    "suggested_title": { "type": "string", "minLength": 1, "maxLength": 200, "pattern": "^[^\\r\\n]+$" },
+    "capture_type": { "enum": ["work", "knowledge", "idea", "learning", "mixed"] },
+    "one_sentence_summary": { "type": "string", "maxLength": 500, "pattern": "^[^\\r\\n]*$" },
+    "completed": { "$ref": "#/$defs/string_list" },
+    "in_progress": { "$ref": "#/$defs/string_list" },
+    "next_actions": { "$ref": "#/$defs/string_list" },
+    "blockers": { "$ref": "#/$defs/string_list" },
+    "decisions": { "$ref": "#/$defs/string_list" },
+    "knowledge": { "$ref": "#/$defs/string_list" },
+    "content_ideas": { "$ref": "#/$defs/string_list" },
+    "project_updates": { "$ref": "#/$defs/string_list" },
+    "facts_to_verify": { "$ref": "#/$defs/string_list" },
+    "related_projects": {
+      "allOf": [
+        { "$ref": "#/$defs/string_list" },
+        { "uniqueItems": true }
+      ]
+    },
+    "confidence": { "enum": ["low", "medium", "high"] }
+  },
+  "$defs": {
+    "string_list": {
+      "type": "array",
+      "maxItems": 20,
+      "items": { "type": "string", "minLength": 1, "maxLength": 1000, "pattern": "^[^\\r\\n]+$" }
+    }
+  }
+}
