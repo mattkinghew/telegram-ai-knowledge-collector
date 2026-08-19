@@ -1,0 +1,10 @@
+{
+  "mode": "offline",
+  "request": {
+    "schema_version": "1",
+    "captured_at": "2026-08-20T10:05:00+08:00",
+    "source_type": "voice_transcript",
+    "raw_transcript": "而家冇網絡，先完整保存呢段虛構語音轉錄，之後先處理。",
+    "allowed_projects": []
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "mode": "structured",
+  "request": {
+    "schema_version": "1",
+    "captured_at": "2026-08-20T09:40:00+08:00",
+    "source_type": "voice_transcript",
+    "raw_transcript": "可能可以考慮做一個 checklist，不過我未確定。",
+    "allowed_projects": []
+  },
+  "response": {
+    "suggested_title": "Checklist 可能性",
+    "capture_type": "idea",
+    "one_sentence_summary": "提出 checklist 的可能性，但未確認為行動。",
+    "completed": [],
+    "in_progress": [],
+    "next_actions": [],
+    "blockers": [],
+    "decisions": [],
+    "knowledge": ["可考慮建立 checklist"],
+    "content_ideas": [],
+    "project_updates": [],
+    "facts_to_verify": ["是否要把 checklist 變成確定行動"],
+    "related_projects": [],
+    "confidence": "medium"
+  }
+}

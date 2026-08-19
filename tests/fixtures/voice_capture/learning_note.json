@@ -1,0 +1,26 @@
+{
+  "mode": "structured",
+  "request": {
+    "schema_version": "1",
+    "captured_at": "2026-08-20T09:15:00+08:00",
+    "source_type": "voice_transcript",
+    "raw_transcript": "今日學到 JSON Schema 的 additionalProperties false 可以拒絕未知欄位。",
+    "allowed_projects": []
+  },
+  "response": {
+    "suggested_title": "JSON Schema 未知欄位控制",
+    "capture_type": "learning",
+    "one_sentence_summary": "學習用 additionalProperties false 拒絕未知欄位。",
+    "completed": [],
+    "in_progress": [],
+    "next_actions": [],
+    "blockers": [],
+    "decisions": [],
+    "knowledge": ["JSON Schema 可用 additionalProperties false 拒絕未知欄位"],
+    "content_ideas": [],
+    "project_updates": [],
+    "facts_to_verify": [],
+    "related_projects": [],
+    "confidence": "high"
+  }
+}

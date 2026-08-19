@@ -1,0 +1,26 @@
+{
+  "mode": "structured",
+  "request": {
+    "schema_version": "1",
+    "captured_at": "2026-08-20T10:00:00+08:00",
+    "source_type": "voice_transcript",
+    "raw_transcript": "今朝先完成第一輪虛構使用者訪談整理，暫時未完成裝置驗收。訪談入面反覆提到輸入步驟太多會令人在通勤期間放棄記錄，所以我覺得 speak once、review once、save once 呢個原則值得保留。Project Alpha 目前仍然測試緊 preview，未有證據話同步已經成功。下一步要整理三個最常見失敗情況，再用離線模式檢查原始轉錄有冇完整保留。可能可以將呢段經驗寫成一篇短 post，但而家未決定要做。亦要記住，提到一個專案唔等於專案已完成，任何 status 都要跟原句。最後，AI 如果 unavailable，應該直接存 pending note，唔可以要求使用者重新講一次。",
+    "allowed_projects": ["Project Alpha", "Project Beta"]
+  },
+  "response": {
+    "suggested_title": "通勤語音捕捉測試長記錄",
+    "capture_type": "mixed",
+    "one_sentence_summary": "訪談整理已完成，Project Alpha 的 preview 仍在測試，下一步驗證失敗與離線保留情況。",
+    "completed": ["完成第一輪虛構使用者訪談整理"],
+    "in_progress": ["Project Alpha 正在測試 preview"],
+    "next_actions": ["整理三個最常見失敗情況", "用離線模式檢查原始轉錄是否完整保留"],
+    "blockers": [],
+    "decisions": [],
+    "knowledge": ["輸入步驟太多可能令使用者在通勤期間放棄記錄", "提到專案不等於專案已完成", "AI unavailable 時應保存 pending note"],
+    "content_ideas": ["可把經驗寫成短 post"],
+    "project_updates": ["Project Alpha preview 仍在測試，未有同步成功證據"],
+    "facts_to_verify": ["核實訪談中輸入步驟與放棄記錄的原始證據"],
+    "related_projects": ["Project Alpha"],
+    "confidence": "medium"
+  }
+}
