@@ -1,0 +1,9 @@
+{
+  "obsidian_vault_id": "EXAMPLE_VAULT_ID",
+  "active_projects": [
+    "Project Alpha",
+    "Project Beta"
+  ],
+  "make_webhook_url": "SET_ON_DEVICE_ONLY",
+  "ai_enabled": false
+}
