@@ -28,6 +28,9 @@ REQUIRED_FILES = (
     "config/private-values.example.json",
     "docs/SHORTCUT_BUILD_SHEET_KNOWLEDGE_CAPTURE.md",
     "docs/SHORTCUT_BUILD_SHEET_PROJECT_UPDATE.md",
+    "docs/SHORTCUT_BUILD_SHEET_VOICE_CAPTURE.md",
+    "docs/VOICE_CAPTURE_CONTRACT_V1.md",
+    "docs/VOICE_CAPTURE_DEVICE_ACCEPTANCE.md",
     "docs/PRIVATE_VALUES_SETUP.md",
     "docs/TRAVEL_E2E_ACCEPTANCE.md",
     "docs/MAKE_GEMINI_TRAVEL_SETUP_CHECKLIST.md",
@@ -39,10 +42,16 @@ REQUIRED_FILES = (
     "docs/TRAVEL_QUICK_START.md",
     "schemas/mobile-insight-request-v3.schema.json",
     "schemas/mobile-insight-response-v3.schema.json",
+    "schemas/voice-capture-request-v1.schema.json",
+    "schemas/voice-capture-response-v1.schema.json",
     "tools/mobile_capture_reference.py",
     "tools/mobile_enrichment_simulator.py",
     "tools/mobile_progress_report.py",
     "tools/project_dashboard_reference.py",
+    "tools/voice_capture_reference.py",
+    "tools/voice_capture_simulator.py",
+    "templates/universal-voice-capture-v1.md",
+    "prompts/gemini-voice-structured-capture-v1.md",
     "samples/travel_ai_requests/summary.json",
     "samples/travel_ai_requests/recommendation.json",
     "samples/travel_ai_requests/short_article.json",
@@ -72,13 +81,17 @@ REFERENCE_TOOLS = (
     "tools/mobile_enrichment_simulator.py",
     "tools/mobile_progress_report.py",
     "tools/project_dashboard_reference.py",
+    "tools/voice_capture_reference.py",
+    "tools/voice_capture_simulator.py",
 )
 MANUAL_ONLY_PENDING = (
     "Knowledge Shortcut",
     "Project Update Shortcut",
+    "Voice Shortcut",
     "Remotely Save",
     "Make/Gemini",
     "E2E device test",
+    "Voice device acceptance",
 )
 REAL_MAKE_WEBHOOK = re.compile(
     r"https://hook\.[A-Za-z0-9.-]*make\.com/[A-Za-z0-9_-]{12,}"
@@ -186,6 +199,11 @@ def check_repository(
     fixture_paths = sorted((root / "tests" / "fixtures" / "travel_ai").glob("*.json"))
     if len(fixture_paths) != 12:
         failures.append("Travel AI fixture pack must contain 12 JSON files")
+    voice_fixture_paths = sorted(
+        (root / "tests" / "fixtures" / "voice_capture").glob("*.json")
+    )
+    if len(voice_fixture_paths) != 14:
+        failures.append("Voice capture fixture pack must contain 14 JSON files")
     if not list((root / "tests").glob("test*.py")):
         failures.append("No unit tests are available")
 

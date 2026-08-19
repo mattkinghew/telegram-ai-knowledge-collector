@@ -11,6 +11,7 @@ it does not change any device/service row below to Travel-ready.
 |---|---|---|---|---|---|
 | Typed capture | Yes | User-reported | No | Partial | Reconfirm final pack |
 | Voice capture | Yes | User-reported | Depends | Partial | Dictation availability/privacy unverified |
+| Universal structured voice capture P1.3 | Yes, offline | No | No for fallback; yes for live AI | No | Shortcut and five device tests pending |
 | Clipboard capture | Yes | User-reported | No | Partial | Reconfirm final pack |
 | URL capture | Yes | No | No | No | Saves reference only |
 | Selected text | Yes | No | No | No | Gate C pending |

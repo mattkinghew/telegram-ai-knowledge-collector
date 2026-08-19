@@ -111,6 +111,7 @@ class TravelReadinessTests(unittest.TestCase):
         result = check_repository(ROOT)
         self.assertTrue(result.passed, "\n".join(result.failures))
         self.assertIn("Knowledge Shortcut", result.manual_only_pending)
+        self.assertIn("Voice Shortcut", result.manual_only_pending)
         self.assertIn("Make/Gemini", result.manual_only_pending)
 
     def test_missing_required_doc_and_real_make_hook_fail(self) -> None:

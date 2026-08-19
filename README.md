@@ -14,6 +14,11 @@ This repository contains two complementary workflows:
 
 The local MVP runs without an API key and never invents an AI summary when no approved provider is configured.
 
+The additive P1.3 reference flow also supports one free-form voice transcript
+→ strict structured fields or offline fallback → previewable Markdown. It does
+not transcribe audio, call AI, access a Vault, or replace the existing capture
+and project-update Shortcuts.
+
 ## Local MVP Features
 
 - Capture one text item, URL, or local file path.
@@ -233,7 +238,8 @@ For travel setup, start with `docs/CURRENT_DOCS_MAP.md` and
 `docs/TRAVEL_QUICK_START.md`. The two current Shortcut implementation guides
 are `docs/SHORTCUT_BUILD_SHEET_KNOWLEDGE_CAPTURE.md` and
 `docs/SHORTCUT_BUILD_SHEET_PROJECT_UPDATE.md`; older action maps remain
-reference material.
+reference material. The optional additive voice-first guide is
+`docs/SHORTCUT_BUILD_SHEET_VOICE_CAPTURE.md`.
 
 - `docs/CONTEXT_SUMMARY.md`
 - `docs/WORKFLOW.md`

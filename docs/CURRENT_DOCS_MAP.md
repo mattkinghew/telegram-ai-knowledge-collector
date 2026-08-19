@@ -7,11 +7,14 @@ Open `CURRENT` files for implementation while travelling. `REFERENCE` explains e
 | `docs/TRAVEL_QUICK_START.md` | CURRENT | Daily travel operating card |
 | `docs/SHORTCUT_BUILD_SHEET_KNOWLEDGE_CAPTURE.md` | CURRENT | Build `收集靈感到 Obsidian` action by action |
 | `docs/SHORTCUT_BUILD_SHEET_PROJECT_UPDATE.md` | CURRENT | Build `更新專案進度` action by action |
+| `docs/SHORTCUT_BUILD_SHEET_VOICE_CAPTURE.md` | CURRENT | Build additive `語音快速記錄` action by action |
+| `docs/VOICE_CAPTURE_CONTRACT_V1.md` | CURRENT | Strict voice request, structure, renderer, and fallback contract |
 | `docs/PRIVATE_VALUES_SETUP.md` | CURRENT | Place private values without Git exposure |
 | `docs/ACTIVE_PROJECTS_MOBILE_SETUP.md` | CURRENT | Maintain 3–8 device-local active projects |
 | `docs/MANUAL_ONLY_WORK_MATRIX.md` | CURRENT | Remaining human-only steps |
 | `docs/SHORTCUT_AI_PREVIEW_FORMAT.md` | CURRENT | Render validated AI fields for mobile review |
 | `docs/TRAVEL_E2E_ACCEPTANCE.md` | DEVICE_TEST | Three required/optional end-to-end scenarios |
+| `docs/VOICE_CAPTURE_DEVICE_ACCEPTANCE.md` | DEVICE_TEST | Five manual voice-first acceptance cases |
 | `docs/TRAVEL_DEVICE_FINAL_ACCEPTANCE.md` | REFERENCE | Detailed 15-case pack; not required before travel |
 | `docs/MOBILE_P1_0_DEVICE_ACCEPTANCE.md` | REFERENCE | Earlier P1.0 device pack |
 | `docs/MOBILE_P1_1_DEVICE_ACCEPTANCE.md` | REFERENCE | Earlier Share Sheet device pack |
@@ -28,6 +31,7 @@ Open `CURRENT` files for implementation while travelling. `REFERENCE` explains e
 | `docs/MAKE_GEMINI_ENRICHMENT_SPEC_V1.md` | REFERENCE | Historical V1 contract |
 | `docs/MAKE_GEMINI_ENRICHMENT_SPEC_V2.md` | REFERENCE | Historical V2 contract |
 | `docs/MAKE_GEMINI_ENRICHMENT_SPEC_V3.md` | AI_SETUP | Current optional live enrichment design |
+| `prompts/gemini-voice-structured-capture-v1.md` | AI_SETUP | Dedicated optional voice structured-extraction prompt |
 | `docs/MAKE_GEMINI_TRAVEL_SETUP_CHECKLIST.md` | CURRENT | Current optional module checklist |
 | `docs/MAKE_GEMINI_FIELD_MAPPING_WORKSHEET.md` | AI_SETUP | Exact current request/response mapping |
 | `docs/TRAVEL_READINESS_STATUS.md` | DEVICE_TEST | Conservative evidence status |

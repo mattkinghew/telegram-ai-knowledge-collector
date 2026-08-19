@@ -12,6 +12,15 @@
 - Record Completed/Current progress and one Next Action; add Blocker/Evidence only when useful.
 - Preview, then save. Do not claim completion without evidence.
 
+## When walking, commuting, or unable to type
+
+- Run `語音快速記錄` and speak freely once; work, knowledge, and ideas may mix.
+- Confirm or optionally correct the transcript, review one preview, then save once.
+- Do not answer title, project, tag, Insight, Context, or Action questions.
+- If AI is unavailable, save the full transcript with `ai_status: pending`.
+- This is a fast universal alternative; it does not replace
+  `收集靈感到 Obsidian` or `更新專案進度`.
+
 ## When finding useful content
 
 - Share it to `收集靈感到 Obsidian`.

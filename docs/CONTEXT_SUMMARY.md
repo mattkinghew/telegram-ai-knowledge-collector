@@ -181,7 +181,21 @@ local branch boundary; no push, merge, deployment, or publication has occurred.
   Obsidian, Remotely Save, Make, Gemini, or live network behavior. Those remain
   manual, with live AI optional.
 
+## P1.3 Voice-first Structured Capture
+
+- Dedicated, additive voice request/response schemas preserve V1/V2/V3.
+- One transcript can contain work, knowledge, learning, and content ideas.
+- A standard-library validator and Markdown renderer retain the exact transcript,
+  omit empty optional sections, and enforce the project allowlist.
+- A deterministic development simulator covers structured, offline, unavailable,
+  invalid-JSON, and schema-mismatch paths without AI, network, or Vault access.
+- `語音快速記錄` is documented as an optional third Shortcut; it does not
+  replace the two P1.2 Shortcuts.
+- Real Siri, dictation, Obsidian, sync, Make, and Gemini acceptance remains
+  manual and pending.
+
 ## Next Recommended Task
 
-Build/sync the two documented travel Shortcuts, then complete the single
-consolidated travel device acceptance pack before configuring live AI.
+Build/sync the two P1.2 Shortcuts needed for travel. If hands-free capture is
+valuable, also build `語音快速記錄` and complete its five device tests. Live AI
+remains optional.
