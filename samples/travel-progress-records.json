@@ -1,0 +1,30 @@
+{
+  "reporting_period": "2026-08-18 to 2026-08-19",
+  "project": "Project Alpha",
+  "selected_records": [
+    {
+      "type": "progress_update",
+      "title": "Offline workflow",
+      "status": "in_progress",
+      "detail": "Validated the fictional local flow.",
+      "due_date": "",
+      "link": ""
+    },
+    {
+      "type": "task",
+      "title": "Run device acceptance",
+      "status": "next",
+      "detail": "Use only public-safe test content.",
+      "due_date": "2026-08-20",
+      "link": ""
+    },
+    {
+      "type": "evidence",
+      "title": "Public-safe reference",
+      "status": "verified",
+      "detail": "Fictional evidence link.",
+      "due_date": "",
+      "link": "https://example.com/evidence"
+    }
+  ]
+}

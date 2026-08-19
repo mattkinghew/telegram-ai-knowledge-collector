@@ -1,0 +1,12 @@
+{
+  "projects": [
+    {
+      "name": "Project Alpha",
+      "status": "active",
+      "latest_update": "Offline reference flow complete.",
+      "next_action": "Run device acceptance.",
+      "blocker": "Device evidence pending.",
+      "next_review": "2026-08-20"
+    }
+  ]
+}
