@@ -165,6 +165,22 @@ local branch boundary; no push, merge, deployment, or publication has occurred.
 - All real iPhone, Vault, Remotely Save, Make/Gemini, and network acceptance
   remains manual and pending unless explicitly marked user-reported above.
 
+## Travel Setup Automation
+
+- Literal build sheets now specify every action, variable, prompt, branch,
+  expected result, and failure path for the two approved Shortcuts.
+- A placeholder-only private config, explicit validator, current-doc map,
+  three-scenario E2E pack, Make field worksheet, AI preview format, and compact
+  travel quick-start reduce remaining setup interpretation.
+- Seven fictional V3 request/expected-response pairs and four safe failure
+  references support manual Make testing; project update/report samples show a
+  concise travel baseline.
+- `tools/travel_readiness_check.py` verifies repository artifacts, JSON,
+  imports, fixtures, tests, placeholders, and selected privacy patterns only.
+- Repository readiness does not verify the real iPhone, either Shortcut,
+  Obsidian, Remotely Save, Make, Gemini, or live network behavior. Those remain
+  manual, with live AI optional.
+
 ## Next Recommended Task
 
 Build/sync the two documented travel Shortcuts, then complete the single

@@ -229,6 +229,12 @@ CI runs compile, unit tests, and the CLI help smoke test on Python 3.9 through 3
 
 ## Documentation
 
+For travel setup, start with `docs/CURRENT_DOCS_MAP.md` and
+`docs/TRAVEL_QUICK_START.md`. The two current Shortcut implementation guides
+are `docs/SHORTCUT_BUILD_SHEET_KNOWLEDGE_CAPTURE.md` and
+`docs/SHORTCUT_BUILD_SHEET_PROJECT_UPDATE.md`; older action maps remain
+reference material.
+
 - `docs/CONTEXT_SUMMARY.md`
 - `docs/WORKFLOW.md`
 - `docs/PRIVACY_AND_PROTECTED_PATHS.md`
