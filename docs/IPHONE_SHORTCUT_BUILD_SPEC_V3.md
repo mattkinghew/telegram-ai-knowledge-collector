@@ -2,12 +2,13 @@
 
 ## Status
 
-Future combined specification. P1.0 is user-reported device accepted; P1.1
-Share Sheet Gate C and P1.2 AI device acceptance are pending.
+Offline combined specification. P1.0 is user-reported device accepted; P1.1
+Share Sheet, P1.2 project operations, and P1.2 AI device acceptance are pending.
 
 For P1.0, use `IPHONE_SHORTCUT_P1_0_ACTION_MAP.md`. For the current P1.1 Share
 Sheet build, use `IPHONE_SHORTCUT_P1_1_SHARE_SHEET_ACTION_MAP.md`; it supersedes
-the Share Sheet steps below. AI parts remain deferred to P1.2.
+the Share Sheet steps below. P1.2 AI uses the separate V3 contract and remains
+live-service pending.
 
 No Shortcut was created or run by Codex during this offline stage. Gate A and
 Gate B were accepted from the user's report, not repository or automatic
@@ -18,6 +19,14 @@ Build exactly one primary Shortcut named:
 ```text
 收集靈感到 Obsidian
 ```
+
+One second production Shortcut, `更新專案進度`, is allowed because project
+reporting is materially different. Do not add more primary travel Shortcuts.
+
+For shared video links, set `SourceType = video_url`, preserve the URL, and use
+only the user's takeaway as Raw Content. If the user separately copies and
+reviews transcript text, use `video_transcript`. Do not download, scrape,
+extract audio, or transcribe.
 
 ## Product Boundary
 
@@ -196,7 +205,7 @@ Required Q1:
 Store the answer as `Insight`. If blank, explain that a short answer is needed
 and return to the same field.
 
-Required Q2:
+Optional Q2 (required only when the user chooses Deep / AI enrichment):
 
 ```text
 它可以幫我處理甚麼？

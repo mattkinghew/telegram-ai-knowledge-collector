@@ -2,9 +2,30 @@
 
 ## Status
 
-Offline design decisions through P1.1. Gate A and Gate B are user-accepted;
+Offline design decisions through P1.2 RC. Gate A and Gate B are user-accepted;
 P1.0 is device accepted at the user-report boundary. P1.1 Share Sheet Gate C
 remains `DEVICE_TEST_PENDING`. Codex did not reproduce device execution.
+
+### Two primary travel shortcuts
+
+- **Decision:** Keep `收集靈感到 Obsidian` for knowledge capture and add only
+  `更新專案進度` for materially different project updates.
+- **Reason:** It separates capture from reporting without one giant Shortcut.
+- **Evidence status:** offline action maps complete; project device acceptance pending.
+
+### Fast and Deep capture
+
+- **Decision:** Fast requires Insight then Quick Save; Context and Action stay
+  optional. Deep adds Context, Action, and optional AI enrichment.
+- **Reason:** Intermittent connectivity must not force a long or network path.
+- **Evidence status:** offline rendering verified; consolidated device test pending.
+
+### Reference-only video capture
+
+- **Decision:** `video_url` stores URL + user takeaway; `video_transcript` is
+  reserved for separately copied and reviewed text.
+- **Reason:** P1.2 adds no download, audio extraction, scraping, or transcription.
+- **Evidence status:** offline validation verified; device routing pending.
 
 ## Decisions
 

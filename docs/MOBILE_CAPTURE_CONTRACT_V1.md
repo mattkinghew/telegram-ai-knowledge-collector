@@ -8,7 +8,7 @@
 device results, not repository or automatic verification.
 
 P1.0 is device accepted at the user-report boundary. P1.1 Share Sheet Gate C
-device acceptance remains pending.
+and the consolidated P1.2 travel device acceptance remain pending.
 
 ## Purpose
 
@@ -71,11 +71,24 @@ image_reference
 file_reference
 ```
 
+P1.2 adds two reference-only video values:
+
+```text
+video_url
+video_transcript
+```
+
 For `url`, Source must be the original HTTP or HTTPS URL. P1.1 does not fetch
 the page. For `shared_text`, Source must be blank. For image or file
 references, Source may contain one public-safe filename basename; it must not
 contain a path or attachment bytes. Image and file Raw Content must be the
 user's non-blank description, not extracted content.
+
+For `video_url`, Source is the shared HTTP/HTTPS URL and Raw Content is the
+user's takeaway or available shared text; no transcript is implied. For
+`video_transcript`, Raw Content is transcript/subtitle text separately copied
+and reviewed by the user. Neither type downloads, scrapes, or transcribes a
+video.
 
 ### Insight
 
@@ -136,7 +149,7 @@ separate until the user accepts it.
 Optional, unconfirmed enrichment returned in a versioned response envelope.
 It is never part of Raw Content, Insight, Context, or Action. P1.0 Quick Save
 uses `ai_status: none` and omits the entire `## AI 整理建議` section. AI is
-deferred to P1.2.
+uses the separate V3 request/response contract in P1.2; V2 remains unchanged.
 
 ## Markdown Mapping
 

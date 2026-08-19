@@ -148,7 +148,24 @@ local branch boundary; no push, merge, deployment, or publication has occurred.
 - Automatic moves after classification.
 - External AI activation, deployment, upload, or publication.
 
+## Travel P1.2 RC Offline Implementation
+
+- Plain-Markdown project status, mobile progress update, dashboard, daily
+  report, period report, and processed-knowledge templates.
+- A second, purpose-specific `更新專案進度` Shortcut action map; the capture
+  Shortcut remains `收集靈感到 Obsidian`.
+- Reference-only `video_url` and separately reviewed `video_transcript` source
+  types; no download, scrape, OCR, parsing, or transcription.
+- Additive V3 enrichment schemas/prompt for seven requested output modes while
+  V2 remains unchanged.
+- Deterministic, no-network V3 simulator plus selected-record progress report
+  and manual dashboard reference builders. None accesses a Vault.
+- Travel offline/recovery, Make setup, consolidated device acceptance, and
+  conservative readiness documents.
+- All real iPhone, Vault, Remotely Save, Make/Gemini, and network acceptance
+  remains manual and pending unless explicitly marked user-reported above.
+
 ## Next Recommended Task
 
-Edit the existing `收集靈感到 Obsidian` Shortcut using the P1.1 Share Sheet
-Action Map and complete the eight-case Gate C device acceptance pack.
+Build/sync the two documented travel Shortcuts, then complete the single
+consolidated travel device acceptance pack before configuring live AI.

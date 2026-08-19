@@ -8,6 +8,9 @@ GATE B USER-REPORTED PASS
 P1.0 DEVICE ACCEPTED BY USER REPORT
 P1.1 OFFLINE IMPLEMENTATION COMPLETE
 GATE C NOT RUN
+P1.2 RC OFFLINE IMPLEMENTATION COMPLETE
+PROJECT OPS DEVICE ACCEPTANCE PENDING
+AI SERVICE ACCEPTANCE PENDING
 ```
 
 Gate A and Gate B were accepted from the user's report. Codex did not operate
@@ -55,5 +58,7 @@ user-approved location.
 
 ## Exact Next Action
 
-Edit or sync the existing Shortcut from the P1.1 Share Sheet Action Map and run
-Gate C.
+1. Edit or sync the existing capture Shortcut from the P1.1 action map.
+2. Build `更新專案進度` from its action map using only private on-device project names.
+3. Run the single consolidated `TRAVEL_DEVICE_FINAL_ACCEPTANCE.md` pack.
+4. Configure Make/Gemini only after capture/project acceptance, then run separate live AI tests.
