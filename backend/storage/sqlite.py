@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, List, Optional
 
@@ -21,6 +21,7 @@ class CaptureRecord:
     capture_id: str
     schema_version: str
     capture_type: str
+    title: str
     source_type: str
     source: Optional[str]
     raw_content: str
@@ -70,6 +71,7 @@ class CaptureStore:
                     capture_id TEXT PRIMARY KEY,
                     schema_version TEXT NOT NULL,
                     capture_type TEXT NOT NULL,
+                    title TEXT NOT NULL DEFAULT 'Captured item',
                     source_type TEXT NOT NULL,
                     source TEXT,
                     raw_content TEXT NOT NULL,
@@ -92,6 +94,13 @@ class CaptureStore:
             connection.execute(
                 "CREATE INDEX IF NOT EXISTS captures_status_created ON captures(status, created_at DESC)"
             )
+            columns = {
+                row[1] for row in connection.execute("PRAGMA table_info(captures)").fetchall()
+            }
+            if "title" not in columns:
+                connection.execute(
+                    "ALTER TABLE captures ADD COLUMN title TEXT NOT NULL DEFAULT 'Captured item'"
+                )
 
     def create(self, request: CaptureRequest) -> CaptureRecord:
         capture_id = new_capture_id()
@@ -148,8 +157,8 @@ class CaptureStore:
         )
         self._update(
             capture_id,
-            "status = 'processed', result_json = ?, markdown = ?, error_code = NULL, error_message = NULL, updated_at = ?",
-            (result_json, markdown, _now()),
+            "status = 'processed', title = ?, result_json = ?, markdown = ?, error_code = NULL, error_message = NULL, updated_at = ?",
+            (result.title if result else "Captured item", result_json, markdown, _now()),
         )
         return self.get(capture_id)
 
@@ -215,6 +224,10 @@ class CaptureStore:
         capture_type: Optional[str] = None,
         source_type: Optional[str] = None,
         requested_processing: Optional[str] = None,
+        project: Optional[str] = None,
+        query: Optional[str] = None,
+        created_from: Optional[str] = None,
+        created_to: Optional[str] = None,
     ) -> CapturePage:
         if page < 1 or not 1 <= page_size <= 100:
             raise ValueError("pagination is outside the supported range")
@@ -225,10 +238,28 @@ class CaptureStore:
             ("capture_type", capture_type),
             ("source_type", source_type),
             ("requested_processing", requested_processing),
+            ("assigned_project", project),
         ):
             if value is not None:
                 clauses.append(column + " = ?")
                 values.append(value)
+        if query is not None:
+            normalized = query.strip()
+            if not normalized or len(normalized) > 200:
+                raise ValueError("query must contain 1-200 characters")
+            clauses.append("(title LIKE ? COLLATE NOCASE OR source LIKE ? COLLATE NOCASE)")
+            pattern = "%" + normalized + "%"
+            values.extend([pattern, pattern])
+        for value, operator in ((created_from, ">="), (created_to, "<=")):
+            if value is not None:
+                try:
+                    date.fromisoformat(value)
+                except ValueError as exc:
+                    raise ValueError("date filters must use YYYY-MM-DD") from exc
+                clauses.append("substr(created_at, 1, 10) " + operator + " ?")
+                values.append(value)
+        if created_from and created_to and created_from > created_to:
+            raise ValueError("created_from must not be after created_to")
         where = " WHERE " + " AND ".join(clauses) if clauses else ""
         with self._connect() as connection:
             total = connection.execute(
@@ -262,6 +293,7 @@ class CaptureStore:
             capture_id=row["capture_id"],
             schema_version=row["schema_version"],
             capture_type=row["capture_type"],
+            title=row["title"],
             source_type=row["source_type"],
             source=row["source"],
             raw_content=row["raw_content"],

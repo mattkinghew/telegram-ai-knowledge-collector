@@ -62,18 +62,29 @@ def list_captures(
     capture_type: Optional[str] = None,
     source_type: Optional[str] = None,
     requested_processing: Optional[str] = None,
+    project: Optional[str] = None,
+    query: Optional[str] = Query(default=None, min_length=1, max_length=200),
+    created_from: Optional[str] = None,
+    created_to: Optional[str] = None,
 ):
     denied = _unauthorized(request)
     if denied:
         return denied
-    result = request.app.state.store.list(
-        page=page,
-        page_size=page_size,
-        status=status,
-        capture_type=capture_type,
-        source_type=source_type,
-        requested_processing=requested_processing,
-    )
+    try:
+        result = request.app.state.store.list(
+            page=page,
+            page_size=page_size,
+            status=status,
+            capture_type=capture_type,
+            source_type=source_type,
+            requested_processing=requested_processing,
+            project=project,
+            query=query,
+            created_from=created_from,
+            created_to=created_to,
+        )
+    except ValueError as exc:
+        return error_response(422, "INVALID_REQUEST", str(exc))
     data = []
     for record in result.items:
         item = asdict(record)

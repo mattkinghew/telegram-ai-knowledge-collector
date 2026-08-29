@@ -14,6 +14,7 @@ from backend.providers.base import Provider
 from backend.providers.gemini import GeminiProvider
 from backend.providers.mock import MockProvider
 from backend.routes.captures import error_response, router as captures_router
+from backend.routes.operations import router as operations_router
 from backend.security.payload import BodyLimitMiddleware
 from backend.services.capture import CaptureService
 from backend.services.extraction import URLExtractor
@@ -88,6 +89,7 @@ def create_app(
         max_bytes=configured.max_request_bytes,
     )
     application.include_router(captures_router)
+    application.include_router(operations_router)
     return application
 
 
