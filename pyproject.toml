@@ -13,9 +13,9 @@ dependencies = []
 pdf = ["pypdf>=4.0"]
 hybrid = [
     "fastapi==0.123.9",
+    "httpx==0.28.1",
     "uvicorn==0.36.1",
 ]
-test = ["httpx==0.28.1"]
 
 [project.scripts]
 bkc = "business_knowledge_capture.cli:main"

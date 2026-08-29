@@ -36,7 +36,7 @@ and review index.
 | Validation | Pydantic models reject unknown fields and invalid types at the HTTP boundary. |
 | Testability | FastAPI TestClient, temporary SQLite, and MockProvider allow local E2E tests. |
 | Mobile latency | One service avoids a separate frontend deployment and API preflight in the default setup. |
-| Dependencies | FastAPI, Uvicorn, and test-only HTTPX are the only new direct packages. |
+| Dependencies | FastAPI, Uvicorn, and HTTPX are the only new direct packages. |
 | Python 3.9 | Versions are pinned to releases that still support the repository runtime. |
 | Web scope | A small ES-module SPA is sufficient for five operational views and avoids a Node production toolchain. |
 | Portfolio value | The system demonstrates API contracts, provider abstraction, SSRF controls, state transitions, and a usable mobile review surface. |
@@ -113,8 +113,9 @@ system, agent system, publishing platform, or video downloader.
 
 ## Dependency decision
 
-- Required for P1.5: `fastapi==0.123.9`, `uvicorn==0.36.1`.
-- Development/test only: `httpx==0.28.1` for the ASGI TestClient.
+- Required for P1.5: `fastapi==0.123.9`, `httpx==0.28.1`, and
+  `uvicorn==0.36.1`. HTTPX provides separate connection/read timeouts,
+  redirect-off fetching, and bounded streaming as well as ASGI test support.
 - Standard library: SQLite, URL parsing/fetching, IP classification, HTML text
   extraction, JSON, UUIDs, hashing, logging, and timestamps.
 - Unnecessary and excluded: React, Next.js, ORM, browser automation, Beautiful

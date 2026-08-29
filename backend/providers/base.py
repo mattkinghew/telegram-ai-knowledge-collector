@@ -22,4 +22,3 @@ ProviderOutcome = Union[ProviderResult, ProviderFailure]
 class Provider(Protocol):
     def process(self, request: CaptureRequest) -> ProviderOutcome:
         """Process one already-validated capture without mutating it."""
-
