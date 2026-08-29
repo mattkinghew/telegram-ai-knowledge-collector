@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Hybrid Capture Review</title>
+  <rect width="512" height="512" rx="72" fill="#173f35"/>
+  <path d="M128 128h256v48H128zm0 104h256v48H128zm0 104h168v48H128z" fill="#fff"/>
+  <circle cx="368" cy="360" r="56" fill="#dce9e3"/>
+  <path d="m342 360 18 18 36-44" fill="none" stroke="#173f35" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

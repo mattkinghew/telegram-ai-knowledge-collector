@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from backend.config import Settings
 from backend.providers.base import Provider
@@ -84,12 +87,22 @@ def create_app(
     def health():
         return {"ok": True, "status": "healthy"}
 
+    @application.get("/", include_in_schema=False)
+    def web_root():
+        return RedirectResponse(url="/app/")
+
     application.add_middleware(
         BodyLimitMiddleware,
         max_bytes=configured.max_request_bytes,
     )
     application.include_router(captures_router)
     application.include_router(operations_router)
+    web_root_path = Path(__file__).parent.parent / "web"
+    application.mount(
+        "/app",
+        StaticFiles(directory=str(web_root_path), html=True),
+        name="web",
+    )
     return application
 
 

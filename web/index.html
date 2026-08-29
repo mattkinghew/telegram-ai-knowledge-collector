@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#173f35">
+  <title>Hybrid Capture Review</title>
+  <link rel="manifest" href="/app/manifest.webmanifest">
+  <link rel="icon" href="/app/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/app/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">P1.5 local review</p>
+      <h1 id="page-title">Today</h1>
+    </div>
+    <details class="auth-panel">
+      <summary>API access</summary>
+      <form id="auth-form">
+        <label for="api-token">API token</label>
+        <input id="api-token" name="api-token" type="password" autocomplete="off">
+        <button class="button" type="submit">Use for this session</button>
+        <p class="hint">The token stays in memory only and is not saved by this Web App.</p>
+      </form>
+    </details>
+  </header>
+
+  <div id="app-status" class="status-banner" role="status" aria-live="polite"></div>
+  <main id="main-content" tabindex="-1"></main>
+
+  <nav class="primary-nav" aria-label="Primary">
+    <a href="#today" data-route="today">Today</a>
+    <a href="#inbox" data-route="inbox">Inbox</a>
+    <a href="#projects" data-route="projects">Projects</a>
+    <a href="#pending" data-route="pending">Pending</a>
+    <a href="#reports" data-route="reports">Reports</a>
+  </nav>
+
+  <dialog id="detail-dialog" aria-labelledby="detail-title">
+    <div class="dialog-header">
+      <h2 id="detail-title">Capture detail</h2>
+      <button class="button secondary" type="button" id="close-dialog">Close</button>
+    </div>
+    <pre id="detail-content"></pre>
+  </dialog>
+  <script type="module" src="/app/app.js"></script>
+</body>
+</html>
