@@ -14,10 +14,12 @@ This repository contains two complementary workflows:
 
 The local MVP runs without an API key and never invents an AI summary when no approved provider is configured.
 
-The additive P1.3 reference flow also supports one free-form voice transcript
-→ strict structured fields or offline fallback → previewable Markdown. It does
-not transcribe audio, call AI, access a Vault, or replace the existing capture
-and project-update Shortcuts.
+P1.4 reduces the recommended daily mobile surface to two Shortcuts:
+`語音閃念` for one-shot speech and `收集內容` for shared external material.
+The offline reference contract reuses P1.3 voice structure, classifies content
+without a category question, and preserves raw/pending saves when AI or source
+content is unavailable. It does not transcribe audio, fetch URLs, call AI,
+access a Vault, or prove an installed Shortcut.
 
 ## Local MVP Features
 
@@ -222,7 +224,7 @@ Use `--format json` for bounded machine-readable output. Both text and JSON expo
 ## Validation
 
 ```bash
-python3 -m compileall -q src tests
+python3 -m compileall -q src tests tools
 PYTHONPATH=src python3 -m unittest discover -s tests -v
 PYTHONPATH=src python3 -m business_knowledge_capture.cli --help
 PYTHONPATH=src python3 -m business_knowledge_capture.cli due --help
@@ -235,11 +237,10 @@ CI runs compile, unit tests, and the CLI help smoke test on Python 3.9 through 3
 ## Documentation
 
 For travel setup, start with `docs/CURRENT_DOCS_MAP.md` and
-`docs/TRAVEL_QUICK_START.md`. The two current Shortcut implementation guides
-are `docs/SHORTCUT_BUILD_SHEET_KNOWLEDGE_CAPTURE.md` and
-`docs/SHORTCUT_BUILD_SHEET_PROJECT_UPDATE.md`; older action maps remain
-reference material. The optional additive voice-first guide is
-`docs/SHORTCUT_BUILD_SHEET_VOICE_CAPTURE.md`.
+`docs/TRAVEL_QUICK_START.md`. The two current daily Shortcut implementation
+guides are `docs/SHORTCUT_BUILD_SHEET_VOICE_FLASH_V2.md` and
+`docs/SHORTCUT_BUILD_SHEET_CONTENT_CAPTURE_V2.md`. Earlier knowledge, project,
+and voice build sheets remain fallback/reference material.
 
 - `docs/CONTEXT_SUMMARY.md`
 - `docs/WORKFLOW.md`
@@ -258,6 +259,10 @@ reference material. The optional additive voice-first guide is
 - `docs/IPHONE_SHORTCUT_HANDOFF.md`
 - `docs/P1E_MOBILE_HANDOFF.md`
 - `docs/P1E_ACCEPTANCE_REPORT.md`
+- `docs/P1_4_SIMPLIFIED_MOBILE_PRODUCT_DECISION.md`
+- `docs/P1_4_OFFLINE_BEHAVIOR.md`
+- `docs/PENDING_ENRICHMENT_CONTRACT_V1.md`
+- `docs/P1_4_TWO_SHORTCUT_DEVICE_ACCEPTANCE.md`
 - `samples/sample_capture_commands.md`
 - `samples/handoff-text-v1.json`
 - `samples/handoff-url-v1.json`

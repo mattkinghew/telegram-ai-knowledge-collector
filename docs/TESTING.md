@@ -3,7 +3,7 @@
 ```bash
 PYTHON_BIN="$(command -v python3)"
 "$PYTHON_BIN" --version
-"$PYTHON_BIN" -m compileall -q src tests
+"$PYTHON_BIN" -m compileall -q src tests tools
 PYTHONPATH=src "$PYTHON_BIN" -m unittest discover -s tests -v
 PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli --help
 PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli due --help
@@ -94,3 +94,18 @@ protected paths, Python 3.9, search compatibility, and CLI parsing.
 The retained baseline is 208 tests. With P1E the expected local total is 291.
 GitHub-hosted matrix execution remains pending until a future approved push or
 pull request.
+
+P1.4 adds focused offline coverage for the two recommended daily entries:
+
+- P1.3 voice reuse, structured and pending notifications, and exact transcript;
+- deterministic article/social/video URL routing without a category question;
+- shared/selected/clipboard text, image, and file reference boundaries;
+- URL-only pending behavior without a false summary;
+- raw save, pending save, summary, short article, and recommendation modes;
+- strict suggestion validation, source/suggestion separation, and no data loss.
+
+Run only this increment with:
+
+```bash
+PYTHONPATH=src "$PYTHON_BIN" -m unittest tests.test_two_entry_capture_p1_4 -v
+```

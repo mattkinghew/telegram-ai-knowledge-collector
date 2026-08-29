@@ -194,8 +194,26 @@ local branch boundary; no push, merge, deployment, or publication has occurred.
 - Real Siri, dictation, Obsidian, sync, Make, and Gemini acceptance remains
   manual and pending.
 
+## P1.4 Simplified Two-entry Mobile Capture
+
+- The recommended daily surface is now `語音閃念` and `收集內容`.
+- Earlier capture, project-update, and voice Shortcuts remain fallback/reference;
+  no P1.0–P1.3 schema, prompt, fixture, or workflow was deleted.
+- Voice reuses the P1.3 strict contract with one dictation, optional correction,
+  one final Save/Cancel decision, and lossless pending fallback.
+- Content accepts URL, shared/selected text, video URL, image/file reference,
+  and clipboard fallback, then asks only `整理`, `只收藏`, or `取消`.
+- Local routing distinguishes article, social, video, selected text, clipboard,
+  image, and file references without a manual category question.
+- URL/reference-only processing stays `pending`; it is never presented as a
+  completed summary. `只收藏` is `none`; validated output is `suggested`.
+- The standard-library reference implementation performs no AI, network, URL
+  fetch, OCR, file read, upload, video processing, Vault access, or retry.
+- Real device, Shortcut, Obsidian, Remotely Save, Make, Gemini, and network
+  acceptance remains manual and pending.
+
 ## Next Recommended Task
 
-Build/sync the two P1.2 Shortcuts needed for travel. If hands-free capture is
-valuable, also build `語音快速記錄` and complete its five device tests. Live AI
-remains optional.
+Build/sync `語音閃念` and `收集內容`, then complete Scenarios A–D in
+`docs/P1_4_TWO_SHORTCUT_DEVICE_ACCEPTANCE.md`. Live AI remains optional. Do not
+begin P1.5 backend or Web App work until P1.4 device results are recorded.

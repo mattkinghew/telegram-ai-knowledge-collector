@@ -9,9 +9,11 @@ it does not change any device/service row below to Travel-ready.
 
 | Feature | Offline implemented | Device tested | Requires network | Travel-ready | Notes |
 |---|---|---|---|---|---|
+| P1.4 `語音閃念` | Yes, offline reference | No | No for pending; yes for live AI | No | Shortcut and Scenario A/C pending |
+| P1.4 `收集內容` | Yes, offline reference | No | No for raw/pending; yes for live AI | No | Shortcut and Scenario B/C pending |
 | Typed capture | Yes | User-reported | No | Partial | Reconfirm final pack |
 | Voice capture | Yes | User-reported | Depends | Partial | Dictation availability/privacy unverified |
-| Universal structured voice capture P1.3 | Yes, offline | No | No for fallback; yes for live AI | No | Shortcut and five device tests pending |
+| Universal structured voice capture P1.3 | Yes, offline | No | No for fallback; yes for live AI | No | Retained as P1.4 voice contract |
 | Clipboard capture | Yes | User-reported | No | Partial | Reconfirm final pack |
 | URL capture | Yes | No | No | No | Saves reference only |
 | Selected text | Yes | No | No | No | Gate C pending |
