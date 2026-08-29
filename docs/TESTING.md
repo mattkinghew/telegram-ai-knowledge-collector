@@ -15,6 +15,33 @@ PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli handoff preview -
 PYTHONPATH=src "$PYTHON_BIN" -m business_knowledge_capture.cli handoff import --help
 ```
 
+P1.5 requires the explicit hybrid extra. Use an isolated environment:
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -e ".[hybrid]"
+PYTHONPYCACHEPREFIX=/tmp/p1-5-pycache \
+  PYTHONPATH=src:. .venv/bin/python -m compileall -q src tests tools backend
+PYTHONPATH=src:. .venv/bin/python -m unittest discover -s tests -v
+node --test web/tests/lib.test.mjs
+node --check web/app.js
+node --check web/lib.mjs
+node --check web/sw.js
+```
+
+Run only the new full-flow acceptance with:
+
+```bash
+PYTHONPATH=src:. .venv/bin/python -m unittest tests.test_p1_5_e2e -v
+```
+
+The article E2E uses a local HTML fixture and fake transport. The voice and
+pending flows use fictional payloads, local SQLite, TestClient, and
+MockProvider. None performs a live HTTP, Gemini, iPhone, Vault, or Remotely Save
+operation. Static Web tests prove routing helpers, bounded filters, report
+selection, error copy, shell assets, security headers, and implementation
+markers; they do not replace real browser/accessibility/device acceptance.
+
 The minimum supported runtime is Python 3.9. GitHub Actions repeats compile, unit tests, and CLI help on Python 3.9, 3.10, 3.11, and 3.12. No API key is needed.
 
 Temporary non-sensitive smoke test:
@@ -109,3 +136,20 @@ Run only this increment with:
 ```bash
 PYTHONPATH=src "$PYTHON_BIN" -m unittest tests.test_two_entry_capture_p1_4 -v
 ```
+
+P1.5 adds coverage for:
+
+- strict request/provider contracts, stable UUIDs, validation and payload caps;
+- SQLite pending/processing/processed/failed state, raw preservation, bounded
+  manual retry, pagination, review, project allowlist and no-delete behavior;
+- mock processing modes, Markdown evidence layers and safe provider errors;
+- public URL/DNS/redirect SSRF rejection, time/redirect/byte/MIME/text limits,
+  and conservative local-fixture HTML extraction;
+- authenticated capture/status/list/retry/dashboard/project/report APIs,
+  production fail-closed auth, CORS and security headers;
+- Today, Inbox, Projects, Pending, Reports, search helpers, PWA shell-only cache,
+  loading/empty/error copy and safe DOM/token handling;
+- integrated voice, article, pending/failure and Inbox-data flows.
+
+Do not record a final test count in this file until the final suite has been run
+against the exact documented commit.

@@ -21,6 +21,21 @@ without a category question, and preserves raw/pending saves when AI or source
 content is unavailable. It does not transcribe audio, fetch URLs, call AI,
 access a Vault, or prove an installed Shortcut.
 
+P1.5 adds a local/offline hybrid platform around that fallback:
+
+```text
+iPhone Shortcut -> authenticated Capture API -> bounded processing/SQLite
+                -> Markdown response -> Shortcut-owned local Obsidian write
+
+Web/PWA -> Today -> Inbox -> Projects -> Pending -> Reports
+```
+
+The backend uses FastAPI, a deterministic mock AI provider, bounded public-URL
+extraction, and an operational SQLite queue. The Web App is a mobile-first
+static ES-module client served by the same application. P1.5 is implemented and
+tested offline; real iPhone integration, live Gemini, real Vault/Remotely Save,
+and production deployment remain unverified and pending.
+
 ## Local MVP Features
 
 - Capture one text item, URL, or local file path.
@@ -76,6 +91,18 @@ Optional local PDF text extraction:
 ```bash
 python3 -m pip install -e ".[pdf]"
 ```
+
+P1.5 local backend and Web/PWA:
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -e ".[hybrid]"
+P1_5_PYTHON=.venv/bin/python ./scripts/dev.sh
+```
+
+Open `http://127.0.0.1:8000/app/`. Development defaults use the mock provider
+and explicit local dev auth. Never bind dev auth to a public interface. Copy
+only variable names from `.env.example`; do not commit a real `.env` or secret.
 
 ## Initialize the Existing Vault
 
@@ -224,23 +251,27 @@ Use `--format json` for bounded machine-readable output. Both text and JSON expo
 ## Validation
 
 ```bash
-python3 -m compileall -q src tests tools
+python3 -m compileall -q src tests tools backend
 PYTHONPATH=src python3 -m unittest discover -s tests -v
 PYTHONPATH=src python3 -m business_knowledge_capture.cli --help
 PYTHONPATH=src python3 -m business_knowledge_capture.cli due --help
 PYTHONPATH=src python3 -m business_knowledge_capture.cli search --help
 bkc validate --vault "/absolute/path/to/Example_Business_Vault"
+node --test web/tests/lib.test.mjs
+node --check web/app.js
+node --check web/lib.mjs
+node --check web/sw.js
 ```
 
-CI runs compile, unit tests, and the CLI help smoke test on Python 3.9 through 3.12. The core flow has no required dependencies and does not require an API key.
+CI runs compile, unit tests, CLI help, and Web helper/syntax tests on Python 3.9
+through 3.12. The core CLI still has no required dependency or API key. Install
+the explicit `hybrid` extra only for P1.5.
 
 ## Documentation
 
-For travel setup, start with `docs/CURRENT_DOCS_MAP.md` and
-`docs/TRAVEL_QUICK_START.md`. The two current daily Shortcut implementation
-guides are `docs/SHORTCUT_BUILD_SHEET_VOICE_FLASH_V2.md` and
-`docs/SHORTCUT_BUILD_SHEET_CONTENT_CAPTURE_V2.md`. Earlier knowledge, project,
-and voice build sheets remain fallback/reference material.
+Start with `docs/CURRENT_DOCS_MAP.md`. The P1.5 backend build sheets are current
+for hybrid use; the P1.4 V2 sheets remain the current local fallback. Earlier
+P1.0–P1.3 material remains reference only.
 
 - `docs/CONTEXT_SUMMARY.md`
 - `docs/WORKFLOW.md`
@@ -263,6 +294,12 @@ and voice build sheets remain fallback/reference material.
 - `docs/P1_4_OFFLINE_BEHAVIOR.md`
 - `docs/PENDING_ENRICHMENT_CONTRACT_V1.md`
 - `docs/P1_4_TWO_SHORTCUT_DEVICE_ACCEPTANCE.md`
+- `docs/P1_5_HYBRID_ARCHITECTURE.md`
+- `docs/SHORTCUT_BACKEND_API_CONTRACT.md`
+- `docs/P1_5_AUTH_SECURITY_MODEL.md`
+- `docs/P1_5_DEPLOYMENT_OPTIONS.md`
+- `docs/P1_5_ACCEPTANCE_MATRIX.md`
+- `docs/P1_5_TECHNICAL_AUDIT.md`
 - `samples/sample_capture_commands.md`
 - `samples/handoff-text-v1.json`
 - `samples/handoff-url-v1.json`
@@ -271,4 +308,9 @@ and voice build sheets remain fallback/reference material.
 
 ## Not Included
 
-Installed or device-executed iPhone Shortcut, audio transcription, audio-file handoff ingestion, OCR, full-text or semantic search, fuzzy duplicate detection, deadline notifications, Calendar integration, scheduled/background reports, watcher, batch import, HTTP API, search UI, persistent index, automatic classification moves, chatbot, RAG, vector database, external AI activation, deployment, and publication.
+Repository-verified iPhone Shortcut execution, audio transcription, OCR,
+full-text/semantic search, fuzzy duplicate detection, deadline notifications,
+Calendar integration, scheduled/background reports, watcher, batch import,
+automatic classification moves, live Gemini, production deployment/publication,
+chatbot, RAG, vector database, autonomous agents, arbitrary video downloading,
+or direct backend Vault access.
