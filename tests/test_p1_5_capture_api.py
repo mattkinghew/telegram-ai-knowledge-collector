@@ -34,6 +34,14 @@ class NoCallProvider:
         raise AssertionError("provider must not be called")
 
 
+class LeakyFailureProvider:
+    def process(self, request):
+        return ProviderFailure(
+            error_code="AI_UNAVAILABLE",
+            message="provider leaked: " + request.raw_content,
+        )
+
+
 class FixtureExtractor:
     def __init__(self) -> None:
         self.calls = []
@@ -96,6 +104,15 @@ class P15CaptureAPITests(unittest.TestCase):
                 database_path=self.db_path,
                 auth_mode="dev",
                 api_auth_token=None,
+                allowed_origins=("https://app.example",),
+            )
+        with self.assertRaises(SettingsError):
+            Settings(
+                app_env="production",
+                ai_provider="mock",
+                database_path=Path("Private") / "captures.sqlite3",
+                auth_mode="token",
+                api_auth_token="fictional-production-token",
                 allowed_origins=("https://app.example",),
             )
 
@@ -255,6 +272,25 @@ class P15CaptureAPITests(unittest.TestCase):
         self.assertNotIn("fictional-test-token", output)
         self.assertNotIn("Authorization", output)
         self.assertIn("processing=voice_structure", output)
+
+    def test_provider_failure_message_cannot_echo_raw_content(self) -> None:
+        client = TestClient(
+            create_app(
+                settings=self.settings,
+                store=CaptureStore(Path(self.temp.name) / "leaky.sqlite3"),
+                provider=LeakyFailureProvider(),
+                extractor=FixtureExtractor(),
+            )
+        )
+        response = client.post(
+            "/api/v1/capture", json=self.voice, headers=self.headers
+        )
+        self.assertEqual(response.status_code, 202)
+        self.assertNotIn(self.voice["raw_content"], response.text)
+        self.assertEqual(
+            response.json()["message"],
+            "AI temporarily unavailable — capture was saved.",
+        )
 
 
 if __name__ == "__main__":

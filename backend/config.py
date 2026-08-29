@@ -39,6 +39,16 @@ class Settings:
             raise SettingsError("ALLOWED_ORIGINS must contain explicit origins")
         if not 1_024 <= self.max_request_bytes <= 1024 * 1024:
             raise SettingsError("request limit is outside the supported range")
+        protected = {
+            "20_areas",
+            "25_self_management",
+            "private",
+            "credentials",
+            ".env",
+            ".obsidian",
+        }
+        if any(part.casefold() in protected for part in self.database_path.parts):
+            raise SettingsError("DATABASE_URL cannot target a protected path")
 
     @classmethod
     def from_env(cls, environ: Optional[Mapping[str, str]] = None) -> "Settings":

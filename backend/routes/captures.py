@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict
-from typing import Optional
+from typing import Literal, Optional
 
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import JSONResponse
@@ -58,10 +58,31 @@ def list_captures(
     request: Request,
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
-    status: Optional[str] = None,
-    capture_type: Optional[str] = None,
-    source_type: Optional[str] = None,
-    requested_processing: Optional[str] = None,
+    status: Optional[Literal["pending", "processing", "processed", "failed"]] = None,
+    capture_type: Optional[Literal["voice", "content"]] = None,
+    source_type: Optional[
+        Literal[
+            "voice_transcript",
+            "article_url",
+            "social_post",
+            "selected_text",
+            "video_url",
+            "video_transcript",
+            "image_reference",
+            "file_reference",
+            "clipboard_text",
+        ]
+    ] = None,
+    requested_processing: Optional[
+        Literal[
+            "raw_save",
+            "voice_structure",
+            "summary",
+            "recommendation",
+            "short_article",
+            "project_knowledge",
+        ]
+    ] = None,
     project: Optional[str] = None,
     query: Optional[str] = Query(default=None, min_length=1, max_length=200),
     created_from: Optional[str] = None,

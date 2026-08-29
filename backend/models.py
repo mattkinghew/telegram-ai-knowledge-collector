@@ -176,9 +176,48 @@ class ProviderResult(BaseModel):
             if not name or len(name) > 50 or len(items) > 10:
                 raise ValueError("provider sections are bounded")
             for item in items:
-                if not item.strip() or len(item) > 1_000 or "\x00" in item:
+                if (
+                    not item.strip()
+                    or len(item) > 1_000
+                    or "\x00" in item
+                    or "\n" in item
+                    or "\r" in item
+                ):
                     raise ValueError("provider section items are bounded text")
         return value
+
+    @model_validator(mode="after")
+    def validate_mode_sections(self) -> "ProviderResult":
+        expected = {
+            "voice_structure": {
+                "completed",
+                "in_progress",
+                "next_actions",
+                "blockers",
+                "decisions",
+                "knowledge",
+                "content_ideas",
+                "facts_to_verify",
+                "related_projects",
+            },
+            "summary": set(),
+            "recommendation": {
+                "situation",
+                "insight",
+                "recommended_action",
+                "reason",
+                "verification_risk",
+            },
+            "short_article": {"draft"},
+            "project_knowledge": {
+                "reusable_knowledge",
+                "project_use",
+                "facts_to_verify",
+            },
+        }[self.processing_mode]
+        if set(self.sections) != expected:
+            raise ValueError("provider sections do not match processing_mode")
+        return self
 
 
 class CaptureResponse(BaseModel):

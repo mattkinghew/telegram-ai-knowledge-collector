@@ -121,6 +121,19 @@ class P15OperationsAPITests(unittest.TestCase):
                 )
                 self.assertEqual(response.status_code, 200)
                 self.assertEqual(response.json()["pagination"]["total_items"], 1)
+        for query in (
+            "status=unknown",
+            "capture_type=audio",
+            "source_type=filesystem",
+            "requested_processing=agent",
+            "created_from=2026-99-99",
+        ):
+            with self.subTest(invalid=query):
+                response = client.get(
+                    "/api/v1/captures?" + query,
+                    headers=self.headers,
+                )
+                self.assertEqual(response.status_code, 422)
 
     def test_today_page_data_is_bounded_and_has_operational_counts(self) -> None:
         client = self._client(PendingProvider())

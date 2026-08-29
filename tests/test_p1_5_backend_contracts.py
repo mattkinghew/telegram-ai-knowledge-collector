@@ -129,6 +129,26 @@ class P15BackendContractTests(unittest.TestCase):
             ProviderResult.model_validate(
                 dict(result.model_dump(), points=["x"] * 4)
             )
+        with self.assertRaises(ValidationError):
+            ProviderResult.model_validate(
+                dict(result.model_dump(), sections={"unexpected": ["x"]})
+            )
+        with self.assertRaises(ValidationError):
+            ProviderResult.model_validate(
+                dict(
+                    result.model_dump(),
+                    processing_mode="voice_structure",
+                    sections={},
+                )
+            )
+        with self.assertRaises(ValidationError):
+            ProviderResult.model_validate(
+                dict(
+                    result.model_dump(),
+                    processing_mode="short_article",
+                    sections={"draft": ["Safe line\n## Injected heading"]},
+                )
+            )
 
     def test_capture_ids_are_opaque_uuids(self) -> None:
         first = new_capture_id()

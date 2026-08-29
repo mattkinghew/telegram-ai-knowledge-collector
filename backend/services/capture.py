@@ -15,6 +15,16 @@ from backend.storage.sqlite import CaptureRecord, CaptureStore, RetryLimitError
 
 LOGGER = logging.getLogger("backend.capture")
 FETCHABLE_SOURCE_TYPES = frozenset({"article_url", "social_post"})
+SAFE_PROVIDER_MESSAGES = {
+    "NETWORK_UNAVAILABLE": "Network unavailable — capture was saved.",
+    "AI_UNAVAILABLE": "AI temporarily unavailable — capture was saved.",
+    "AI_TIMEOUT": "AI processing timed out — capture was saved.",
+    "INVALID_AI_JSON": "AI response was invalid — capture was saved.",
+    "SCHEMA_MISMATCH": "AI response did not match the contract — capture was saved.",
+    "PAYLOAD_TOO_LARGE": "Processing payload was too large — capture was saved.",
+    "INVALID_REQUEST": "Processing request was invalid — capture was saved.",
+    "INTERNAL_ERROR": "Processing failed — capture was saved for manual review.",
+}
 
 
 class CaptureService:
@@ -82,7 +92,10 @@ class CaptureService:
                     record.capture_id,
                     request,
                     outcome.error_code,
-                    outcome.message,
+                    SAFE_PROVIDER_MESSAGES.get(
+                        outcome.error_code,
+                        "Processing failed — capture was saved for manual review.",
+                    ),
                     started,
                 )
             result = ProviderResult.model_validate(outcome.model_dump())
