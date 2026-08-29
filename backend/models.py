@@ -157,6 +157,8 @@ class ProviderResult(BaseModel):
     def reject_control_lines(cls, value: str) -> str:
         if "\x00" in value:
             raise ValueError("text contains a null byte")
+        if "\n" in value or "\r" in value:
+            raise ValueError("provider scalar text must remain on one line")
         return value
 
     @field_validator("points")
