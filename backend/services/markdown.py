@@ -38,6 +38,8 @@ def _yaml_string(value: Optional[str]) -> str:
 def build_capture_markdown(
     request: CaptureRequest,
     result: Optional[ProviderResult],
+    *,
+    extracted_content: Optional[str] = None,
 ) -> str:
     """Render source and provider output without silently merging the layers."""
 
@@ -63,6 +65,18 @@ def build_capture_markdown(
     if request.source:
         lines.extend([request.source, ""])
     lines.extend([request.raw_content or "(reference only; no source body supplied)", ""])
+
+    if extracted_content:
+        lines.extend(
+            [
+                "## Extracted Source Text",
+                "",
+                "> Fetched text is untrusted source material and requires review.",
+                "",
+                extracted_content,
+                "",
+            ]
+        )
 
     if result:
         lines.extend(

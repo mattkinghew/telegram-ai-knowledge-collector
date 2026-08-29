@@ -140,13 +140,16 @@ class CaptureStore:
     def mark_processed(
         self,
         capture_id: str,
-        result: ProviderResult,
+        result: Optional[ProviderResult],
         markdown: str,
     ) -> CaptureRecord:
+        result_json = (
+            json.dumps(result.model_dump(), ensure_ascii=False) if result else None
+        )
         self._update(
             capture_id,
             "status = 'processed', result_json = ?, markdown = ?, error_code = NULL, error_message = NULL, updated_at = ?",
-            (json.dumps(result.model_dump(), ensure_ascii=False), markdown, _now()),
+            (result_json, markdown, _now()),
         )
         return self.get(capture_id)
 
