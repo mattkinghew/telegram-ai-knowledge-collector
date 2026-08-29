@@ -29,6 +29,12 @@ REQUIRED_FILES = (
     "docs/SHORTCUT_BUILD_SHEET_KNOWLEDGE_CAPTURE.md",
     "docs/SHORTCUT_BUILD_SHEET_PROJECT_UPDATE.md",
     "docs/SHORTCUT_BUILD_SHEET_VOICE_CAPTURE.md",
+    "docs/P1_4_SIMPLIFIED_MOBILE_PRODUCT_DECISION.md",
+    "docs/SHORTCUT_BUILD_SHEET_VOICE_FLASH_V2.md",
+    "docs/SHORTCUT_BUILD_SHEET_CONTENT_CAPTURE_V2.md",
+    "docs/P1_4_OFFLINE_BEHAVIOR.md",
+    "docs/PENDING_ENRICHMENT_CONTRACT_V1.md",
+    "docs/P1_4_TWO_SHORTCUT_DEVICE_ACCEPTANCE.md",
     "docs/VOICE_CAPTURE_CONTRACT_V1.md",
     "docs/VOICE_CAPTURE_DEVICE_ACCEPTANCE.md",
     "docs/PRIVATE_VALUES_SETUP.md",
@@ -50,6 +56,7 @@ REQUIRED_FILES = (
     "tools/project_dashboard_reference.py",
     "tools/voice_capture_reference.py",
     "tools/voice_capture_simulator.py",
+    "tools/two_entry_capture_reference.py",
     "templates/universal-voice-capture-v1.md",
     "prompts/gemini-voice-structured-capture-v1.md",
     "samples/travel_ai_requests/summary.json",
@@ -83,15 +90,14 @@ REFERENCE_TOOLS = (
     "tools/project_dashboard_reference.py",
     "tools/voice_capture_reference.py",
     "tools/voice_capture_simulator.py",
+    "tools/two_entry_capture_reference.py",
 )
 MANUAL_ONLY_PENDING = (
-    "Knowledge Shortcut",
-    "Project Update Shortcut",
-    "Voice Shortcut",
+    "Voice Flash Shortcut",
+    "Content Capture Shortcut",
     "Remotely Save",
     "Make/Gemini",
-    "E2E device test",
-    "Voice device acceptance",
+    "P1.4 device acceptance",
 )
 REAL_MAKE_WEBHOOK = re.compile(
     r"https://hook\.[A-Za-z0-9.-]*make\.com/[A-Za-z0-9_-]{12,}"

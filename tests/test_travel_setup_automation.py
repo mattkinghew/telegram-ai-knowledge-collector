@@ -110,8 +110,9 @@ class TravelReadinessTests(unittest.TestCase):
     def test_current_repository_passes_repository_only_checks(self) -> None:
         result = check_repository(ROOT)
         self.assertTrue(result.passed, "\n".join(result.failures))
-        self.assertIn("Knowledge Shortcut", result.manual_only_pending)
-        self.assertIn("Voice Shortcut", result.manual_only_pending)
+        self.assertIn("Voice Flash Shortcut", result.manual_only_pending)
+        self.assertIn("Content Capture Shortcut", result.manual_only_pending)
+        self.assertNotIn("Knowledge Shortcut", result.manual_only_pending)
         self.assertIn("Make/Gemini", result.manual_only_pending)
 
     def test_missing_required_doc_and_real_make_hook_fail(self) -> None:
@@ -131,8 +132,14 @@ class CurrentDocsMapTests(unittest.TestCase):
     def test_current_docs_map_points_to_existing_files(self) -> None:
         text = (ROOT / "docs" / "CURRENT_DOCS_MAP.md").read_text(encoding="utf-8")
         required = {
-            "docs/SHORTCUT_BUILD_SHEET_KNOWLEDGE_CAPTURE.md": "CURRENT",
-            "docs/SHORTCUT_BUILD_SHEET_PROJECT_UPDATE.md": "CURRENT",
+            "docs/P1_4_SIMPLIFIED_MOBILE_PRODUCT_DECISION.md": "CURRENT",
+            "docs/SHORTCUT_BUILD_SHEET_VOICE_FLASH_V2.md": "CURRENT",
+            "docs/SHORTCUT_BUILD_SHEET_CONTENT_CAPTURE_V2.md": "CURRENT",
+            "docs/P1_4_OFFLINE_BEHAVIOR.md": "CURRENT",
+            "docs/PENDING_ENRICHMENT_CONTRACT_V1.md": "CURRENT",
+            "docs/P1_4_TWO_SHORTCUT_DEVICE_ACCEPTANCE.md": "DEVICE_TEST",
+            "docs/SHORTCUT_BUILD_SHEET_KNOWLEDGE_CAPTURE.md": "REFERENCE",
+            "docs/SHORTCUT_BUILD_SHEET_PROJECT_UPDATE.md": "REFERENCE",
             "docs/MAKE_GEMINI_TRAVEL_SETUP_CHECKLIST.md": "CURRENT",
             "docs/TRAVEL_E2E_ACCEPTANCE.md": "DEVICE_TEST",
             "docs/IPHONE_SHORTCUT_BUILD_SPEC_V2.md": "REFERENCE",
