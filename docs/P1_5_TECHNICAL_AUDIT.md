@@ -1,0 +1,141 @@
+# P1.5 Technical Audit
+
+Audit date: 2026-08-30. Scope: P1.4 baseline `2430802` through the current P1.5
+branch. Evidence is local/offline only.
+
+## Severity result
+
+- BLOCKER: 0 open.
+- HIGH: 0 open.
+- MEDIUM: 2 accepted offline residual risks.
+- LOW: 3 evidence/operability limitations.
+- INFO: live/device/production acceptance remains pending.
+
+## Architecture
+
+FastAPI routes, capture orchestration, provider adapters, bounded extraction,
+SQLite storage, security middleware, Markdown/report services, and a static
+ES-module Web/PWA have explicit boundaries. The backend does not import or call
+the existing Vault CLI. P1.4 remains independently usable.
+
+## API
+
+Version-1 request and provider models are strict and reject extra fields,
+incompatible modes, credential-bearing URLs, filesystem paths, oversized
+strings, duplicate projects, and arbitrary nested provider data. Capture,
+status, paginated list, bounded retry, review, project, dashboard, dismiss, and
+report-preview routes have tests. No DELETE route exists.
+
+## Storage
+
+All data values use parameterized SQLite queries. Status and ordering fragments
+are internal constants. Raw/source/request fields are never updated. Results,
+Markdown, errors, retry metadata, and review metadata are separate. There is no
+automatic deletion or cleanup.
+
+## AI boundary
+
+Tests use `MockProvider`. Provider output is revalidated before storage and
+Markdown rendering, and provider failure text is replaced by fixed safe copy.
+The Gemini boundary contains no network call or key persistence. Live Gemini is
+therefore pending, not passed.
+
+## URL security
+
+HTTP/HTTPS only; credentials, malformed URLs, localhost, loopback, private,
+link-local, metadata, multicast, reserved, unspecified, mixed public/private
+DNS, unsafe schemes, and private redirects are rejected. Redirect count,
+timeouts, response bytes, MIME, and extracted characters are bounded. HTML is
+parsed without a browser and scripts/styles/navigation/footer are excluded.
+
+**MEDIUM — DNS validation/fetch race:** the resolver check and HTTPX connection
+perform separate resolution, so a hostile DNS service could theoretically
+rebind between them. P1.5 is not deployed; the production checklist requires a
+DNS-pinning outbound proxy or platform egress control before sensitive/untrusted
+URL processing. This does not weaken the current offline fixture validation.
+
+## Auth
+
+Production refuses `AUTH_MODE=dev`; token mode requires a bounded secret and
+uses constant-time comparison. All API routes except minimal `/health` require
+auth. Static shell contains no data. OpenAPI/docs are disabled. CORS rejects
+wildcards and uses explicit origins.
+
+## Privacy
+
+Logs are metadata-only and tested against raw/source/token leakage. API content
+is no-store. The service has no Vault or Remotely Save integration. No real
+data, credentials, webhook, Gemini call, or external upload was used. PWA caches
+only its shell.
+
+## Offline fallback
+
+Backend failure is explicitly mapped to the unchanged P1.4 local raw/pending
+builder in both current Shortcut sheets. Repository automation cannot execute
+the real device flow, so device acceptance remains pending.
+
+## Web App
+
+Five primary pages, bounded search/filtering, human review/assignment/retry,
+pending dismissal without raw deletion, and report preview are implemented.
+DOM creation uses `textContent`; no `innerHTML`, token persistence, API caching,
+delete, send, or publish behavior exists. CSS includes 44 px controls and mobile
+breakpoints.
+
+**LOW — visual evidence:** browser automation is explicitly out of scope, so
+real viewport, focus order, screen-reader, installability, and device latency
+remain manual acceptance items.
+
+## Testing
+
+The retained 406-test P1.0–P1.4 baseline remains in place. P1.5 adds 55 Python
+tests for contracts, storage, providers, Markdown, URL security, APIs,
+operations, Web assets, voice/pending flows, and a fully integrated local
+article fixture. The final local run passed 461 Python tests plus four Node Web
+helper tests. Compile, CLI help, readiness, JSON, Markdown-fence, Web syntax,
+dependency-integrity, privacy, static-security, and local-server smoke checks
+also passed.
+
+## Dependencies
+
+- Required runtime: FastAPI 0.123.9, HTTPX 0.28.1, Uvicorn 0.36.1.
+- Development/test: FastAPI TestClient uses the required HTTPX dependency; Node
+  built-in test runner adds no package.
+- Standard library: SQLite, HTML parsing, URL/IP/DNS handling, UUID, JSON,
+  logging, and timestamps.
+- Unnecessary/excluded: ORM, React/Next, browser automation, scraper, Docker,
+  OCR, RAG/vector/agent packages.
+
+**LOW — pinned aging:** pins preserve Python 3.9 compatibility but require a
+future controlled update/security-advisory review. No unpinned production
+dependency was added.
+
+## Deployment
+
+Render is the one recommended path; Railway is the one fallback. Both require
+real account/cost/region/backup/auth/device acceptance. No deployment config was
+created because production deployment is prohibited in this task.
+
+**MEDIUM — single-instance SQLite:** the recommended persistent disk prevents
+horizontal scale and zero-downtime deployment. It is acceptable for a single-
+user MVP, but a multi-user or high-availability product must migrate operational
+storage before launch.
+
+## Product boundary
+
+P1.5 is not an LMS, task suite, full note editor, Obsidian replacement, RAG or
+agent system, publishing system, or video downloader. It stores an operational
+queue, returns portable Markdown, exposes narrow metadata edits, and preserves
+human/device ownership of local knowledge delivery.
+
+## Known low/information risks
+
+- LOW: one bearer token is an intentionally narrow single-user design; rotation
+  and recovery are manual until deployed.
+- INFO: real iPhone, Vault, Remotely Save, live Gemini, public network, platform
+  rate limits, backup/restore, and rollback have no acceptance evidence.
+
+## Verdict
+
+Approve as **P1.5 offline implementation** after the final committed-tree check
+confirms no uncommitted changes. Do not approve as production ready.

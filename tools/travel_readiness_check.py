@@ -35,6 +35,17 @@ REQUIRED_FILES = (
     "docs/P1_4_OFFLINE_BEHAVIOR.md",
     "docs/PENDING_ENRICHMENT_CONTRACT_V1.md",
     "docs/P1_4_TWO_SHORTCUT_DEVICE_ACCEPTANCE.md",
+    "docs/P1_5_HYBRID_ARCHITECTURE.md",
+    "docs/SHORTCUT_BACKEND_API_CONTRACT.md",
+    "docs/SHORTCUT_BUILD_SHEET_VOICE_FLASH_BACKEND.md",
+    "docs/SHORTCUT_BUILD_SHEET_CONTENT_CAPTURE_BACKEND.md",
+    "docs/P1_5_AUTH_SECURITY_MODEL.md",
+    "docs/P1_5_LOGGING_PRIVACY_POLICY.md",
+    "docs/P1_5_DATA_LIFECYCLE.md",
+    "docs/P1_5_DEPLOYMENT_OPTIONS.md",
+    "docs/P1_5_PRODUCTION_CHECKLIST.md",
+    "docs/P1_5_ACCEPTANCE_MATRIX.md",
+    "docs/P1_5_TECHNICAL_AUDIT.md",
     "docs/VOICE_CAPTURE_CONTRACT_V1.md",
     "docs/VOICE_CAPTURE_DEVICE_ACCEPTANCE.md",
     "docs/PRIVATE_VALUES_SETUP.md",
@@ -98,6 +109,9 @@ MANUAL_ONLY_PENDING = (
     "Remotely Save",
     "Make/Gemini",
     "P1.4 device acceptance",
+    "P1.5 backend Shortcut device acceptance",
+    "P1.5 live Gemini acceptance",
+    "P1.5 production deployment acceptance",
 )
 REAL_MAKE_WEBHOOK = re.compile(
     r"https://hook\.[A-Za-z0-9.-]*make\.com/[A-Za-z0-9_-]{12,}"

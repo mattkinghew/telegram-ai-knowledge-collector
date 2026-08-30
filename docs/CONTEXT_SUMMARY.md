@@ -212,8 +212,44 @@ local branch boundary; no push, merge, deployment, or publication has occurred.
 - Real device, Shortcut, Obsidian, Remotely Save, Make, Gemini, and network
   acceptance remains manual and pending.
 
+## P1.5 Hybrid Capture Platform
+
+- FastAPI provides strict capture, status, paginated list, manual retry,
+  dashboard, project, review/dismiss, and report-preview APIs.
+- SQLite preserves immutable source/raw capture separately from result,
+  Markdown, error, retry, and review metadata. It is an operational store, not
+  the canonical knowledge base.
+- MockProvider covers all processing modes offline. The Gemini boundary is
+  intentionally disabled without live calls or stored credentials.
+- Public article/social extraction validates URL and DNS/redirect targets,
+  time/redirect/byte/MIME/text limits, then parses readable text without a
+  browser. Video stays a reference unless transcript text is supplied.
+- A mobile-first static Web/PWA implements Today, Inbox, Projects, Pending, and
+  Reports. It supports bounded search, review, project assignment, retry,
+  dismissal without deletion, and human-selected report preview.
+- P1.5 backend Shortcuts return Markdown to the device; only the Shortcut may
+  invoke the local Obsidian write. Every backend/AI/Web failure retains the
+  independent P1.4 local fallback.
+- Tests use fictional data, local SQLite, local HTML fixtures, TestClient, and
+  Node's built-in runner. No browser automation, external AI, external site,
+  real Vault, Remotely Save, or real device was used.
+- Render with one paid web service and persistent disk is the one recommended
+  deployment architecture; Railway with a volume is the one fallback. Neither
+  was deployed.
+
+## Current Known Risks
+
+- DNS safety validation and the HTTP transport resolve separately, leaving a
+  theoretical DNS-rebinding race. Production acceptance requires pinned-DNS
+  egress or an outbound proxy/platform control.
+- SQLite on a single persistent disk is appropriate only for the single-user
+  MVP and prevents horizontal scale/zero-downtime disk deployments.
+- Live Gemini, production token/rate-limit/log/backup behavior, PWA device UX,
+  iPhone Shortcut routing, local Obsidian creation, and Remotely Save remain
+  manual acceptance items.
+
 ## Next Recommended Task
 
-Build/sync `語音閃念` and `收集內容`, then complete Scenarios A–D in
-`docs/P1_4_TWO_SHORTCUT_DEVICE_ACCEPTANCE.md`. Live AI remains optional. Do not
-begin P1.5 backend or Web App work until P1.4 device results are recorded.
+Complete one fictional-data real-iPhone acceptance session covering backend
+success and backend-unreachable P1.4 fallback before configuring live Gemini or
+production deployment.
