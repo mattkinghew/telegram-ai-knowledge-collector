@@ -70,5 +70,9 @@ SHA-256 checksum, and restore duration. It never prints IDs or record content.
 | Web App restored read | All required views load | | |
 | Restore duration | Recorded range/value | | |
 
-The repository test proves local mechanics only. Staging remains `PENDING`
-until restart and Web App evidence are supplied.
+Repository automation proves local Online Backup/restore mechanics and starts a
+real local production-mode Uvicorn process against the restored five-record
+database. Authenticated GET and list can read the restored IDs, states, and raw
+records; the static Web shell also loads. This is not a rendered browser check
+and not staging evidence. Staging remains `PENDING` until exact staging restart
+and Web App evidence are supplied.

@@ -23,8 +23,8 @@ production evidence.
 | Architecture | FastAPI + static PWA + one SQLite store; P1.4 remains independent | `AUTOMATED_PASS` |
 | Device acceptance | Backend OFF is user-reported only; Backend ON is not run | `BLOCKER / PENDING` |
 | Gemini acceptance | Guarded adapter and fake transport pass; no real call | `BLOCKER / PENDING` |
-| Storage | Raw/source/request fields are immutable; one fictional record survives a real local Uvicorn process restart | `AUTOMATED_PASS` locally; staging persistence pending |
-| Backup/restore | Online backup tool preserves five fictional local records | `AUTOMATED_PASS` locally; staging `BLOCKER / PENDING` |
+| Storage | Raw/source/request fields are immutable; processed and pending records retain ID, raw, status, retry/review metadata and timestamps across a real local Uvicorn restart | `AUTOMATED_PASS` locally; staging persistence pending |
+| Backup/restore | Online backup preserves five fictional records and real local Uvicorn reads the restored database by ID/list | `AUTOMATED_PASS` locally; staging/browser `BLOCKER / PENDING` |
 | Authentication | Production token mode fails closed in tests and a local Uvicorn process rejects missing auth | `AUTOMATED_PASS`; staging rotation pending |
 | CORS | Wildcard is rejected; local Uvicorn allows only the configured fictional origin; Blueprint requires the real exact origin | `AUTOMATED_PASS`; staging header evidence pending |
 | Rate limits | Production-only buckets cover capture, retry, read, report, mutation | `AUTOMATED_PASS`; staging 429 evidence pending |
@@ -57,8 +57,10 @@ classification awaits real staging evidence.
 
 Accepted for the single-user MVP only. The Blueprint fixes `numInstances=1`
 and mounts one disk. Do not horizontally scale or claim zero-downtime disk
-deploys. A real local Uvicorn process restart preserves one fictional SQLite
-record; exact staging-disk restart and restore evidence are still required.
+deploys. A real local Uvicorn restart preserves processed and pending records;
+a second process test serves a restored five-record database containing three
+processed, one pending, and one failed record. Exact staging-disk restart,
+restore, and browser evidence are still required.
 
 ## RC verdict
 

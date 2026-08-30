@@ -234,19 +234,21 @@ local branch boundary; no push, merge, deployment, or publication has occurred.
 - P1.5 backend Shortcuts return Markdown to the device; only the Shortcut may
   invoke the local Obsidian write. Every backend/AI/Web failure retains the
   independent P1.4 local fallback.
-- Tests use fictional data, local SQLite, local HTML fixtures, TestClient, one
-  loopback-only production-mode Uvicorn restart flow, and Node's built-in
-  runner. The restart flow proves one MockProvider capture survives a real
-  local process restart with auth/CORS and log marker checks. It is not staging
-  evidence. No browser automation, external AI, external site, real Vault,
-  Remotely Save, or real device was used.
+- Tests use fictional data, local SQLite, local HTML fixtures, TestClient, two
+  loopback-only production-mode Uvicorn flows, and Node's built-in runner. One
+  flow exercises the Phase 4 backing APIs and restart persistence; the other
+  serves a restored database containing three processed, one pending, and one
+  failed record. Both include auth/log privacy checks. They are not browser or
+  staging evidence. No browser automation, external AI, external site, real
+  Vault, Remotely Save, or real device was used.
 - Render with one paid web service and persistent disk is the one recommended
   deployment architecture; Railway with a volume is the one fallback. Neither
   was deployed.
 - An unsynced Render staging Blueprint starts with MockProvider, one instance,
   one disk, generated token auth, manual CORS input, and auto-deploy disabled.
   A standard-library drill locally verifies Online Backup and clean restore for
-  three processed, one pending, and one failed fictional capture.
+  three processed, one pending, and one failed fictional capture; a real local
+  Uvicorn process can read the restored records through authenticated APIs.
 
 ## Current Known Risks
 

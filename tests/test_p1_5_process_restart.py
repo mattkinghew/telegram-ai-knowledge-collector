@@ -12,6 +12,10 @@ from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import ProxyHandler, Request, build_opener
 
+from backend.models import CaptureRequest
+from backend.storage.sqlite import CaptureStore
+from tools.p1_5_backup_restore_drill import run_drill
+
 
 ROOT = Path(__file__).parent.parent
 TOKEN = "fictional-restart-token"
@@ -21,7 +25,9 @@ ALLOWED_ORIGIN = "https://fictional-staging.example"
 
 class P15ProcessRestartTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.temp = tempfile.TemporaryDirectory()
+        self.temp = tempfile.TemporaryDirectory(
+            dir=Path(tempfile.gettempdir()).resolve()
+        )
         self.addCleanup(self.temp.cleanup)
         self.temp_path = Path(self.temp.name)
         self.db_path = self.temp_path / "captures.sqlite3"
@@ -80,7 +86,16 @@ class P15ProcessRestartTests(unittest.TestCase):
         deadline = time.monotonic() + 10
         while time.monotonic() < deadline:
             if self.process.poll() is not None:
-                self.fail("Uvicorn exited before the health check succeeded")
+                diagnostic = self.log_path.read_text(
+                    encoding="utf-8", errors="replace"
+                )
+                diagnostic = diagnostic.replace(TOKEN, "[REDACTED]").replace(
+                    RAW_CONTENT, "[REDACTED]"
+                )
+                self.fail(
+                    "Uvicorn exited before the health check succeeded: "
+                    + diagnostic[-1_000:]
+                )
             try:
                 status, _, body = self._request("GET", "/health")
             except (URLError, TimeoutError):
@@ -178,6 +193,82 @@ class P15ProcessRestartTests(unittest.TestCase):
         self.assertEqual(before["raw_content"], RAW_CONTENT)
         self.assertEqual(before["status"], "processed")
 
+        review_status, _, reviewed = self._request(
+            "PATCH",
+            f"/api/v1/captures/{capture_id}",
+            payload={"reviewed": True, "assigned_project": "Project Alpha"},
+            authorized=True,
+        )
+        self.assertEqual(review_status, 200)
+        self.assertTrue(reviewed["reviewed"])
+        self.assertEqual(reviewed["assigned_project"], "Project Alpha")
+
+        pending_status, _, pending = self._request(
+            "POST",
+            "/api/v1/capture",
+            payload={
+                "schema_version": "1",
+                "capture_type": "content",
+                "source_type": "video_url",
+                "source": "https://example.com/fictional-video",
+                "raw_content": "",
+                "requested_processing": "summary",
+                "allowed_projects": [],
+            },
+            authorized=True,
+        )
+        self.assertEqual(pending_status, 202)
+        self.assertEqual(pending["status"], "pending")
+        pending_id = pending["capture_id"]
+
+        retry_status, _, retried = self._request(
+            "POST", f"/api/v1/captures/{pending_id}/retry", authorized=True
+        )
+        self.assertEqual(retry_status, 202)
+        self.assertEqual(retried["status"], "pending")
+
+        today_status, _, today = self._request(
+            "GET", "/api/v1/dashboard/today", authorized=True
+        )
+        self.assertEqual(today_status, 200)
+        self.assertEqual(today["pending_count"], 1)
+
+        projects_status, _, projects = self._request(
+            "GET", "/api/v1/projects", authorized=True
+        )
+        self.assertEqual(projects_status, 200)
+        self.assertEqual(projects["data"][0]["project"], "Project Alpha")
+
+        pending_list_status, _, pending_list = self._request(
+            "GET",
+            "/api/v1/captures?page=1&page_size=10&status=pending",
+            authorized=True,
+        )
+        self.assertEqual(pending_list_status, 200)
+        self.assertEqual(pending_list["pagination"]["total_items"], 1)
+        self.assertEqual(pending_list["data"][0]["capture_id"], pending_id)
+
+        report_status, _, report = self._request(
+            "POST",
+            "/api/v1/reports/preview",
+            payload={
+                "report_type": "daily",
+                "period": "Fictional local restart rehearsal",
+                "capture_ids": [capture_id],
+            },
+            authorized=True,
+        )
+        self.assertEqual(report_status, 200)
+        self.assertFalse(report["sent"])
+        self.assertFalse(report["published"])
+
+        _, _, processed_before_restart = self._request(
+            "GET", f"/api/v1/captures/{capture_id}", authorized=True
+        )
+        _, _, pending_before_restart = self._request(
+            "GET", f"/api/v1/captures/{pending_id}", authorized=True
+        )
+
         self._stop_server()
         self.process = None
         self._start_server()
@@ -189,8 +280,24 @@ class P15ProcessRestartTests(unittest.TestCase):
         self.assertEqual(after["capture_id"], capture_id)
         self.assertEqual(after["raw_content"], RAW_CONTENT)
         self.assertEqual(after["status"], "processed")
-        self.assertEqual(after["created_at"], before["created_at"])
-        self.assertEqual(after["updated_at"], before["updated_at"])
+        self.assertEqual(after["created_at"], processed_before_restart["created_at"])
+        self.assertEqual(after["updated_at"], processed_before_restart["updated_at"])
+        self.assertTrue(after["reviewed"])
+        self.assertEqual(after["assigned_project"], "Project Alpha")
+
+        pending_after_status, _, pending_after = self._request(
+            "GET", f"/api/v1/captures/{pending_id}", authorized=True
+        )
+        self.assertEqual(pending_after_status, 200)
+        self.assertEqual(pending_after["status"], "pending")
+        self.assertEqual(pending_after["retry_count"], 1)
+        self.assertEqual(pending_after["raw_content"], "")
+        self.assertEqual(
+            pending_after["created_at"], pending_before_restart["created_at"]
+        )
+        self.assertEqual(
+            pending_after["updated_at"], pending_before_restart["updated_at"]
+        )
 
         list_status, list_headers, listing = self._request(
             "GET",
@@ -199,7 +306,7 @@ class P15ProcessRestartTests(unittest.TestCase):
             origin="https://not-allowed.example",
         )
         self.assertEqual(list_status, 200)
-        self.assertEqual(listing["pagination"]["total_items"], 1)
+        self.assertEqual(listing["pagination"]["total_items"], 2)
         self.assertNotIn("Access-Control-Allow-Origin", list_headers)
 
         web_status, _, _ = self._request("GET", "/app/")
@@ -209,6 +316,119 @@ class P15ProcessRestartTests(unittest.TestCase):
         logs = self.log_path.read_text(encoding="utf-8")
         self.assertNotIn(TOKEN, logs)
         self.assertNotIn(RAW_CONTENT, logs)
+
+    def test_restored_five_record_database_is_readable_after_server_start(self) -> None:
+        source = self.temp_path / "source.sqlite3"
+        backup = self.temp_path / "backup.sqlite3"
+        restore = self.temp_path / "restore.sqlite3"
+        store = CaptureStore(source)
+        capture_ids = []
+
+        for index in range(3):
+            record = store.create(
+                CaptureRequest(
+                    schema_version="1",
+                    capture_type="content",
+                    source_type="selected_text",
+                    source=None,
+                    raw_content=f"FICTIONAL-RESTORE-PROCESSED-{index + 1:02d}",
+                    requested_processing="raw_save",
+                    allowed_projects=[],
+                )
+            )
+            store.mark_processed(record.capture_id, None, "# Fictional restored item")
+            capture_ids.append(record.capture_id)
+
+        pending = store.create(
+            CaptureRequest(
+                schema_version="1",
+                capture_type="content",
+                source_type="selected_text",
+                source=None,
+                raw_content="FICTIONAL-RESTORE-PENDING-01",
+                requested_processing="raw_save",
+                allowed_projects=[],
+            )
+        )
+        store.begin_retry(pending.capture_id)
+        store.mark_failure(
+            pending.capture_id,
+            status="pending",
+            error_code="AI_UNAVAILABLE",
+            message="Fictional pending state.",
+        )
+        capture_ids.append(pending.capture_id)
+
+        failed = store.create(
+            CaptureRequest(
+                schema_version="1",
+                capture_type="content",
+                source_type="selected_text",
+                source=None,
+                raw_content="FICTIONAL-RESTORE-FAILED-01",
+                requested_processing="raw_save",
+                allowed_projects=[],
+            )
+        )
+        store.mark_failure(
+            failed.capture_id,
+            status="failed",
+            error_code="INTERNAL_ERROR",
+            message="Fictional failed state.",
+        )
+        capture_ids.append(failed.capture_id)
+
+        evidence = run_drill(
+            source=source,
+            backup=backup,
+            restore=restore,
+            expected_capture_ids=capture_ids,
+        )
+        self.assertEqual(
+            evidence["status_counts"],
+            {"processed": 3, "pending": 1, "failed": 1},
+        )
+        self.assertGreaterEqual(evidence["restore_duration_ms"], 0)
+
+        self.db_path = restore
+        self._start_server()
+
+        expected_statuses = [
+            "processed",
+            "processed",
+            "processed",
+            "pending",
+            "failed",
+        ]
+        for capture_id, expected_status in zip(capture_ids, expected_statuses):
+            status, _, record = self._request(
+                "GET", f"/api/v1/captures/{capture_id}", authorized=True
+            )
+            self.assertEqual(status, 200)
+            self.assertEqual(record["capture_id"], capture_id)
+            self.assertEqual(record["status"], expected_status)
+            self.assertIn("FICTIONAL-RESTORE-", record["raw_content"])
+        self.assertEqual(
+            self._request(
+                "GET", f"/api/v1/captures/{pending.capture_id}", authorized=True
+            )[2]["retry_count"],
+            1,
+        )
+
+        list_status, _, listing = self._request(
+            "GET", "/api/v1/captures?page=1&page_size=10", authorized=True
+        )
+        self.assertEqual(list_status, 200)
+        self.assertEqual(listing["pagination"]["total_items"], 5)
+        self.assertTrue(all("raw_content" not in item for item in listing["data"]))
+
+        web_status, _, _ = self._request("GET", "/app/")
+        self.assertEqual(web_status, 200)
+
+        self._stop_server()
+        logs = self.log_path.read_text(encoding="utf-8")
+        self.assertNotIn(TOKEN, logs)
+        self.assertNotIn("FICTIONAL-RESTORE-", logs)
 
 
 if __name__ == "__main__":

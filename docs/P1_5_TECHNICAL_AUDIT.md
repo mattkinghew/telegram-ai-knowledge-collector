@@ -95,11 +95,12 @@ remain manual acceptance items.
 
 The earlier exact committed baseline was 461 Python tests. Guarded Gemini added
 15 tests; final acceptance preparation adds four tests for rate limits and the
-sanitized backup/restore drill, plus one real local production-mode Uvicorn
-process-restart test. The full local suite passes 481 Python tests; four Node
-Web helper tests also pass. The process test uses MockProvider, a temporary
-SQLite database, fictional data, loopback only, and verifies persistence,
-auth/CORS, and log marker exclusion. It is not staging evidence. Compile, CLI,
+sanitized backup/restore drill, plus two real local production-mode Uvicorn
+tests. The full local suite passes 482 Python tests; four Node Web helper tests
+also pass. The process tests use MockProvider, temporary SQLite databases,
+fictional data, and loopback only. They verify Phase 4 backing APIs, restart
+persistence, restored five-record database reads, auth/CORS, and log marker
+exclusion. They are not browser, device, or staging evidence. Compile, CLI,
 readiness, JSON, Markdown, privacy, security, and diff checks passed against the
 current worktree.
 
@@ -130,6 +131,10 @@ created.
 horizontal scale and zero-downtime deployment. It is acceptable for a single-
 user MVP, but a multi-user or high-availability product must migrate operational
 storage before launch.
+
+The database-path guard treats the macOS system root prefix `/private/tmp` or
+`/private/var` consistently with the backup tool. A later protected component
+such as `Private`, `Credentials`, or `.obsidian` remains blocked.
 
 ## Product boundary
 

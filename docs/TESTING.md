@@ -57,11 +57,14 @@ PYTHONPATH=src:. .venv/bin/python -m unittest \
   tests.test_p1_5_process_restart -v
 ```
 
-This test binds only to loopback, starts Uvicorn twice, uses a temporary SQLite
-database and fictional token/content, then verifies auth, exact-origin CORS,
-processed Markdown, one preserved record after restart, and no token/raw marker
-in the local server log. It may require local permission to bind a loopback
-port. It is not device, live-provider, Render, or staging evidence.
+These tests bind only to loopback and use temporary SQLite databases plus
+fictional token/content. One starts Uvicorn twice and verifies auth,
+exact-origin CORS, capture/list/retry/review, Today/Projects/Pending/Reports
+backing APIs, processed Markdown, restart persistence, and log privacy. The
+other serves a clean restored database containing three processed, one pending,
+and one failed record, then verifies authenticated ID/list reads. They may
+require local permission to bind a loopback port. They are not browser, device,
+live-provider, Render, or staging evidence.
 
 The article E2E uses a local HTML fixture and fake transport. The voice and
 pending flows use fictional payloads, local SQLite, TestClient, and
@@ -188,8 +191,9 @@ P1.5 adds coverage for:
   preservation, protected-path/symlink refusal, no-overwrite behavior, and
   sanitized evidence output.
 - real local production-mode Uvicorn startup/restart with MockProvider,
-  temporary SQLite persistence, auth/CORS checks, and log marker exclusion.
+  temporary SQLite persistence, backing API/auth/CORS checks, restored
+  five-record database reads, and log marker exclusion.
 
-The 2026-08-31 acceptance-preparation worktree passes 481 Python tests and four
+The 2026-08-31 acceptance-preparation worktree passes 482 Python tests and four
 Node helper tests. Re-run against the final commit before using that count as
 committed-tree evidence.
