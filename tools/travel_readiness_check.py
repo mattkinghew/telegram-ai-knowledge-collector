@@ -108,7 +108,7 @@ MANUAL_ONLY_PENDING = (
     "Content Capture Shortcut",
     "Remotely Save",
     "Make/Gemini",
-    "P1.4 device acceptance",
+    "Remaining P1.4 device scenarios (Backend OFF user-reported pass)",
     "P1.5 backend Shortcut device acceptance",
     "P1.5 live Gemini acceptance",
     "P1.5 production deployment acceptance",

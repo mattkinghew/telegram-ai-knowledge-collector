@@ -8,8 +8,11 @@ Status: `PREPARED` / no deployment performed. Use fictional data only.
 - [ ] Set `APP_ENV=production` and `AUTH_MODE=token`.
 - [ ] Generate a staging-only high-entropy `API_AUTH_TOKEN` of at least 16
   characters and store it in the platform secret manager.
-- [ ] Set `AI_PROVIDER=mock` until the Gemini live-adapter gate is complete.
-- [ ] Leave `GEMINI_API_KEY` unset until that gate; store it only as a secret.
+- [ ] Start with `AI_PROVIDER=mock` and `ENABLE_LIVE_AI=false`; pass Backend ON
+  Mock device acceptance before enabling Gemini.
+- [ ] For the separate fictional Gemini smoke only, set `AI_PROVIDER=gemini`,
+  `ENABLE_LIVE_AI=true`, an allowlisted `GEMINI_MODEL`, and store
+  `GEMINI_API_KEY` only in the secret manager.
 - [ ] Set `ALLOWED_ORIGINS` to the exact HTTPS Web/PWA origin; no wildcard.
 - [ ] Attach one persistent disk/volume to the single service.
 - [ ] Set `DATABASE_URL` to an absolute SQLite file on that mount.

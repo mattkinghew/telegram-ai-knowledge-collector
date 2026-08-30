@@ -56,7 +56,8 @@ The Shortcut must create the normal P1.4 local raw/pending note. It must not
 substitute an error message for the original user content.
 
 Expected error codes include `NETWORK_UNAVAILABLE`, `AI_UNAVAILABLE`,
-`AI_TIMEOUT`, `INVALID_AI_JSON`, `SCHEMA_MISMATCH`, `URL_FETCH_FAILED`,
+`AI_TIMEOUT`, `AI_AUTH_FAILED`, `AI_RATE_LIMITED`, `INVALID_AI_JSON`,
+`SCHEMA_MISMATCH`, `URL_FETCH_FAILED`,
 `UNSUPPORTED_CONTENT_TYPE`, `PAYLOAD_TOO_LARGE`, `INVALID_REQUEST`, and
 `INTERNAL_ERROR`.
 

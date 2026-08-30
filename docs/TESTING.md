@@ -35,9 +35,17 @@ Run only the new full-flow acceptance with:
 PYTHONPATH=src:. .venv/bin/python -m unittest tests.test_p1_5_e2e -v
 ```
 
+Run guarded Gemini adapter tests with:
+
+```bash
+PYTHONPATH=src:. .venv/bin/python -m unittest \
+  tests.test_p1_5_gemini_provider -v
+```
+
 The article E2E uses a local HTML fixture and fake transport. The voice and
 pending flows use fictional payloads, local SQLite, TestClient, and
-MockProvider. None performs a live HTTP, Gemini, iPhone, Vault, or Remotely Save
+MockProvider. Gemini tests use HTTPX MockTransport. None performs a live HTTP,
+Gemini, iPhone, Vault, or Remotely Save
 operation. Static Web tests prove routing helpers, bounded filters, report
 selection, error copy, shell assets, security headers, and implementation
 markers; they do not replace real browser/accessibility/device acceptance.
@@ -150,6 +158,9 @@ P1.5 adds coverage for:
 - Today, Inbox, Projects, Pending, Reports, search helpers, PWA shell-only cache,
   loading/empty/error copy and safe DOM/token handling;
 - integrated voice, article, pending/failure and Inbox-data flows.
+- guarded Gemini configuration, minimal prompts, four allowlisted modes,
+  strict structured output, safe timeout/network/auth/quota/error mapping,
+  oversized-response rejection, raw preservation, and bounded manual retry.
 
 Do not record a final test count in this file until the final suite has been run
 against the exact documented commit.

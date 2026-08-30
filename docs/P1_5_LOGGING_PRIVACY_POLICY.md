@@ -3,6 +3,7 @@
 ## Allowed production log fields
 
 - `capture_id`;
+- provider adapter name;
 - processing status and bounded error code;
 - processing mode;
 - duration in milliseconds;

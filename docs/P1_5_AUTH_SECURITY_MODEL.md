@@ -14,6 +14,12 @@ must be generated and stored in the deployment platform secret manager and in
 the user's private Shortcut configuration. It must not appear in Git, a note,
 URL query string, screenshot, support log, or analytics event.
 
+Live Gemini is a separate fail-closed boundary. It requires
+`APP_ENV=production`, `AI_PROVIDER=gemini`, `ENABLE_LIVE_AI=true`, a runtime-only
+`GEMINI_API_KEY`, and a server-side allowlisted `GEMINI_MODEL`. Test mode requires
+MockProvider. Clients cannot select a provider, model, endpoint, or arbitrary
+provider parameter.
+
 ## Protected surface
 
 `GET /health` is public and returns only basic health. Every `/api/v1/*`

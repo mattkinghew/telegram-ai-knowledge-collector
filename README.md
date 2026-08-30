@@ -30,11 +30,12 @@ iPhone Shortcut -> authenticated Capture API -> bounded processing/SQLite
 Web/PWA -> Today -> Inbox -> Projects -> Pending -> Reports
 ```
 
-The backend uses FastAPI, a deterministic mock AI provider, bounded public-URL
-extraction, and an operational SQLite queue. The Web App is a mobile-first
-static ES-module client served by the same application. P1.5 is implemented and
-tested offline; real iPhone integration, live Gemini, real Vault/Remotely Save,
-and production deployment remain unverified and pending.
+The backend uses FastAPI, a deterministic mock AI provider, a production-only
+explicitly guarded Gemini adapter, bounded public-URL extraction, and an
+operational SQLite queue. The Web App is a mobile-first static ES-module client
+served by the same application. The Gemini adapter is tested only with fake
+transport; real iPhone Backend ON, live Gemini, real Vault/Remotely Save, and
+deployment remain unverified and pending.
 
 ## Local MVP Features
 

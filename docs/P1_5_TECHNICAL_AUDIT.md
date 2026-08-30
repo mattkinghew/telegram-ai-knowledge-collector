@@ -35,10 +35,12 @@ automatic deletion or cleanup.
 
 ## AI boundary
 
-Tests use `MockProvider`. Provider output is revalidated before storage and
-Markdown rendering, and provider failure text is replaced by fixed safe copy.
-The Gemini boundary contains no network call or key persistence. Live Gemini is
-therefore pending, not passed.
+Standard tests use `MockProvider` or HTTPX MockTransport. The guarded Gemini
+adapter has a fixed endpoint, server-side model allowlist, production-only
+triple opt-in, minimal mode-specific request mapping, 20-second timeout,
+256 KiB response cap, strict structured validation, and sanitized failures.
+Provider output is revalidated before storage and Markdown rendering. No key is
+persisted and no real Gemini call was made; live acceptance remains pending.
 
 ## URL security
 
@@ -71,8 +73,8 @@ only its shell.
 ## Offline fallback
 
 Backend failure is explicitly mapped to the unchanged P1.4 local raw/pending
-builder in both current Shortcut sheets. Repository automation cannot execute
-the real device flow, so device acceptance remains pending.
+builder in both current Shortcut sheets. Backend OFF is accepted only as
+user-reported device evidence; Backend ON Mock and live Gemini remain pending.
 
 ## Web App
 
@@ -88,13 +90,11 @@ remain manual acceptance items.
 
 ## Testing
 
-The retained 406-test P1.0–P1.4 baseline remains in place. P1.5 adds 55 Python
-tests for contracts, storage, providers, Markdown, URL security, APIs,
-operations, Web assets, voice/pending flows, and a fully integrated local
-article fixture. The final local run passed 461 Python tests plus four Node Web
-helper tests. Compile, CLI help, readiness, JSON, Markdown-fence, Web syntax,
-dependency-integrity, privacy, static-security, and local-server smoke checks
-also passed.
+The prior exact committed baseline was 461 Python tests. This change adds 15
+guarded Gemini tests using only fictional inputs and a fake HTTP transport. The
+full local suite passes 476 Python tests; four Node Web helper tests remain a
+separate gate. Compile, CLI, readiness, JSON, Markdown, privacy, security, and
+committed-tree checks are recorded only after their exact commands pass.
 
 ## Dependencies
 

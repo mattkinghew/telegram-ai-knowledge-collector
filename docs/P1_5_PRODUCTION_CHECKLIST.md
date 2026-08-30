@@ -17,8 +17,10 @@ credentials, Gemini, iPhone Shortcuts, Remotely Save, or a real Vault.
 - [ ] Set `APP_ENV=production` and `AUTH_MODE=token`.
 - [ ] Generate a high-entropy API token and store it only in platform secrets
   and private Shortcut configuration.
-- [ ] Set `GEMINI_API_KEY` only after the live-provider adapter is explicitly
-  enabled and reviewed.
+- [ ] Keep `AI_PROVIDER=mock` and `ENABLE_LIVE_AI=false` until Backend ON Mock
+  passes; for approved live acceptance require `AI_PROVIDER=gemini`,
+  `ENABLE_LIVE_AI=true`, allowlisted `GEMINI_MODEL`, and a secret-manager-only
+  `GEMINI_API_KEY`.
 - [ ] Confirm logs, support exports, screenshots, and analytics contain no token,
   key, raw capture, source URL, or provider body.
 - [ ] Test secret rotation and invalid/expired token behavior.

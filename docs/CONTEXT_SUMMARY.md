@@ -219,8 +219,9 @@ local branch boundary; no push, merge, deployment, or publication has occurred.
 - SQLite preserves immutable source/raw capture separately from result,
   Markdown, error, retry, and review metadata. It is an operational store, not
   the canonical knowledge base.
-- MockProvider covers all processing modes offline. The Gemini boundary is
-  intentionally disabled without live calls or stored credentials.
+- MockProvider covers all processing modes offline. The Gemini adapter is
+  guarded by production-only explicit configuration, a runtime secret, and a
+  server-side model allowlist; tests use fake transport and make no live call.
 - Public article/social extraction validates URL and DNS/redirect targets,
   time/redirect/byte/MIME/text limits, then parses readable text without a
   browser. Video stays a reference unless transcript text is supplied.
@@ -250,6 +251,7 @@ local branch boundary; no push, merge, deployment, or publication has occurred.
 
 ## Next Recommended Task
 
-Complete one fictional-data real-iPhone acceptance session covering backend
-success and backend-unreachable P1.4 fallback before configuring live Gemini or
-production deployment.
+Complete the Backend ON Mock fictional-data iPhone acceptance. Backend OFF
+fallback is `USER_REPORTED PASS` only and was not reproduced by automation.
+Then run the fictional live Gemini smoke test; staging and production remain
+separate pending gates.

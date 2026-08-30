@@ -63,7 +63,7 @@ backend/
   models.py       public request/response and provider schemas
   routes/         HTTP boundary only
   services/       capture orchestration, extraction, Markdown
-  providers/      provider interface, mock, disabled Gemini boundary
+  providers/      provider interface, mock, guarded Gemini adapter
   storage/        parameterized SQLite operations
   security/       auth, URL/SSRF, logging redaction
 web/              static mobile-first UI and PWA assets
@@ -88,6 +88,8 @@ Storage does not import FastAPI and does not know about Obsidian.
   they exclude raw content, source URLs, auth values, and provider prompts.
 - Provider failure creates or updates a pending record while preserving raw
   input. Retry is explicit and bounded; no background loop exists.
+- Live Gemini requires production-only explicit configuration, a runtime-only
+  key, and a server-side model allowlist. Test mode requires MockProvider.
 
 ## State model
 

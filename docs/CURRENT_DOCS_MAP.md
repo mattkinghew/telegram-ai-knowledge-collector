@@ -17,6 +17,8 @@ documents are `REFERENCE`; historical contracts are retained.
 | `docs/P1_5_PRODUCTION_CHECKLIST.md` | MANUAL ACCEPTANCE | Required live security, backup, Gemini and device gates |
 | `docs/P1_5_DEVICE_LIVE_ACCEPTANCE_RUNBOOK.md` | MANUAL ACCEPTANCE | Backend-ON and mandatory backend-OFF iPhone evidence |
 | `docs/P1_5_GEMINI_LIVE_SMOKE_TEST.md` | MANUAL ACCEPTANCE | Four fictional live modes plus controlled failure/retry |
+| `docs/P1_5_GEMINI_LIVE_ACCEPTANCE_RESULT_TEMPLATE.md` | MANUAL ACCEPTANCE | Sanitized per-mode live evidence fields |
+| `docs/P1_5_GEMINI_ADAPTER_AUDIT.md` | CURRENT HYBRID | Guarded adapter, request/response, secret and failure boundaries |
 | `docs/P1_5_STAGING_DEPLOYMENT_CHECKLIST.md` | MANUAL ACCEPTANCE | Staging configuration, security, persistence and rollback gates |
 | `docs/P1_5_BACKUP_RESTORE_DRILL.md` | MANUAL ACCEPTANCE | Fictional SQLite backup, clean restore and integrity evidence |
 | `docs/P1_5_WEB_PWA_DEVICE_ACCEPTANCE.md` | MANUAL ACCEPTANCE | Real-iPhone Web/PWA navigation, state and action evidence |

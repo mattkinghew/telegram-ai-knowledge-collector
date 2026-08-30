@@ -21,9 +21,13 @@ Do not record tokens, Vault names/paths, account names, or private screenshots.
 | Endpoint host | |
 | Test time (UTC) | |
 
-## Test A — Backend ON
+## Test A — Backend ON with MockProvider
 
-Use one fictional voice transcript or fictional selected text.
+Set `AI_PROVIDER=mock` and keep `ENABLE_LIVE_AI=false`. Reuse the exact
+fictional payload from the accepted Backend-OFF session if that payload is
+still available outside Git. If it was not retained, create one fictional
+payload and repeat both ON and OFF paths with it; do not invent the earlier
+payload in this document.
 
 ```text
 iPhone Shortcut -> P1.5 backend -> processed response -> Markdown
@@ -48,8 +52,9 @@ iPhone Shortcut -> P1.5 backend -> processed response -> Markdown
 | Local note | Exactly one note created | | |
 | Remotely Save | Same note observed remotely | | |
 | Raw preservation | Exact fictional input retained | | |
+| Duplicate | No duplicate request or note | | |
 
-Result: `PENDING` — user must supply real-device evidence.
+Result: `PENDING` — Backend ON Mock requires user-supplied real-device evidence.
 
 ## Test B — Backend OFF (mandatory before live Gemini)
 
@@ -78,10 +83,22 @@ Shortcut -> backend unreachable -> P1.4 local fallback
 | Stability | No crash or retry loop | | |
 | Delayed sync | Same note observed after connectivity returns | | |
 
-Result: `PENDING` — user must supply real-device evidence.
+Result: `USER_REPORTED PASS`.
+
+Evidence boundary: the user reported observing the following device flow:
+
+```text
+backend unreachable -> P1.4 local fallback -> raw/pending note
+                    -> local Obsidian write -> Remotely Save observed by user
+```
+
+This is user-reported device evidence. It was not reproduced by repository
+automation or Codex, and no timing, screenshot, device detail, or earlier
+fictional payload is inferred. The table remains blank unless the user supplies
+sanitized row-level evidence.
 
 ## Gate
 
-Do not start live Gemini acceptance until Test B has real evidence for every
-row. A successful Obsidian URI or sync notification alone is not evidence that
-the note exists remotely.
+Backend OFF has user-reported acceptance at the boundary above. Prove Test A
+with MockProvider before starting live Gemini. A successful Obsidian URI or sync
+notification alone is not evidence that the note exists remotely.
