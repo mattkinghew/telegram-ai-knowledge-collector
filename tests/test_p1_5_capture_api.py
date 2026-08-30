@@ -106,6 +106,27 @@ class P15CaptureAPITests(unittest.TestCase):
                 api_auth_token=None,
                 allowed_origins=("https://app.example",),
             )
+
+        macos_system_path = Path("/private/tmp/p1_5_fictional.sqlite3")
+        settings = Settings(
+            app_env="production",
+            ai_provider="mock",
+            database_path=macos_system_path,
+            auth_mode="token",
+            api_auth_token="fictional-production-token",
+            allowed_origins=("https://app.example",),
+        )
+        self.assertEqual(settings.database_path, macos_system_path)
+
+        with self.assertRaises(SettingsError):
+            Settings(
+                app_env="production",
+                ai_provider="mock",
+                database_path=Path("/private/tmp/Private/captures.sqlite3"),
+                auth_mode="token",
+                api_auth_token="fictional-production-token",
+                allowed_origins=("https://app.example",),
+            )
         with self.assertRaises(SettingsError):
             Settings(
                 app_env="production",

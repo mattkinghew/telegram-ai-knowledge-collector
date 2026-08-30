@@ -73,7 +73,14 @@ class Settings:
             ".env",
             ".obsidian",
         }
-        if any(part.casefold() in protected for part in self.database_path.parts):
+        database_parts = self.database_path.parts
+        if (
+            self.database_path.is_absolute()
+            and len(database_parts) > 1
+            and database_parts[1].casefold() == "private"
+        ):
+            database_parts = database_parts[2:]
+        if any(part.casefold() in protected for part in database_parts):
             raise SettingsError("DATABASE_URL cannot target a protected path")
 
     @classmethod
