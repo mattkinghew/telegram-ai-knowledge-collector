@@ -96,13 +96,21 @@ remain manual acceptance items.
 The earlier exact committed baseline was 461 Python tests. Guarded Gemini added
 15 tests; final acceptance preparation adds four tests for rate limits and the
 sanitized backup/restore drill, plus two real local production-mode Uvicorn
-tests. The full local suite passes 482 Python tests; four Node Web helper tests
-also pass. The process tests use MockProvider, temporary SQLite databases,
+tests and five staging-runner contract tests. The full local suite passes 487
+Python tests; four Node Web helper tests also pass. The process tests use
+MockProvider, temporary SQLite databases,
 fictional data, and loopback only. They verify Phase 4 backing APIs, restart
 persistence, restored five-record database reads, auth/CORS, and log marker
 exclusion. They are not browser, device, or staging evidence. Compile, CLI,
 readiness, JSON, Markdown, privacy, security, and diff checks passed against the
 current worktree.
+
+The staging runner accepts exact HTTPS origins only, rejects redirects, reads
+its token from runtime environment configuration, sends fixed fictional
+payloads without provider/model controls, and emits sanitized evidence. Its
+standard tests use HTTPX MockTransport and make no external request. Runtime
+config, logs, restart/disk persistence, rate limits, and device behavior remain
+explicit operator checks.
 
 ## Dependencies
 

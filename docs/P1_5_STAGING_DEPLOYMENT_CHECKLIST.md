@@ -39,6 +39,30 @@ Record names and locations, never values:
 
 ## Service and security checks
 
+After the first MockProvider boot, run the repository smoke runner. It creates
+exactly two fixed fictional records (one processed voice capture and one
+pending video reference). The token is read only from
+`P1_5_ACCEPTANCE_TOKEN`; never pass it as a command argument, save it in a
+shell script, or commit the JSON output.
+
+```bash
+# Set P1_5_ACCEPTANCE_TOKEN in the current shell using a non-echoing secret
+# injection method, then run explicitly:
+PYTHONPATH=src python3 tools/p1_5_staging_smoke.py \
+  --base-url https://STAGING_HOST \
+  --expected-origin https://STAGING_WEB_ORIGIN \
+  --confirm-fictional-write
+```
+
+The runner requires exact HTTPS origins, rejects redirects, uses no arbitrary
+provider/model/payload input, and returns sanitized JSON. It verifies health,
+missing/invalid auth, capture/get/list/retry/review, Today, Projects, Pending,
+Reports, CORS, security headers, disabled API docs, and the Web shell. Retain
+the opaque IDs/timestamps outside Git for the restart check. Its
+`operator_checks_pending` field deliberately leaves runtime config, server
+logs, restart/disk persistence, rate limits, device behavior, and P1.4 fallback
+for separate human/platform evidence.
+
 - [ ] HTTPS is enforced and `GET /health` returns HTTP 200 without content data.
 - [ ] Every `/api/v1/*` route rejects missing and invalid bearer tokens.
 - [ ] Valid auth works for capture, list, retry, review, and report preview.
@@ -74,5 +98,6 @@ Record names and locations, never values:
 ## Result
 
 Staging remains `PENDING` until the user supplies evidence for every required
-item. This checklist does not authorize deployment, production data, or live
-Gemini use.
+item. The smoke runner is prepared but has not been run against an external
+service. This checklist and tool do not authorize deployment, production data,
+or live Gemini use.

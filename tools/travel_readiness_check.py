@@ -73,6 +73,7 @@ REQUIRED_FILES = (
     "tools/voice_capture_simulator.py",
     "tools/two_entry_capture_reference.py",
     "tools/p1_5_backup_restore_drill.py",
+    "tools/p1_5_staging_smoke.py",
     "templates/universal-voice-capture-v1.md",
     "prompts/gemini-voice-structured-capture-v1.md",
     "samples/travel_ai_requests/summary.json",

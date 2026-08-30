@@ -57,6 +57,20 @@ PYTHONPATH=src:. .venv/bin/python -m unittest \
   tests.test_p1_5_process_restart -v
 ```
 
+Run the no-network staging smoke-runner contract tests with:
+
+```bash
+PYTHONPATH=src:. .venv/bin/python -m unittest \
+  tests.test_p1_5_staging_smoke -v
+PYTHONPATH=src:. .venv/bin/python tools/p1_5_staging_smoke.py --help
+```
+
+These tests use HTTPX MockTransport and prove HTTPS/token validation happens
+before transport use, the fixed fictional Mock flow covers the required
+backing APIs, output excludes token/raw content, response failures are
+sanitized, and the CLI requires explicit confirmation before creating records.
+They make no external request and do not constitute staging evidence.
+
 These tests bind only to loopback and use temporary SQLite databases plus
 fictional token/content. One starts Uvicorn twice and verifies auth,
 exact-origin CORS, capture/list/retry/review, Today/Projects/Pending/Reports
@@ -193,7 +207,10 @@ P1.5 adds coverage for:
 - real local production-mode Uvicorn startup/restart with MockProvider,
   temporary SQLite persistence, backing API/auth/CORS checks, restored
   five-record database reads, and log marker exclusion.
+- an explicit-confirmation, HTTPS-only staging Mock smoke runner with fixed
+  fictional payloads, runtime-only token input, sanitized evidence, and fake-
+  transport contract tests.
 
-The 2026-08-31 acceptance-preparation worktree passes 482 Python tests and four
+The 2026-08-31 acceptance-preparation worktree passes 487 Python tests and four
 Node helper tests. Re-run against the final commit before using that count as
 committed-tree evidence.

@@ -34,6 +34,11 @@ production evidence.
 | PWA UX | Static/mobile rules pass; no iPhone viewport/install evidence | `BLOCKER / PENDING` |
 | Fallback | P1.4 path unchanged; Backend OFF observed by user | `USER_REPORTED_DEVICE_PASS` only |
 
+An HTTPS-only staging Mock smoke runner is prepared with fixed fictional
+payloads, runtime-only token input, redirect rejection, sanitized output, and
+fake-transport tests. It has not contacted Render or any external service and
+does not change any `PENDING` staging/device gate.
+
 ## Staging architecture decision
 
 The prepared Render Blueprint is one paid Web Service, one instance, and one

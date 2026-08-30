@@ -27,6 +27,7 @@ documents are `REFERENCE`; historical contracts are retained.
 | `docs/P1_5_TECHNICAL_AUDIT.md` | CURRENT HYBRID | Full technical/security/privacy/product audit |
 | `docs/P1_5_RELEASE_CANDIDATE_AUDIT.md` | CURRENT HYBRID | Final RC gates, severity and residual-risk status |
 | `deploy/render-staging.yaml` | STAGING PREPARATION | Unsynced one-instance Render MockProvider Blueprint |
+| `tools/p1_5_staging_smoke.py` | STAGING PREPARATION | Explicit fictional Mock API smoke with sanitized evidence; not executed externally |
 | `docs/P1_4_SIMPLIFIED_MOBILE_PRODUCT_DECISION.md` | CURRENT | CURRENT FALLBACK — two-entry local product rule |
 | `docs/SHORTCUT_BUILD_SHEET_VOICE_FLASH_V2.md` | CURRENT | CURRENT FALLBACK — backend-independent `語音閃念` |
 | `docs/SHORTCUT_BUILD_SHEET_CONTENT_CAPTURE_V2.md` | CURRENT | CURRENT FALLBACK — backend-independent `收集內容` |

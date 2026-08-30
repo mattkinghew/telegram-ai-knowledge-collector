@@ -249,6 +249,10 @@ local branch boundary; no push, merge, deployment, or publication has occurred.
   A standard-library drill locally verifies Online Backup and clean restore for
   three processed, one pending, and one failed fictional capture; a real local
   Uvicorn process can read the restored records through authenticated APIs.
+- An explicit-confirmation staging Mock smoke runner is prepared. It requires
+  exact HTTPS origins, reads the token only from runtime environment state,
+  creates two fixed fictional records, rejects redirects, and emits sanitized
+  evidence. Automated tests use a fake transport; no external smoke was run.
 
 ## Current Known Risks
 

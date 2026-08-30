@@ -15,7 +15,7 @@ Evidence states are deliberately non-interchangeable:
 |---|---|---|---|---|---|---|
 | Backend OFF / P1.4 fallback | `AUTOMATED_PASS` | `USER_REPORTED_DEVICE_PASS` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | User reported unreachable backend -> raw/pending local note -> Obsidian -> Remotely Save; not repository-verified |
 | Backend ON Mock | `AUTOMATED_PASS` | `PENDING` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Canonical iPhone runbook prepared; no device result |
-| Capture/status/list/retry API | `AUTOMATED_PASS` | `PENDING` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Real local production-mode Uvicorn Mock flow covers capture, GET, list, retry, review, Today, Projects, Pending and Reports backing APIs |
+| Capture/status/list/retry API | `AUTOMATED_PASS` | `PENDING` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Real local Uvicorn flow passes; HTTPS-only sanitized staging runner is `PREPARED` but not externally executed |
 | Auth/CORS/security headers | `AUTOMATED_PASS` | `PENDING` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Production fail-closed tests and local Uvicorn auth/CORS checks; deployed headers/rotation pending |
 | Application rate limits | `AUTOMATED_PASS` | `N/A` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Single-instance production buckets tested; deployed 429 evidence pending |
 | SQLite raw/state preservation | `AUTOMATED_PASS` | `PENDING` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Processed and pending records preserve ID, raw content, status, retry/review metadata and timestamps across a real local Uvicorn restart |
