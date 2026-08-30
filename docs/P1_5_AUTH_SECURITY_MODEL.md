@@ -50,8 +50,10 @@ reviewed identity/session design rather than copied per user.
 - 128 KiB ASGI body cap, strict Pydantic models, bounded lists and strings.
 - API responses use `Cache-Control: no-store`; all responses receive CSP,
   frame, referrer, and MIME-sniffing headers.
-- Deployment must add HTTPS, platform rate limiting, secret rotation, database
-  backups, and an incident procedure before real-data use.
+- Deployment must add HTTPS, secret rotation, database backups, and an incident
+  procedure before real-data use. Production mode already enables fixed
+  single-instance application rate limits; deployed 429 and restart behavior
+  remain acceptance evidence.
 
 Production is not accepted until the checklist in
 `docs/P1_5_PRODUCTION_CHECKLIST.md` is completed with real evidence.

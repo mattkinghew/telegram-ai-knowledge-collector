@@ -2,9 +2,17 @@
 
 Status: `PREPARED` / no deployment performed. Use fictional data only.
 
+The reviewed starting artifact is `deploy/render-staging.yaml`. It disables
+auto-deploys, fixes one instance, attaches one disk, starts with MockProvider,
+and leaves the exact CORS origin for operator input. Synchronizing the Blueprint
+creates paid external resources and requires separate user authorization.
+
 ## Configuration
 
-- [ ] Pin and record the exact Git commit; deploy one instance only.
+- [ ] Confirm the Blueprint's `singapore` region, `0.5c-512mb` paid plan, disk
+  size, current cost, and data-location suitability before any sync.
+- [ ] Pin and record the exact Git commit and remotely available branch; deploy
+  one instance only. Do not deploy an unpushed local commit.
 - [ ] Set `APP_ENV=production` and `AUTH_MODE=token`.
 - [ ] Generate a staging-only high-entropy `API_AUTH_TOKEN` of at least 16
   characters and store it in the platform secret manager.
@@ -38,8 +46,9 @@ Record names and locations, never values:
 - [ ] Security headers and API `Cache-Control: no-store` are present.
 - [ ] OpenAPI, Swagger UI, ReDoc, debug tracebacks, and directory listings are
   unavailable.
-- [ ] Configure and record platform rate limits for capture, retry, list, and
-  report routes. The application does not currently supply its own limiter.
+- [ ] Prove application 429 behavior for capture (30/min), retry (10/min),
+  read/list (120/min), report (10/min), and other mutation (30/min). Render DDoS
+  protection is not a substitute for these application limits.
 - [ ] Confirm request-body capture is disabled and logs follow
   `P1_5_LOGGING_PRIVACY_POLICY.md`.
 - [ ] Confirm secret access is restricted; rotate the staging token and verify
@@ -47,7 +56,8 @@ Record names and locations, never values:
 
 ## Persistence, backup, and restore
 
-- [ ] Create fictional captures and prove rows survive an app restart.
+- [ ] Create at least three processed, one pending, and one failed fictional
+  capture and prove all rows survive an app restart.
 - [ ] Prove rows survive a code redeploy without changing the disk.
 - [ ] Run `P1_5_BACKUP_RESTORE_DRILL.md` and record restore time.
 - [ ] Configure backup retention and access; do not assume a platform snapshot

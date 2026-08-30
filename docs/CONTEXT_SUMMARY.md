@@ -219,6 +219,9 @@ local branch boundary; no push, merge, deployment, or publication has occurred.
 - SQLite preserves immutable source/raw capture separately from result,
   Markdown, error, retry, and review metadata. It is an operational store, not
   the canonical knowledge base.
+- Production mode supplies fixed single-instance application rate limits for
+  capture, retry, read/list, report, and mutation routes. Health remains outside
+  those buckets for platform health checks.
 - MockProvider covers all processing modes offline. The Gemini adapter is
   guarded by production-only explicit configuration, a runtime secret, and a
   server-side model allowlist; tests use fake transport and make no live call.
@@ -237,6 +240,10 @@ local branch boundary; no push, merge, deployment, or publication has occurred.
 - Render with one paid web service and persistent disk is the one recommended
   deployment architecture; Railway with a volume is the one fallback. Neither
   was deployed.
+- An unsynced Render staging Blueprint starts with MockProvider, one instance,
+  one disk, generated token auth, manual CORS input, and auto-deploy disabled.
+  A standard-library drill locally verifies Online Backup and clean restore for
+  three processed, one pending, and one failed fictional capture.
 
 ## Current Known Risks
 
@@ -245,13 +252,14 @@ local branch boundary; no push, merge, deployment, or publication has occurred.
   egress or an outbound proxy/platform control.
 - SQLite on a single persistent disk is appropriate only for the single-user
   MVP and prevents horizontal scale/zero-downtime disk deployments.
-- Live Gemini, production token/rate-limit/log/backup behavior, PWA device UX,
+- Live Gemini, staging token/rate-limit/log/backup behavior, PWA device UX,
   iPhone Shortcut routing, local Obsidian creation, and Remotely Save remain
   manual acceptance items.
 
 ## Next Recommended Task
 
-Complete the Backend ON Mock fictional-data iPhone acceptance. Backend OFF
-fallback is `USER_REPORTED PASS` only and was not reproduced by automation.
-Then run the fictional live Gemini smoke test; staging and production remain
-separate pending gates.
+Obtain explicit authorization for Render account/region/paid-plan setup and for
+making the exact local commit remotely deployable. Then deploy MockProvider
+staging and complete `P1_5_BACKEND_ON_DEVICE_ACCEPTANCE.md`. Backend OFF is
+`USER_REPORTED_DEVICE_PASS` only. Live Gemini, staging restore, Web/PWA device,
+and production remain separate pending gates.

@@ -15,7 +15,8 @@ documents are `REFERENCE`; historical contracts are retained.
 | `docs/P1_5_DATA_LIFECYCLE.md` | CURRENT HYBRID | Raw/result/retry/review lifecycle and no-delete rule |
 | `docs/P1_5_DEPLOYMENT_OPTIONS.md` | CURRENT HYBRID | One recommended and one fallback deployment path |
 | `docs/P1_5_PRODUCTION_CHECKLIST.md` | MANUAL ACCEPTANCE | Required live security, backup, Gemini and device gates |
-| `docs/P1_5_DEVICE_LIVE_ACCEPTANCE_RUNBOOK.md` | MANUAL ACCEPTANCE | Backend-ON and mandatory backend-OFF iPhone evidence |
+| `docs/P1_5_DEVICE_LIVE_ACCEPTANCE_RUNBOOK.md` | MANUAL ACCEPTANCE | Device/live index and accepted Backend-OFF evidence boundary |
+| `docs/P1_5_BACKEND_ON_DEVICE_ACCEPTANCE.md` | MANUAL ACCEPTANCE | Single canonical Backend-ON Mock iPhone runbook |
 | `docs/P1_5_GEMINI_LIVE_SMOKE_TEST.md` | MANUAL ACCEPTANCE | Four fictional live modes plus controlled failure/retry |
 | `docs/P1_5_GEMINI_LIVE_ACCEPTANCE_RESULT_TEMPLATE.md` | MANUAL ACCEPTANCE | Sanitized per-mode live evidence fields |
 | `docs/P1_5_GEMINI_ADAPTER_AUDIT.md` | CURRENT HYBRID | Guarded adapter, request/response, secret and failure boundaries |
@@ -24,6 +25,8 @@ documents are `REFERENCE`; historical contracts are retained.
 | `docs/P1_5_WEB_PWA_DEVICE_ACCEPTANCE.md` | MANUAL ACCEPTANCE | Real-iPhone Web/PWA navigation, state and action evidence |
 | `docs/P1_5_ACCEPTANCE_MATRIX.md` | CURRENT HYBRID | Evidence boundary by feature |
 | `docs/P1_5_TECHNICAL_AUDIT.md` | CURRENT HYBRID | Full technical/security/privacy/product audit |
+| `docs/P1_5_RELEASE_CANDIDATE_AUDIT.md` | CURRENT HYBRID | Final RC gates, severity and residual-risk status |
+| `deploy/render-staging.yaml` | STAGING PREPARATION | Unsynced one-instance Render MockProvider Blueprint |
 | `docs/P1_4_SIMPLIFIED_MOBILE_PRODUCT_DECISION.md` | CURRENT | CURRENT FALLBACK — two-entry local product rule |
 | `docs/SHORTCUT_BUILD_SHEET_VOICE_FLASH_V2.md` | CURRENT | CURRENT FALLBACK — backend-independent `語音閃念` |
 | `docs/SHORTCUT_BUILD_SHEET_CONTENT_CAPTURE_V2.md` | CURRENT | CURRENT FALLBACK — backend-independent `收集內容` |

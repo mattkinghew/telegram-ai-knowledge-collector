@@ -300,6 +300,8 @@ P1.0–P1.3 material remains reference only.
 - `docs/P1_5_AUTH_SECURITY_MODEL.md`
 - `docs/P1_5_DEPLOYMENT_OPTIONS.md`
 - `docs/P1_5_ACCEPTANCE_MATRIX.md`
+- `docs/P1_5_BACKEND_ON_DEVICE_ACCEPTANCE.md`
+- `docs/P1_5_RELEASE_CANDIDATE_AUDIT.md`
 - `docs/P1_5_TECHNICAL_AUDIT.md`
 - `samples/sample_capture_commands.md`
 - `samples/handoff-text-v1.json`

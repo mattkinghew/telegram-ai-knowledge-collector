@@ -9,7 +9,8 @@ credentials, Gemini, iPhone Shortcuts, Remotely Save, or a real Vault.
   and outbound API costs.
 - [ ] Create exactly one production web service and one persistent disk.
 - [ ] Pin the deployed Git commit and record the previous known-good commit.
-- [ ] Configure `/health`, HTTPS, custom domain, and platform request/rate limits.
+- [ ] Configure `/health`, HTTPS, custom domain, and verify application request
+  rate limits against the deployed service.
 - [ ] Verify code rollback and a separate SQLite backup/restore procedure.
 
 ## Authentication and secrets
@@ -47,6 +48,8 @@ credentials, Gemini, iPhone Shortcuts, Remotely Save, or a real Vault.
 - [ ] Confirm debug docs, stack traces, directory listings, and anonymous API
   access are disabled.
 - [ ] Set and verify rate limits for capture, retry, list, and report routes.
+  Production mode supplies single-instance in-memory limits; verify 429 and
+  restart behavior and replace this limiter before any multi-instance design.
 
 ## Live acceptance
 

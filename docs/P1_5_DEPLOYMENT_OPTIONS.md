@@ -1,6 +1,6 @@
 # P1.5 Deployment Options
 
-Reviewed against official platform documentation on 2026-08-30. This is an
+Reviewed against official platform documentation on 2026-08-31. This is an
 architecture review only; no account, price, service, domain, secret, disk, or
 deployment was created.
 
@@ -54,6 +54,13 @@ Required production environment: `APP_ENV=production`, `AUTH_MODE=token`,
 `AI_PROVIDER=mock` until live Gemini acceptance, and the disk-backed
 `DATABASE_URL`.
 
+`deploy/render-staging.yaml` encodes this initial MockProvider shape with one
+instance, one 1 GB disk, `autoDeployTrigger: off`, runtime-generated auth token,
+explicit operator-supplied CORS, and application-level rate limits enabled by
+production mode. It is not synced. The selected Singapore region, paid plan,
+current pricing, data location, and remotely available commit must be confirmed
+before external setup.
+
 ## Persistence and rollback caveats
 
 - A Render code rollback does not roll back disk state. Disk snapshots and
@@ -82,6 +89,10 @@ charges immediately before deployment.
 - [Render free-service limits](https://render.com/docs/free)
 - [Render persistent disks](https://render.com/docs/disks)
 - [Render deploys and rollback](https://render.com/docs/deploys)
+- [Render Blueprint YAML reference](https://render.com/docs/blueprint-spec)
+- [Render environment variables and secrets](https://render.com/docs/configure-environment-variables)
+- [Render DDoS protection boundary](https://render.com/docs/ddos-protection)
+- [Render Python version selection](https://render.com/docs/python-version)
 - [Railway FastAPI guide](https://docs.railway.com/guides/fastapi)
 - [Railway volumes and backups](https://docs.railway.com/volumes/backups)
 - [Railway variables](https://docs.railway.com/variables)

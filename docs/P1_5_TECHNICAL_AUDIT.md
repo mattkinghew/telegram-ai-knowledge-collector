@@ -1,6 +1,6 @@
 # P1.5 Technical Audit
 
-Audit date: 2026-08-30. Scope: P1.4 baseline `2430802` through the current P1.5
+Audit date: 2026-08-31. Scope: P1.4 baseline `2430802` through the current P1.5
 branch. Evidence is local/offline only.
 
 ## Severity result
@@ -61,7 +61,10 @@ URL processing. This does not weaken the current offline fixture validation.
 Production refuses `AUTH_MODE=dev`; token mode requires a bounded secret and
 uses constant-time comparison. All API routes except minimal `/health` require
 auth. Static shell contains no data. OpenAPI/docs are disabled. CORS rejects
-wildcards and uses explicit origins.
+wildcards and uses explicit origins. Production-only fixed-window buckets limit
+capture, retry, read/list, report, and mutation routes. Authorized and
+unauthorized counters are separate; 429 responses retain no-store and security
+headers. The limiter is deliberately single-process and resets on restart.
 
 ## Privacy
 
@@ -90,11 +93,11 @@ remain manual acceptance items.
 
 ## Testing
 
-The prior exact committed baseline was 461 Python tests. This change adds 15
-guarded Gemini tests using only fictional inputs and a fake HTTP transport. The
-full local suite passes 476 Python tests; four Node Web helper tests remain a
-separate gate. Compile, CLI, readiness, JSON, Markdown, privacy, security, and
-committed-tree checks are recorded only after their exact commands pass.
+The earlier exact committed baseline was 461 Python tests. Guarded Gemini added
+15 tests; final acceptance preparation adds four tests for rate limits and the
+sanitized backup/restore drill. The full local suite passes 480 Python tests;
+four Node Web helper tests also pass. Compile, CLI, readiness, JSON, Markdown,
+privacy, security, and diff checks passed against the current worktree.
 
 ## Dependencies
 
@@ -112,9 +115,12 @@ dependency was added.
 
 ## Deployment
 
-Render is the one recommended path; Railway is the one fallback. Both require
-real account/cost/region/backup/auth/device acceptance. No deployment config was
-created because production deployment is prohibited in this task.
+Render is the one recommended path; Railway is the one fallback. An unsynced
+Render staging Blueprint prepares one paid Singapore service, one instance, one
+disk, MockProvider, generated token auth, operator-supplied CORS, and disabled
+auto-deploy. Region, plan, current cost, data location, remote commit, backup,
+auth, and device acceptance still require the user. No external service was
+created.
 
 **MEDIUM — single-instance SQLite:** the recommended persistent disk prevents
 horizontal scale and zero-downtime deployment. It is acceptable for a single-
@@ -132,10 +138,12 @@ human/device ownership of local knowledge delivery.
 
 - LOW: one bearer token is an intentionally narrow single-user design; rotation
   and recovery are manual until deployed.
-- INFO: real iPhone, Vault, Remotely Save, live Gemini, public network, platform
-  rate limits, backup/restore, and rollback have no acceptance evidence.
+- INFO: real iPhone, Vault, Remotely Save, live Gemini, public network, deployed
+  rate limits, staging backup/restore, and rollback have no acceptance evidence.
 
 ## Verdict
 
-Approve as **P1.5 offline implementation** after the final committed-tree check
-confirms no uncommitted changes. Do not approve as production ready.
+Approve as **P1.5 offline implementation and staging preparation** after the
+final committed-tree check confirms no uncommitted changes. Do not approve the
+release candidate or production readiness; see
+`P1_5_RELEASE_CANDIDATE_AUDIT.md`.

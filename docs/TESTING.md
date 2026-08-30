@@ -42,6 +42,14 @@ PYTHONPATH=src:. .venv/bin/python -m unittest \
   tests.test_p1_5_gemini_provider -v
 ```
 
+Run production rate-limit and sanitized backup/restore tests with:
+
+```bash
+PYTHONPATH=src:. .venv/bin/python -m unittest \
+  tests.test_p1_5_rate_limit \
+  tests.test_p1_5_backup_restore -v
+```
+
 The article E2E uses a local HTML fixture and fake transport. The voice and
 pending flows use fictional payloads, local SQLite, TestClient, and
 MockProvider. Gemini tests use HTTPX MockTransport. None performs a live HTTP,
@@ -161,6 +169,12 @@ P1.5 adds coverage for:
 - guarded Gemini configuration, minimal prompts, four allowlisted modes,
   strict structured output, safe timeout/network/auth/quota/error mapping,
   oversized-response rejection, raw preservation, and bounded manual retry.
+- production-only single-instance rate limits with separate authorized and
+  unauthorized counters for capture, retry, read/list, report, and mutation;
+- standard-library SQLite Online Backup, integrity, exact five-record field
+  preservation, protected-path/symlink refusal, no-overwrite behavior, and
+  sanitized evidence output.
 
-Do not record a final test count in this file until the final suite has been run
-against the exact documented commit.
+The 2026-08-31 acceptance-preparation worktree passes 480 Python tests and four
+Node helper tests. Re-run against the final commit before using that count as
+committed-tree evidence.

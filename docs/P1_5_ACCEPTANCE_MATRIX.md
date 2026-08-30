@@ -1,37 +1,40 @@
 # P1.5 Acceptance Matrix
 
-Evidence states are `VERIFIED` (current repository automation),
-`USER_REPORTED PASS` (device observation supplied by the user but not reproduced
-by Codex), `PREPARED` (runbook/checklist only), `PENDING` (real evidence
-required), and `N/A`.
+Evidence states are deliberately non-interchangeable:
+
+- `AUTOMATED_PASS`: current repository automation or an isolated local drill.
+- `USER_REPORTED_DEVICE_PASS`: device observation supplied by the user and not
+  reproduced by Codex.
+- `LIVE_SERVICE_PASS`: real provider/service evidence with sanitized records.
+- `STAGING_PASS`: evidence from the exact staging deployment.
+- `PRODUCTION_PENDING`: production was not deployed or accepted.
+- `PENDING`, `PREPARED`, and `N/A`: evidence missing, instructions only, or not
+  applicable.
 
 | Capability / gate | Automated | Device | Live service | Staging | Production | Evidence boundary |
 |---|---|---|---|---|---|---|
-| Backend OFF fallback / P1.4 local fallback | VERIFIED | USER_REPORTED PASS | N/A | PENDING | PENDING | User reported backend unreachable → raw/pending local note → Obsidian write → Remotely Save; not repository-verified |
-| Backend ON Mock | VERIFIED | PENDING | N/A | PENDING | PENDING | Exact iPhone MockProvider flow remains manual |
-| Capture/status/list/retry API | VERIFIED | PENDING | N/A | PENDING | PENDING | Local TestClient only |
-| Strict request/payload validation | VERIFIED | PENDING | N/A | PENDING | PENDING | 128 KiB request and bounded fields covered locally |
-| SQLite state/raw preservation | VERIFIED | PENDING | N/A | PENDING | PENDING | Local tests; backup/restore drill only PREPARED |
-| Mock processing modes | VERIFIED | PENDING | N/A | PENDING | N/A | Deterministic fictional provider only |
-| Gemini provider | VERIFIED (offline mocked transport) | PENDING | PENDING | PENDING | PENDING | Guarded adapter implemented; no real Gemini call or credential used |
-| URL extraction / SSRF controls | VERIFIED | PENDING | PENDING | PENDING | PENDING | Local fake transport; DNS-rebinding residual risk remains |
-| Markdown and local Obsidian delivery | VERIFIED (rendering only) | PENDING | PENDING | PENDING | PENDING | Backend never writes the Vault; device delivery pending |
-| Shortcut backend/fallback flow | PREPARED | USER_REPORTED PASS (OFF only) | PENDING | PENDING | PENDING | Backend ON Mock remains pending |
-| Today / Inbox / Projects / Pending / Reports | VERIFIED | PENDING | N/A | PENDING | PENDING | Static/API tests only; iPhone pack PREPARED |
-| Search/review/retry/report preview | VERIFIED | PENDING | N/A | PENDING | PENDING | No real-browser or deployed evidence |
-| PWA shell/installability | VERIFIED (shell only) | PENDING | N/A | PENDING | PENDING | No device install or viewport evidence |
-| Auth/CORS/security headers | VERIFIED | PENDING | N/A | PENDING | PENDING | Production fail-closed config covered locally |
-| Logging privacy | VERIFIED (local tests) | PENDING | PENDING | PENDING | PENDING | No deployed log sink/retention evidence |
-| Persistent deployment/rollback | PREPARED | N/A | N/A | PENDING | PENDING | Staging checklist only; no service created |
-| Backup/restore | PREPARED | N/A | N/A | PENDING | PENDING | Drill instructions only; restore not executed |
+| Backend OFF / P1.4 fallback | `AUTOMATED_PASS` | `USER_REPORTED_DEVICE_PASS` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | User reported unreachable backend -> raw/pending local note -> Obsidian -> Remotely Save; not repository-verified |
+| Backend ON Mock | `AUTOMATED_PASS` | `PENDING` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Canonical iPhone runbook prepared; no device result |
+| Capture/status/list/retry API | `AUTOMATED_PASS` | `PENDING` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Local TestClient only |
+| Auth/CORS/security headers | `AUTOMATED_PASS` | `PENDING` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Production fail-closed tests; deployed headers/rotation pending |
+| Application rate limits | `AUTOMATED_PASS` | `N/A` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Single-instance production buckets tested; deployed 429 evidence pending |
+| SQLite raw/state preservation | `AUTOMATED_PASS` | `PENDING` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Local storage tests only |
+| Backup/restore | `AUTOMATED_PASS` | `N/A` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Five-record local Online Backup drill passes; staging restart/Web read pending |
+| Mock processing modes | `AUTOMATED_PASS` | `PENDING` | `N/A` | `PENDING` | `N/A` | Deterministic fictional provider only |
+| Gemini provider | `AUTOMATED_PASS` | `PENDING` | `PENDING` | `PENDING` | `PRODUCTION_PENDING` | Mocked transport only; no real call or credential |
+| URL extraction / SSRF controls | `AUTOMATED_PASS` | `PENDING` | `PENDING` | `PENDING` | `PRODUCTION_PENDING` | DNS-rebinding residual risk remains |
+| Markdown / local Obsidian delivery | `AUTOMATED_PASS` (render only) | `PENDING` | `PENDING` | `PENDING` | `PRODUCTION_PENDING` | Backend never writes the Vault; device delivery pending |
+| Today / Inbox / Projects / Pending / Reports / Search | `AUTOMATED_PASS` | `PENDING` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Static and API tests only |
+| PWA shell/installability | `AUTOMATED_PASS` (shell only) | `PENDING` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | No device install or viewport evidence |
+| Logging privacy | `AUTOMATED_PASS` | `PENDING` | `PENDING` | `PENDING` | `PRODUCTION_PENDING` | No deployed log sink/retention evidence |
+| Render single-instance config | `AUTOMATED_PASS` (artifact) | `N/A` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Blueprint not synced; region/plan/cost require confirmation |
 
-Manual evidence must include the exact commit/deployment, UTC time, observed
-result, and a safe evidence reference. Do not store tokens, raw private data,
-Vault paths, account identifiers, or confidential screenshots in Git.
+Current gates:
 
-Current manual gate state:
-
-- Backend OFF fallback: `USER_REPORTED PASS`
+- Backend OFF fallback: `USER_REPORTED_DEVICE_PASS`
 - Backend ON Mock: `PENDING`
 - Live Gemini: `PENDING`
 - Staging: `PENDING`
+- Backup/restore staging drill: `PENDING`
+- Web/PWA device: `PENDING`
+- Production: `PRODUCTION_PENDING`
