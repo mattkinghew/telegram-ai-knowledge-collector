@@ -19,6 +19,8 @@ SAFE_PROVIDER_MESSAGES = {
     "NETWORK_UNAVAILABLE": "Network unavailable — capture was saved.",
     "AI_UNAVAILABLE": "AI temporarily unavailable — capture was saved.",
     "AI_TIMEOUT": "AI processing timed out — capture was saved.",
+    "AI_AUTH_FAILED": "AI authentication failed — capture was saved.",
+    "AI_RATE_LIMITED": "AI rate limit reached — capture was saved.",
     "INVALID_AI_JSON": "AI response was invalid — capture was saved.",
     "SCHEMA_MISMATCH": "AI response did not match the contract — capture was saved.",
     "PAYLOAD_TOO_LARGE": "Processing payload was too large — capture was saved.",
@@ -200,8 +202,8 @@ class CaptureService:
             allowed_projects=record.allowed_projects,
         )
 
-    @staticmethod
     def _log(
+        self,
         capture_id: str,
         request: CaptureRequest,
         status: str,
@@ -210,10 +212,11 @@ class CaptureService:
     ) -> None:
         duration_ms = int((time.monotonic() - started) * 1000)
         LOGGER.info(
-            "capture_id=%s status=%s error=%s duration_ms=%s processing=%s",
+            "capture_id=%s provider=%s processing=%s status=%s duration_ms=%s error=%s",
             capture_id,
-            status,
-            error_code or "none",
-            duration_ms,
+            type(self.provider).__name__,
             request.requested_processing,
+            status,
+            duration_ms,
+            error_code or "none",
         )

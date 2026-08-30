@@ -34,11 +34,13 @@ def create_app(
     configured = settings or Settings.from_env()
     capture_store = store or CaptureStore(configured.database_path)
     if provider is None:
-        provider = (
-            GeminiProvider(api_key=None)
-            if configured.ai_provider == "gemini"
-            else MockProvider()
-        )
+        if configured.app_env == "test" or configured.ai_provider == "mock":
+            provider = MockProvider()
+        else:
+            provider = GeminiProvider(
+                api_key=configured.gemini_api_key,
+                model=configured.gemini_model,
+            )
     capture_extractor = extractor or URLExtractor()
 
     application = FastAPI(
