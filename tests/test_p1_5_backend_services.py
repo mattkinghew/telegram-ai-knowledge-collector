@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 from backend.models import CaptureRequest
-from backend.providers.gemini import GeminiProvider
+from backend.providers.gemini import GeminiConfigurationError, GeminiProvider
 from backend.providers.mock import MockProvider
 from backend.services.markdown import build_capture_markdown
 from backend.storage.sqlite import CaptureStore, RetryLimitError
@@ -127,10 +127,9 @@ class P15BackendServiceTests(unittest.TestCase):
                 self.assertEqual(result.processing_mode, mode)
                 self.assertLessEqual(len(result.points), 3)
 
-    def test_gemini_provider_fails_safely_without_credentials_or_network(self) -> None:
-        failure = GeminiProvider(api_key=None).process(self.request)
-        self.assertEqual(failure.error_code, "AI_UNAVAILABLE")
-        self.assertNotIn(self.request.raw_content, failure.message)
+    def test_gemini_provider_fails_closed_without_credentials(self) -> None:
+        with self.assertRaises(GeminiConfigurationError):
+            GeminiProvider(api_key=None, model="gemini-3.6-flash")
 
     def test_markdown_separates_source_raw_and_unconfirmed_ai(self) -> None:
         result = MockProvider().process(self.request)
