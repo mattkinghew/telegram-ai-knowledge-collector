@@ -22,4 +22,3 @@ it is not a prediction of whether the feature would work live.
 | Logging privacy | Yes | Yes | No | No | No | No external log sink configured |
 | Report preview | Yes | Yes | No | No | No | Human selection; no send/publish |
 | Recommended Render architecture | Yes | No | No | No | No | Official-doc review only; no deployment created |
-

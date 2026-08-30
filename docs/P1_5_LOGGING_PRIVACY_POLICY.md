@@ -40,4 +40,3 @@ claim.
 Automated tests assert that logs exclude raw content, source, and auth values.
 The repository privacy scan covers tracked files only and does not inspect a
 Vault or protected path.
-

@@ -21,4 +21,3 @@ P1.5 has no API delete route, retention job, automatic cleanup, automatic move,
 or automatic export. Database/disk removal is an explicit operator action
 outside the application and requires a backup/retention decision. The portable
 canonical artifact remains Markdown delivered locally by the Shortcut.
-

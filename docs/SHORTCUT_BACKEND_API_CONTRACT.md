@@ -87,4 +87,3 @@ permits at most two manual retries.
 - Do not send credentials, private company files, real Vault paths, or
   protected-path content.
 - Never log or display the bearer token.
-

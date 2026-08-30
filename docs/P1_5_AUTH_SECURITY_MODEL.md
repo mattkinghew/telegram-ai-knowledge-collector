@@ -49,4 +49,3 @@ reviewed identity/session design rather than copied per user.
 
 Production is not accepted until the checklist in
 `docs/P1_5_PRODUCTION_CHECKLIST.md` is completed with real evidence.
-

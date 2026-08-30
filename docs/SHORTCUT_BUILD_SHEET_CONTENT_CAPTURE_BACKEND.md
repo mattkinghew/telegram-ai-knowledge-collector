@@ -54,4 +54,3 @@ Disable the local server or use an unreachable fictional endpoint, then verify
 that `整理` still creates the same P1.4 local raw/pending note. This manual device
 scenario is mandatory before live use; repository tests can validate the
 contract but cannot operate the real Shortcut or Vault.
-

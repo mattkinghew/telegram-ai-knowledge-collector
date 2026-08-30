@@ -51,4 +51,3 @@ allowed_projects = device-local allowlist or empty list
 
 The backend response is optional enrichment. It is never a prerequisite for the
 local note.
-

@@ -60,4 +60,3 @@ credentials, Gemini, iPhone Shortcuts, Remotely Save, or a real Vault.
   review, project assignment, and preview at phone and desktop viewports.
 - [ ] Record rollback, incident, and go/no-go evidence. Do not declare production
   ready while any required item remains unchecked.
-
