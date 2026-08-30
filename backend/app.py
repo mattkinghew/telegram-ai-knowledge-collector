@@ -18,7 +18,9 @@ from backend.providers.gemini import GeminiProvider
 from backend.providers.mock import MockProvider
 from backend.routes.captures import error_response, router as captures_router
 from backend.routes.operations import router as operations_router
+from backend.security.auth import is_authorized
 from backend.security.payload import BodyLimitMiddleware
+from backend.security.rate_limit import InMemoryRateLimiter, route_bucket
 from backend.services.capture import CaptureService
 from backend.services.extraction import URLExtractor
 from backend.storage.sqlite import CaptureStore
@@ -30,6 +32,7 @@ def create_app(
     store: Optional[CaptureStore] = None,
     provider: Optional[Provider] = None,
     extractor: Optional[URLExtractor] = None,
+    rate_limiter: Optional[InMemoryRateLimiter] = None,
 ) -> FastAPI:
     configured = settings or Settings.from_env()
     capture_store = store or CaptureStore(configured.database_path)
@@ -57,6 +60,7 @@ def create_app(
         provider=provider,
         extractor=capture_extractor,
     )
+    application.state.rate_limiter = rate_limiter or InMemoryRateLimiter()
     application.add_middleware(
         CORSMiddleware,
         allow_origins=list(configured.allowed_origins),
@@ -74,6 +78,37 @@ def create_app(
         if request.url.path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"
         return response
+
+    @application.middleware("http")
+    async def production_rate_limit(request: Request, call_next):
+        bucket = route_bucket(request.method, request.url.path)
+        if configured.app_env == "production" and bucket is not None:
+            identity = "authorized" if is_authorized(request) else "unauthorized"
+            decision = application.state.rate_limiter.consume(
+                bucket,
+                identity=identity,
+            )
+            if not decision.allowed:
+                return JSONResponse(
+                    status_code=429,
+                    content={
+                        "error": {
+                            "code": "RATE_LIMITED",
+                            "message": "Request rate limit exceeded.",
+                        }
+                    },
+                    headers={
+                        "Cache-Control": "no-store",
+                        "Content-Security-Policy": "default-src 'self'; frame-ancestors 'none'",
+                        "Referrer-Policy": "no-referrer",
+                        "Retry-After": str(decision.retry_after),
+                        "RateLimit-Limit": str(decision.limit),
+                        "RateLimit-Remaining": "0",
+                        "X-Content-Type-Options": "nosniff",
+                        "X-Frame-Options": "DENY",
+                    },
+                )
+        return await call_next(request)
 
     @application.exception_handler(RequestValidationError)
     async def validation_error_handler(request: Request, exc: RequestValidationError):
