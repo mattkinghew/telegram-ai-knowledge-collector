@@ -50,6 +50,19 @@ PYTHONPATH=src:. .venv/bin/python -m unittest \
   tests.test_p1_5_backup_restore -v
 ```
 
+Run the real local production-mode Mock process-restart test with:
+
+```bash
+PYTHONPATH=src:. .venv/bin/python -m unittest \
+  tests.test_p1_5_process_restart -v
+```
+
+This test binds only to loopback, starts Uvicorn twice, uses a temporary SQLite
+database and fictional token/content, then verifies auth, exact-origin CORS,
+processed Markdown, one preserved record after restart, and no token/raw marker
+in the local server log. It may require local permission to bind a loopback
+port. It is not device, live-provider, Render, or staging evidence.
+
 The article E2E uses a local HTML fixture and fake transport. The voice and
 pending flows use fictional payloads, local SQLite, TestClient, and
 MockProvider. Gemini tests use HTTPX MockTransport. None performs a live HTTP,
@@ -174,7 +187,9 @@ P1.5 adds coverage for:
 - standard-library SQLite Online Backup, integrity, exact five-record field
   preservation, protected-path/symlink refusal, no-overwrite behavior, and
   sanitized evidence output.
+- real local production-mode Uvicorn startup/restart with MockProvider,
+  temporary SQLite persistence, auth/CORS checks, and log marker exclusion.
 
-The 2026-08-31 acceptance-preparation worktree passes 480 Python tests and four
+The 2026-08-31 acceptance-preparation worktree passes 481 Python tests and four
 Node helper tests. Re-run against the final commit before using that count as
 committed-tree evidence.

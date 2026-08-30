@@ -95,9 +95,13 @@ remain manual acceptance items.
 
 The earlier exact committed baseline was 461 Python tests. Guarded Gemini added
 15 tests; final acceptance preparation adds four tests for rate limits and the
-sanitized backup/restore drill. The full local suite passes 480 Python tests;
-four Node Web helper tests also pass. Compile, CLI, readiness, JSON, Markdown,
-privacy, security, and diff checks passed against the current worktree.
+sanitized backup/restore drill, plus one real local production-mode Uvicorn
+process-restart test. The full local suite passes 481 Python tests; four Node
+Web helper tests also pass. The process test uses MockProvider, a temporary
+SQLite database, fictional data, loopback only, and verifies persistence,
+auth/CORS, and log marker exclusion. It is not staging evidence. Compile, CLI,
+readiness, JSON, Markdown, privacy, security, and diff checks passed against the
+current worktree.
 
 ## Dependencies
 

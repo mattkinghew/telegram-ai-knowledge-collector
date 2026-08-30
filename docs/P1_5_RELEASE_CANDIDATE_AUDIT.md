@@ -23,13 +23,13 @@ production evidence.
 | Architecture | FastAPI + static PWA + one SQLite store; P1.4 remains independent | `AUTOMATED_PASS` |
 | Device acceptance | Backend OFF is user-reported only; Backend ON is not run | `BLOCKER / PENDING` |
 | Gemini acceptance | Guarded adapter and fake transport pass; no real call | `BLOCKER / PENDING` |
-| Storage | Raw/source/request fields are immutable in local tests | `AUTOMATED_PASS` |
+| Storage | Raw/source/request fields are immutable; one fictional record survives a real local Uvicorn process restart | `AUTOMATED_PASS` locally; staging persistence pending |
 | Backup/restore | Online backup tool preserves five fictional local records | `AUTOMATED_PASS` locally; staging `BLOCKER / PENDING` |
-| Authentication | Production token mode fails closed in tests | `AUTOMATED_PASS`; staging rotation pending |
-| CORS | Wildcard is rejected; Blueprint requires an external exact origin | `AUTOMATED_PASS`; staging header evidence pending |
+| Authentication | Production token mode fails closed in tests and a local Uvicorn process rejects missing auth | `AUTOMATED_PASS`; staging rotation pending |
+| CORS | Wildcard is rejected; local Uvicorn allows only the configured fictional origin; Blueprint requires the real exact origin | `AUTOMATED_PASS`; staging header evidence pending |
 | Rate limits | Production-only buckets cover capture, retry, read, report, mutation | `AUTOMATED_PASS`; staging 429 evidence pending |
 | URL / SSRF | Private/reserved targets and redirects are rejected | `MEDIUM`: DNS rebind race remains |
-| Logging | Application logs contain metadata only in local tests | `AUTOMATED_PASS`; deployed log sink review pending |
+| Logging | Application and local Uvicorn logs exclude the fictional token/raw marker | `AUTOMATED_PASS`; deployed log sink review pending |
 | Privacy | No Vault access, API response caching, analytics, or real content | `AUTOMATED_PASS` at repository boundary |
 | PWA UX | Static/mobile rules pass; no iPhone viewport/install evidence | `BLOCKER / PENDING` |
 | Fallback | P1.4 path unchanged; Backend OFF observed by user | `USER_REPORTED_DEVICE_PASS` only |
@@ -57,7 +57,8 @@ classification awaits real staging evidence.
 
 Accepted for the single-user MVP only. The Blueprint fixes `numInstances=1`
 and mounts one disk. Do not horizontally scale or claim zero-downtime disk
-deploys. Persistence, restart, and restore evidence are still required.
+deploys. A real local Uvicorn process restart preserves one fictional SQLite
+record; exact staging-disk restart and restore evidence are still required.
 
 ## RC verdict
 
