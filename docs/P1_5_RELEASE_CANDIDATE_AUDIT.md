@@ -39,6 +39,15 @@ payloads, runtime-only token input, redirect rejection, sanitized output, and
 fake-transport tests. It has not contacted Render or any external service and
 does not change any `PENDING` staging/device gate.
 
+A separate HTTPS-only live-Gemini acceptance runner is also prepared. It
+permits only the four fixed fictional mode payloads, one fixed controlled-
+failure payload, and one explicitly confirmed manual retry by canonical UUID.
+It strictly validates provider results, verifies raw preservation through GET,
+does not expose response bodies on contract errors, and emits sanitized
+evidence. The runner cannot select an arbitrary provider/model/prompt or change
+runtime configuration. Fake-transport tests are `AUTOMATED_PASS`; it has not
+called Gemini or any staging service, so Live Gemini remains `BLOCKER / PENDING`.
+
 ## Staging architecture decision
 
 The prepared Render Blueprint is one paid Web Service, one instance, and one

@@ -21,7 +21,7 @@ Evidence states are deliberately non-interchangeable:
 | SQLite raw/state preservation | `AUTOMATED_PASS` | `PENDING` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Processed and pending records preserve ID, raw content, status, retry/review metadata and timestamps across a real local Uvicorn restart |
 | Backup/restore | `AUTOMATED_PASS` | `N/A` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Five-record local Online Backup/restore passes and the restored DB is readable through real local Uvicorn; staging restart/browser evidence pending |
 | Mock processing modes | `AUTOMATED_PASS` | `PENDING` | `N/A` | `PENDING` | `N/A` | Deterministic fictional provider only |
-| Gemini provider | `AUTOMATED_PASS` | `PENDING` | `PENDING` | `PENDING` | `PRODUCTION_PENDING` | Mocked transport only; no real call or credential |
+| Gemini provider | `AUTOMATED_PASS` | `PENDING` | `PENDING` | `PENDING` | `PRODUCTION_PENDING` | Adapter plus guarded four-mode/failure/manual-retry runners pass fake-transport contracts only; no real call or credential |
 | URL extraction / SSRF controls | `AUTOMATED_PASS` | `PENDING` | `PENDING` | `PENDING` | `PRODUCTION_PENDING` | DNS-rebinding residual risk remains |
 | Markdown / local Obsidian delivery | `AUTOMATED_PASS` (render only) | `PENDING` | `PENDING` | `PENDING` | `PRODUCTION_PENDING` | Backend never writes the Vault; device delivery pending |
 | Today / Inbox / Projects / Pending / Reports / Search | `AUTOMATED_PASS` | `PENDING` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Real local Uvicorn verifies backing APIs; static tests cover the shell/helpers; no browser or device evidence |

@@ -22,6 +22,28 @@ containing private content, provider bodies, or screenshots with secrets.
 Stop if any precondition is unresolved. Never add a real key to `.env`, shell
 history, Git, a Shortcut note, or this evidence sheet.
 
+## Guarded runner
+
+`tools/p1_5_gemini_live_smoke.py` performs only the fixed cases in this file.
+It accepts an exact HTTPS origin, reads `P1_5_ACCEPTANCE_TOKEN` only from the
+runtime environment, rejects redirects, validates each stored result with the
+strict `ProviderResult` contract, and prints content-free evidence. It cannot
+set a provider, model, API key, prompt, or arbitrary payload.
+
+After the operator has independently verified the live runtime configuration
+and the Backend ON Mock gate, run the four success writes:
+
+```bash
+PYTHONPATH=src:. .venv/bin/python tools/p1_5_gemini_live_smoke.py \
+  --base-url "https://replace-with-exact-staging-origin.example" \
+  --confirm-four-fictional-writes
+```
+
+The command does not prove the runtime uses Gemini. Correlate each returned
+`capture_id` with metadata-only provider traces and inspect the server logs.
+Keep `runtime_gemini_config`, `provider_trace`, and `server_logs` pending until
+that independent operator review is recorded.
+
 ## Exact fictional success cases
 
 Send one distinct fictional request for each supported mode below. Voice must
@@ -110,6 +132,35 @@ therefore cannot create a live capture.
    `POST /api/v1/captures/{capture_id}/retry` once.
 5. Require HTTP 200, `status=processed`, the same `capture_id`, exact raw input,
    and `retry_count=1` in the stored record.
+
+The fixed failure input is:
+
+```text
+FICTIONAL-LIVE-FAILURE-01: Project Harbor uses synthetic records only. Summarize the recorded validation boundary.
+```
+
+First enable an approved provider timeout/unavailable control outside the
+runner, then create exactly one failure record:
+
+```bash
+PYTHONPATH=src:. .venv/bin/python tools/p1_5_gemini_live_smoke.py \
+  --base-url "https://replace-with-exact-staging-origin.example" \
+  --controlled-failure \
+  --confirm-fictional-failure-write
+```
+
+Restore the valid provider configuration manually. Use the returned UUID for
+one explicit retry; the runner never retries in the background:
+
+```bash
+PYTHONPATH=src:. .venv/bin/python tools/p1_5_gemini_live_smoke.py \
+  --base-url "https://replace-with-exact-staging-origin.example" \
+  --retry-capture-id "replace-with-controlled-failure-capture-uuid" \
+  --confirm-manual-retry
+```
+
+Do not run success, failure, and retry phases concurrently. Do not use a
+production endpoint.
 
 | Failure evidence | Expected | Observed | Evidence reference |
 |---|---|---|---|

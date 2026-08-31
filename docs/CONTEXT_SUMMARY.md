@@ -253,6 +253,11 @@ local branch boundary; no push, merge, deployment, or publication has occurred.
   exact HTTPS origins, reads the token only from runtime environment state,
   creates two fixed fictional records, rejects redirects, and emits sanitized
   evidence. Automated tests use a fake transport; no external smoke was run.
+- A separate explicit-confirmation live-Gemini acceptance runner is prepared
+  for the four fixed fictional modes, one controlled pending failure, and one
+  canonical-UUID manual retry. It strictly validates returned/stored provider
+  results and emits no raw content or token. Automated tests use a fake
+  transport; no Gemini or staging request was made.
 
 ## Current Known Risks
 

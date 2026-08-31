@@ -71,6 +71,20 @@ backing APIs, output excludes token/raw content, response failures are
 sanitized, and the CLI requires explicit confirmation before creating records.
 They make no external request and do not constitute staging evidence.
 
+Run the no-network live-Gemini acceptance-runner contract tests with:
+
+```bash
+PYTHONPATH=src:. .venv/bin/python -m unittest \
+  tests.test_p1_5_gemini_live_smoke -v
+PYTHONPATH=src:. .venv/bin/python tools/p1_5_gemini_live_smoke.py --help
+```
+
+These six fake-transport tests cover the four fixed fictional live modes,
+strict stored provider validation, sanitized contract failures, one controlled
+pending failure, exactly one manual retry, raw preservation, and distinct CLI
+write confirmations. They make no live Gemini or staging request and cannot
+establish `LIVE_SERVICE_PASS`.
+
 These tests bind only to loopback and use temporary SQLite databases plus
 fictional token/content. One starts Uvicorn twice and verifies auth,
 exact-origin CORS, capture/list/retry/review, Today/Projects/Pending/Reports
@@ -210,6 +224,9 @@ P1.5 adds coverage for:
 - an explicit-confirmation, HTTPS-only staging Mock smoke runner with fixed
   fictional payloads, runtime-only token input, sanitized evidence, and fake-
   transport contract tests.
+- an explicit-confirmation, HTTPS-only live-Gemini acceptance runner limited to
+  four fixed success payloads, one fixed controlled failure, and one canonical-
+  UUID manual retry, with strict result validation and sanitized evidence.
 
 The 2026-08-31 acceptance-preparation worktree passes 487 Python tests and four
 Node helper tests. Re-run against the final commit before using that count as
