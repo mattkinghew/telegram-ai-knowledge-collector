@@ -84,6 +84,13 @@ LIVE_CASES: Dict[str, dict] = {
         "allowed_projects": [],
     },
 }
+FAILURE_RAW_CONTENT = (
+    "FICTIONAL-LIVE-FAILURE-01: Project Harbor uses synthetic records only. "
+    "Summarize the recorded validation boundary."
+)
+SAFE_LIVE_FAILURE_CODES = frozenset(
+    {"AI_TIMEOUT", "AI_UNAVAILABLE", "AI_RATE_LIMITED", "AI_AUTH_FAILED"}
+)
 
 
 def _strict_provider_result(value: object, *, mode: str) -> ProviderResult:
@@ -192,6 +199,160 @@ def run_live_modes_smoke(
     }
 
 
+def run_live_failure_smoke(
+    *,
+    base_url: str,
+    token: str,
+    transport: Optional[httpx.BaseTransport] = None,
+) -> dict:
+    """Create one fixed fictional capture while failure is operator-controlled."""
+
+    accepted_base = _origin(base_url, label="base URL")
+    accepted_token = _token(token)
+    authorization = {"Authorization": f"Bearer {accepted_token}"}
+    payload = {
+        "schema_version": "1",
+        "capture_type": "content",
+        "source_type": "selected_text",
+        "source": None,
+        "raw_content": FAILURE_RAW_CONTENT,
+        "requested_processing": "summary",
+        "allowed_projects": [],
+    }
+    with httpx.Client(
+        base_url=accepted_base,
+        timeout=TIMEOUT_SECONDS,
+        follow_redirects=False,
+        transport=transport,
+    ) as client:
+        response = _request(
+            client,
+            "POST",
+            "/api/v1/capture",
+            step="controlled failure",
+            headers=authorization,
+            payload=payload,
+        )
+        _expect_status(response, 202, step="controlled failure")
+        body = _json_object(response, step="controlled failure")
+        capture_id = _uuid(body.get("capture_id"), step="controlled failure")
+        error_code = body.get("error_code")
+        if (
+            body.get("ok") is not False
+            or body.get("status") != "pending"
+            or body.get("result") is not None
+            or error_code not in SAFE_LIVE_FAILURE_CODES
+        ):
+            raise SmokeError("controlled failure: pending response contract mismatch")
+
+        stored_response = _request(
+            client,
+            "GET",
+            f"/api/v1/captures/{capture_id}",
+            step="stored controlled failure",
+            headers=authorization,
+        )
+        _expect_status(stored_response, 200, step="stored controlled failure")
+        stored = _json_object(stored_response, step="stored controlled failure")
+        if (
+            stored.get("status") != "pending"
+            or stored.get("requested_processing") != "summary"
+            or stored.get("raw_content") != FAILURE_RAW_CONTENT
+            or stored.get("result") is not None
+            or stored.get("markdown") is not None
+            or stored.get("error_code") != error_code
+            or stored.get("retry_count") != 0
+        ):
+            raise SmokeError("controlled failure: stored capture contract mismatch")
+
+    return {
+        "ok": True,
+        "http_status": response.status_code,
+        "capture_id": capture_id,
+        "capture_status": "pending",
+        "error_code": error_code,
+        "raw_preserved": True,
+        "manual_retry_available": True,
+        "retry_count": 0,
+        "operator_checks_pending": ["provider_restored", "server_logs"],
+    }
+
+
+def run_live_retry_smoke(
+    *,
+    base_url: str,
+    token: str,
+    capture_id: str,
+    transport: Optional[httpx.BaseTransport] = None,
+) -> dict:
+    """Perform exactly one manual retry of the fixed fictional failure capture."""
+
+    accepted_base = _origin(base_url, label="base URL")
+    accepted_token = _token(token)
+    accepted_capture_id = _uuid(capture_id, step="manual retry")
+    authorization = {"Authorization": f"Bearer {accepted_token}"}
+    with httpx.Client(
+        base_url=accepted_base,
+        timeout=TIMEOUT_SECONDS,
+        follow_redirects=False,
+        transport=transport,
+    ) as client:
+        response = _request(
+            client,
+            "POST",
+            f"/api/v1/captures/{accepted_capture_id}/retry",
+            step="manual retry",
+            headers=authorization,
+        )
+        _expect_status(response, 200, step="manual retry")
+        body = _json_object(response, step="manual retry")
+        response_id = _uuid(body.get("capture_id"), step="manual retry")
+        if response_id != accepted_capture_id:
+            raise SmokeError("manual retry: capture_id changed")
+        if body.get("ok") is not True or body.get("status") != "processed":
+            raise SmokeError("manual retry: processed response contract mismatch")
+        result = body.get("result")
+        if not isinstance(result, dict):
+            raise SmokeError("manual retry: result was missing")
+        markdown = result.get("markdown")
+        if not isinstance(markdown, str) or not markdown.strip():
+            raise SmokeError("manual retry: Markdown was missing")
+        _strict_provider_result(result.get("provider_result"), mode="summary")
+
+        stored_response = _request(
+            client,
+            "GET",
+            f"/api/v1/captures/{accepted_capture_id}",
+            step="stored manual retry",
+            headers=authorization,
+        )
+        _expect_status(stored_response, 200, step="stored manual retry")
+        stored = _json_object(stored_response, step="stored manual retry")
+        if (
+            stored.get("status") != "processed"
+            or stored.get("requested_processing") != "summary"
+            or stored.get("raw_content") != FAILURE_RAW_CONTENT
+            or stored.get("retry_count") != 1
+        ):
+            raise SmokeError("manual retry: stored capture contract mismatch")
+        stored_result = stored.get("result")
+        if isinstance(stored_result, dict) and "provider_result" in stored_result:
+            stored_result = stored_result["provider_result"]
+        _strict_provider_result(stored_result, mode="summary")
+
+    return {
+        "ok": True,
+        "http_status": response.status_code,
+        "capture_id": accepted_capture_id,
+        "capture_status": "processed",
+        "schema_valid": True,
+        "markdown_generated": True,
+        "raw_preserved": True,
+        "retry_count": 1,
+        "operator_checks_pending": ["server_logs"],
+    }
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
@@ -205,20 +366,69 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Confirm the four fixed fictional staging writes",
     )
+    parser.add_argument(
+        "--controlled-failure",
+        action="store_true",
+        help="Create only the fixed fictional provider-failure capture",
+    )
+    parser.add_argument(
+        "--confirm-fictional-failure-write",
+        action="store_true",
+        help="Confirm the single fixed fictional failure write",
+    )
+    parser.add_argument(
+        "--retry-capture-id",
+        help="Retry only a UUID returned by the controlled failure phase",
+    )
+    parser.add_argument(
+        "--confirm-manual-retry",
+        action="store_true",
+        help="Confirm exactly one manual retry of the supplied capture UUID",
+    )
     return parser
 
 
 def main(argv: Optional[list[str]] = None) -> int:
     args = _parser().parse_args(argv)
-    if not args.confirm_four_fictional_writes:
+    if args.retry_capture_id:
+        if args.controlled_failure or not args.confirm_manual_retry:
+            print(
+                "Refusing retry without an exclusive --retry-capture-id and "
+                "--confirm-manual-retry.",
+                file=sys.stderr,
+            )
+            return 2
+        runner = lambda token: run_live_retry_smoke(
+            base_url=args.base_url,
+            token=token,
+            capture_id=args.retry_capture_id,
+        )
+    elif args.controlled_failure:
+        if not args.confirm_fictional_failure_write:
+            print(
+                "Refusing failure write without "
+                "--confirm-fictional-failure-write.",
+                file=sys.stderr,
+            )
+            return 2
+        runner = lambda token: run_live_failure_smoke(
+            base_url=args.base_url,
+            token=token,
+        )
+    elif not args.confirm_four_fictional_writes:
         print(
             "Refusing writes without --confirm-four-fictional-writes.",
             file=sys.stderr,
         )
         return 2
+    else:
+        runner = lambda token: run_live_modes_smoke(
+            base_url=args.base_url,
+            token=token,
+        )
     token = os.environ.get("P1_5_ACCEPTANCE_TOKEN", "")
     try:
-        evidence = run_live_modes_smoke(base_url=args.base_url, token=token)
+        evidence = runner(token)
     except SmokeError as exc:
         print(f"Live Gemini smoke failed: {exc}", file=sys.stderr)
         return 1
