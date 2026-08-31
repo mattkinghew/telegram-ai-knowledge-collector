@@ -228,6 +228,6 @@ P1.5 adds coverage for:
   four fixed success payloads, one fixed controlled failure, and one canonical-
   UUID manual retry, with strict result validation and sanitized evidence.
 
-The 2026-08-31 acceptance-preparation worktree passes 487 Python tests and four
-Node helper tests. Re-run against the final commit before using that count as
-committed-tree evidence.
+The 2026-08-31 acceptance-preparation committed tree passes 493 Python tests
+and four Node helper tests. This includes six guarded live-Gemini acceptance-
+runner tests and remains offline evidence only.
