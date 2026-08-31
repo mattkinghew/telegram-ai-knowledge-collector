@@ -14,7 +14,7 @@ Evidence states are deliberately non-interchangeable:
 | Capability / gate | Automated | Device | Live service | Staging | Production | Evidence boundary |
 |---|---|---|---|---|---|---|
 | Backend OFF / P1.4 fallback | `AUTOMATED_PASS` | `USER_REPORTED_DEVICE_PASS` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | User reported unreachable backend -> raw/pending local note -> Obsidian -> Remotely Save; not repository-verified |
-| Backend ON Mock | `AUTOMATED_PASS` | `PENDING` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Canonical iPhone runbook prepared; no device result |
+| Backend ON Mock | `AUTOMATED_PASS` | `PENDING` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Canonical Voice Flash and Content Capture iPhone runbook prepared; no device result |
 | Capture/status/list/retry API | `AUTOMATED_PASS` | `PENDING` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Real local Uvicorn flow passes; HTTPS-only sanitized staging runner is `PREPARED` but not externally executed |
 | Auth/CORS/security headers | `AUTOMATED_PASS` | `PENDING` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Production fail-closed tests and local Uvicorn auth/CORS checks; deployed headers/rotation pending |
 | Application rate limits | `AUTOMATED_PASS` | `N/A` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Single-instance production buckets tested; deployed 429 evidence pending |
@@ -27,7 +27,7 @@ Evidence states are deliberately non-interchangeable:
 | Today / Inbox / Projects / Pending / Reports / Search | `AUTOMATED_PASS` | `PENDING` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Real local Uvicorn verifies backing APIs; static tests cover the shell/helpers; no browser or device evidence |
 | PWA shell/installability | `AUTOMATED_PASS` (shell only) | `PENDING` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | No device install or viewport evidence |
 | Logging privacy | `AUTOMATED_PASS` | `PENDING` | `PENDING` | `PENDING` | `PRODUCTION_PENDING` | Local Uvicorn log excludes fictional token/raw marker; no deployed log sink/retention evidence |
-| Render single-instance config | `AUTOMATED_PASS` (artifact) | `N/A` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Blueprint not synced; region/plan/cost require confirmation |
+| Render single-instance config | `AUTOMATED_PASS` (artifact) | `N/A` | `N/A` | `PENDING` | `PRODUCTION_PENDING` | Current official field/plan/disk/Python docs rechecked 2026-08-31; Blueprint not synced and region/cost/account require confirmation |
 
 Current gates:
 

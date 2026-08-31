@@ -96,8 +96,9 @@ remain manual acceptance items.
 The earlier exact committed baseline was 461 Python tests. Guarded Gemini added
 15 tests; final acceptance preparation adds four tests for rate limits and the
 sanitized backup/restore drill, plus two real local production-mode Uvicorn
-tests and five staging-runner contract tests. The full local suite passes 487
-Python tests; four Node Web helper tests also pass. The process tests use
+tests and five staging-runner contract tests. Six guarded live-Gemini
+acceptance-runner tests bring the full local suite to 493 Python tests; four
+Node Web helper tests also pass. The process tests use
 MockProvider, temporary SQLite databases,
 fictional data, and loopback only. They verify Phase 4 backing APIs, restart
 persistence, restored five-record database reads, auth/CORS, and log marker
@@ -133,7 +134,10 @@ Render staging Blueprint prepares one paid Singapore service, one instance, one
 disk, MockProvider, generated token auth, operator-supplied CORS, and disabled
 auto-deploy. Region, plan, current cost, data location, remote commit, backup,
 auth, and device acceptance still require the user. No external service was
-created.
+created. Render's official field, plan, disk, Web Service, and Python-version
+documentation was rechecked on 2026-08-31. The fields remain supported, but the
+Web Service is internet-reachable and the disk enforces the documented single-
+instance/no-zero-downtime boundary.
 
 **MEDIUM — single-instance SQLite:** the recommended persistent disk prevents
 horizontal scale and zero-downtime deployment. It is acceptable for a single-

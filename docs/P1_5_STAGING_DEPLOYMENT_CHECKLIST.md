@@ -7,10 +7,38 @@ auto-deploys, fixes one instance, attaches one disk, starts with MockProvider,
 and leaves the exact CORS origin for operator input. Synchronizing the Blueprint
 creates paid external resources and requires separate user authorization.
 
+## Official platform recheck — 2026-08-31
+
+The preparation artifact was rechecked without syncing it against Render's
+current official documentation:
+
+- [Blueprint YAML reference](https://render.com/docs/blueprint-spec):
+  `runtime: python`, `plan`, `numInstances`, `autoDeployTrigger: off`, `disk`,
+  `envVars`, `sync: false`, and `generateValue: true` remain supported.
+- [Compute plans](https://render.com/docs/compute-plans): `0.5c-512mb` remains
+  a Web Service plan ID for 0.5 CPU and 512 MB. This confirms the identifier,
+  not current monthly cost or account eligibility.
+- [Persistent disks](https://render.com/docs/disks): the configured subdirectory
+  mount is permitted; only files under it persist. A disk is available to one
+  service instance, prevents multi-instance scaling, and disables zero-downtime
+  deploys.
+- [Python version](https://render.com/docs/python-version): Render accepts a
+  fully qualified released Python version through `PYTHON_VERSION`; the pinned
+  `3.12.14` is a released Python version.
+- [Web services](https://render.com/docs/web-services): a Render Web Service is
+  internet-reachable at its `onrender.com` subdomain. Bearer authentication and
+  explicit CORS reduce access but do not make the service private-network-only.
+
+This is specification evidence only, not Blueprint validation by Render, an
+account/plan quote, a deployment, or staging acceptance. Recheck the official
+pages immediately before any later authorized sync.
+
 ## Configuration
 
 - [ ] Confirm the Blueprint's `singapore` region, `0.5c-512mb` paid plan, disk
   size, current cost, and data-location suitability before any sync.
+- [ ] Treat the service as internet-reachable even when every application route
+  is token-protected; do not describe it as private-network staging.
 - [ ] Pin and record the exact Git commit and remotely available branch; deploy
   one instance only. Do not deploy an unpushed local commit.
 - [ ] Set `APP_ENV=production` and `AUTH_MODE=token`.

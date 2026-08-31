@@ -61,17 +61,24 @@ No Blueprint was synced by this audit.
 
 ### DNS rebinding race
 
-Conditional classification: acceptable only for an authenticated, private-use,
-single-user staging acceptance with fictional/public-safe URL input. It becomes
-`must-fix before public or multi-user exposure`; add pinned-DNS egress or an
-outbound filtering proxy as a separate P1.5.x hardening item. Final
-classification awaits real staging evidence.
+Conditional classification: the prepared Render Web Service is internet-
+reachable at its `onrender.com` subdomain, so bearer auth does not make it a
+private-network deployment. For a short-lived, single-user staging acceptance,
+keep URL inputs fictional/public-safe and authentication mandatory; this does
+not remove the DNS validation/fetch race. It becomes must-fix before
+production, real private-content URL processing, or multi-user exposure; add
+pinned-DNS egress or an outbound filtering proxy as a separate P1.5.x
+hardening item.
+Final acceptance classification still awaits the exact staging exposure and
+runtime evidence.
 
 ### SQLite single instance
 
 Accepted for the single-user MVP only. The Blueprint fixes `numInstances=1`
-and mounts one disk. Do not horizontally scale or claim zero-downtime disk
-deploys. A real local Uvicorn restart preserves processed and pending records;
+and mounts one disk. Current Render documentation confirms that a persistent
+disk is single-instance and disables zero-downtime deploys. Do not horizontally
+scale or claim zero-downtime disk deploys. A real local Uvicorn restart
+preserves processed and pending records;
 a second process test serves a restored five-record database containing three
 processed, one pending, and one failed record. Exact staging-disk restart,
 restore, and browser evidence are still required.

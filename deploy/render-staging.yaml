@@ -1,4 +1,5 @@
-# Validate against https://render.com/docs/blueprint-spec before external use.
+# Official field/plan/disk/Python docs rechecked 2026-08-31; recheck before sync.
+# See docs/P1_5_STAGING_DEPLOYMENT_CHECKLIST.md for sources and remaining gates.
 # This file is preparation only. Blueprint sync creates billable resources.
 previews:
   generation: off
