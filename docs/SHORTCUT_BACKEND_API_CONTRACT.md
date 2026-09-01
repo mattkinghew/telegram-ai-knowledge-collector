@@ -11,6 +11,12 @@ The Shortcut may know only:
 - `capture_type`, `source_type`, `source`, `raw_content`;
 - `requested_processing` and, optionally, up to eight `allowed_projects`.
 
+Local Apple Intelligence values such as `RawTranscript`, `CleanTranscript`,
+`SuggestedRecordType`, `RecordType`, and `ai_status` remain Shortcut-side
+variables. They are not backend request fields; the backend rejects them as
+unknown fields. The cleaned transcript is sent through the existing
+`raw_content` field.
+
 It must not contain a Gemini prompt, model name, provider response schema,
 provider-specific retry logic, or a Vault path.
 

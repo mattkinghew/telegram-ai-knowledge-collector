@@ -9,6 +9,7 @@ documents are `REFERENCE`; historical contracts are retained.
 | `docs/P1_5_HYBRID_ARCHITECTURE.md` | CURRENT HYBRID | Architecture, trust boundaries, package and dependency decisions |
 | `docs/SHORTCUT_BACKEND_API_CONTRACT.md` | CURRENT HYBRID | Version-1 Shortcut/API contract and failure handling |
 | `docs/SHORTCUT_BUILD_SHEET_VOICE_FLASH_BACKEND.md` | CURRENT HYBRID | Build `語音閃念` with optional backend enrichment |
+| `docs/SHORTCUT_BUILD_SHEET_VOICE_FLASH_APPLE_INTELLIGENCE.md` | CURRENT HYBRID | Optional on-device cleanup, suggestion, override and local fallback |
 | `docs/SHORTCUT_BUILD_SHEET_CONTENT_CAPTURE_BACKEND.md` | CURRENT HYBRID | Build `收集內容` with optional backend enrichment |
 | `docs/P1_5_AUTH_SECURITY_MODEL.md` | CURRENT HYBRID | Dev and deployed single-user auth boundary |
 | `docs/P1_5_LOGGING_PRIVACY_POLICY.md` | CURRENT HYBRID | Content-safe logging and retention requirements |
@@ -23,6 +24,7 @@ documents are `REFERENCE`; historical contracts are retained.
 | `docs/P1_5_STAGING_DEPLOYMENT_CHECKLIST.md` | MANUAL ACCEPTANCE | Staging configuration, security, persistence and rollback gates |
 | `docs/P1_5_BACKUP_RESTORE_DRILL.md` | MANUAL ACCEPTANCE | Fictional SQLite backup, clean restore and integrity evidence |
 | `docs/P1_5_WEB_PWA_DEVICE_ACCEPTANCE.md` | MANUAL ACCEPTANCE | Real-iPhone Web/PWA navigation, state and action evidence |
+| `docs/P1_5_APPLE_INTELLIGENCE_DEVICE_ACCEPTANCE.md` | MANUAL ACCEPTANCE | User-observed iPhone acceptance for optional local assist |
 | `docs/P1_5_ACCEPTANCE_MATRIX.md` | CURRENT HYBRID | Evidence boundary by feature |
 | `docs/P1_5_TECHNICAL_AUDIT.md` | CURRENT HYBRID | Full technical/security/privacy/product audit |
 | `docs/P1_5_RELEASE_CANDIDATE_AUDIT.md` | CURRENT HYBRID | Final RC gates, severity and residual-risk status |

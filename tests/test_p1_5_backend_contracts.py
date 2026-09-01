@@ -58,6 +58,25 @@ class P15BackendContractTests(unittest.TestCase):
         self.assertIsNone(request.source)
         self.assertEqual(request.allowed_projects, [])
 
+    def test_cleaned_transcript_uses_existing_backend_contract(self) -> None:
+        payload = dict(self.voice, raw_content="完成 fictional CSV mapping。下一步測試 fallback。")
+
+        request = CaptureRequest.model_validate(payload)
+
+        self.assertEqual(request.raw_content, payload["raw_content"])
+        self.assertEqual(request.requested_processing, "voice_structure")
+
+    def test_local_assist_metadata_stays_client_side(self) -> None:
+        payload = dict(
+            self.voice,
+            raw_content="Clean fictional transcript.",
+            record_type="daily_control",
+            ai_status="local_suggested",
+        )
+
+        with self.assertRaises(ValidationError):
+            CaptureRequest.model_validate(payload)
+
     def test_unknown_missing_and_nested_fields_are_rejected(self) -> None:
         with self.assertRaises(ValidationError):
             CaptureRequest.model_validate(dict(self.content, unexpected=True))
