@@ -17,7 +17,9 @@ iPhone Voice Flash and Content Capture, tested separately
 ```
 
 Set `APP_ENV=production`, `AI_PROVIDER=mock`, `ENABLE_LIVE_AI=false`, token auth,
-explicit CORS, and a persistent SQLite path. Live Gemini is not required and
+and explicit CORS. For the approved temporary HTTPS device test, use the
+temporary SQLite procedure in `P1_5_TEMP_HTTPS_DEVICE_ACCEPTANCE.md`; it cannot
+prove persistence, restart, or backup/restore. Live Gemini is not required and
 must remain disabled.
 
 Backend ON acceptance requires both Test A and Test B below. Use the exact

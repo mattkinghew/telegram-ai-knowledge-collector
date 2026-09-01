@@ -5,6 +5,8 @@ Backend OFF user report below. Use fictional/public-safe inputs only.
 
 ## Canonical procedures
 
+- Temporary HTTPS iPhone transport and cleanup:
+  `P1_5_TEMP_HTTPS_DEVICE_ACCEPTANCE.md`.
 - Backend ON Mock device test:
   `P1_5_BACKEND_ON_DEVICE_ACCEPTANCE.md`.
 - Live Gemini four-mode and failure test:

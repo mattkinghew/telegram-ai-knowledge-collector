@@ -258,6 +258,12 @@ local branch boundary; no push, merge, deployment, or publication has occurred.
   canonical-UUID manual retry. It strictly validates returned/stored provider
   results and emits no raw content or token. Automated tests use a fake
   transport; no Gemini or staging request was made.
+- Render Free Web Service creation was attempted only after explicit approval,
+  but the dashboard required adding a payment card before service creation. No
+  Render service or paid resource was created. The current no-cost device path
+  is a Cloudflare Quick Tunnel to the existing loopback FastAPI backend, with
+  MockProvider, token auth, explicit per-tunnel CORS, temporary SQLite, and a
+  documented cleanup procedure. Real iPhone evidence remains pending.
 
 ## Current Known Risks
 
@@ -272,8 +278,8 @@ local branch boundary; no push, merge, deployment, or publication has occurred.
 
 ## Next Recommended Task
 
-Obtain explicit authorization for Render account/region/paid-plan setup and for
-making the exact local commit remotely deployable. Then deploy MockProvider
-staging and complete `P1_5_BACKEND_ON_DEVICE_ACCEPTANCE.md`. Backend OFF is
-`USER_REPORTED_DEVICE_PASS` only. Live Gemini, staging restore, Web/PWA device,
-and production remain separate pending gates.
+Use `P1_5_TEMP_HTTPS_DEVICE_ACCEPTANCE.md` to complete Backend ON Mock and
+Web/PWA acceptance with fictional data on iPhone, then run the Backend OFF
+fallback last. Backend OFF is currently `USER_REPORTED_DEVICE_PASS` only.
+Persistent staging, backup/restore, live Gemini, and production remain separate
+pending gates.
