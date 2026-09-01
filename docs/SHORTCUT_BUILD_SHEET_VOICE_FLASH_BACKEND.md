@@ -15,17 +15,21 @@ Status: current hybrid build sheet. Complete device execution remains pending.
 2. If empty, stop without creating a note.
 3. Optionally show **Ask for Input** prefilled with `RawTranscript`; store the
    confirmed value as `FinalTranscript`.
-4. Build a dictionary using the contract below:
+4. Build a dictionary using the minimum contract below. `source` and
+   `allowed_projects` may be omitted; the backend defaults them safely.
 
 ```text
 schema_version = 1
 capture_type = voice
 source_type = voice_transcript
-source = null
 raw_content = FinalTranscript
 requested_processing = voice_structure
-allowed_projects = device-local allowlist or empty list
 ```
+
+The backend interprets omitted fields as `source = null` and
+`allowed_projects = []`. Include either field only when the Shortcut
+intentionally needs a non-default value. URL and file-reference source types
+still require a valid `source`.
 
 5. **Get Contents of URL**: POST JSON to `{endpoint}/api/v1/capture`. Add the
    bearer header only when configured.

@@ -40,6 +40,24 @@ class P15BackendContractTests(unittest.TestCase):
         self.assertEqual(voice.raw_content, self.voice["raw_content"])
         self.assertEqual(content.raw_content, self.content["raw_content"])
 
+    def test_voice_request_defaults_optional_mobile_fields(self) -> None:
+        payload = dict(self.voice)
+        payload.pop("source")
+        payload.pop("allowed_projects")
+
+        request = CaptureRequest.model_validate(payload)
+
+        self.assertIsNone(request.source)
+        self.assertEqual(request.allowed_projects, [])
+
+    def test_explicit_optional_mobile_defaults_remain_compatible(self) -> None:
+        payload = dict(self.voice, source=None, allowed_projects=[])
+
+        request = CaptureRequest.model_validate(payload)
+
+        self.assertIsNone(request.source)
+        self.assertEqual(request.allowed_projects, [])
+
     def test_unknown_missing_and_nested_fields_are_rejected(self) -> None:
         with self.assertRaises(ValidationError):
             CaptureRequest.model_validate(dict(self.content, unexpected=True))

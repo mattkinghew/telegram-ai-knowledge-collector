@@ -9,7 +9,7 @@ The Shortcut may know only:
 - endpoint URL;
 - optional bearer token stored outside the repository;
 - `capture_type`, `source_type`, `source`, `raw_content`;
-- `requested_processing` and up to eight `allowed_projects`.
+- `requested_processing` and, optionally, up to eight `allowed_projects`.
 
 It must not contain a Gemini prompt, model name, provider response schema,
 provider-specific retry logic, or a Vault path.
@@ -24,12 +24,15 @@ authentication is enabled, `Authorization: Bearer <user-configured-token>`.
   "schema_version": "1",
   "capture_type": "voice",
   "source_type": "voice_transcript",
-  "source": null,
   "raw_content": "Fictional transcript for local testing.",
-  "requested_processing": "voice_structure",
-  "allowed_projects": ["Fictional Project"]
+  "requested_processing": "voice_structure"
 }
 ```
+
+When omitted, `source` defaults to `null` and `allowed_projects` defaults to
+`[]`. These construction defaults do not relax source-type validation: URL
+source types still require an HTTP(S) `source`, and file-reference types still
+require a safe filename.
 
 Accepted processing modes are `raw_save`, `voice_structure`, `summary`,
 `recommendation`, `short_article`, and `project_knowledge`. The API rejects

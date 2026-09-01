@@ -83,10 +83,12 @@ class CaptureRequest(BaseModel):
     schema_version: Literal["1"]
     capture_type: CaptureType
     source_type: SourceType
-    source: Optional[str] = Field(max_length=2_048)
+    # Optional at construction time; source-type validators below retain
+    # required values for URL and file-reference captures.
+    source: Optional[str] = Field(default=None, max_length=2_048)
     raw_content: str = Field(max_length=50_000)
     requested_processing: ProcessingMode
-    allowed_projects: List[str] = Field(max_length=8)
+    allowed_projects: List[str] = Field(default_factory=list, max_length=8)
 
     @field_validator("raw_content")
     @classmethod
