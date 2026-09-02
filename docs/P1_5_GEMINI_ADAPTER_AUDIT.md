@@ -60,6 +60,8 @@ contracts. Current Interactions responses may omit a per-step status; when one i
 present it must be `done` or `completed`. Unknown fields, wrong sections, wrong
 modes, oversized output, invalid JSON, or malformed envelopes are rejected;
 there is no prose fallback or guessed repair.
+The payload uses the current `response_format` JSON-schema contract and does not
+send legacy `generation_config`/`response_mime_type` parameters.
 
 Safe mappings:
 
