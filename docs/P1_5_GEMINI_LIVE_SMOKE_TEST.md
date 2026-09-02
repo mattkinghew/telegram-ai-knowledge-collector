@@ -44,6 +44,64 @@ The command does not prove the runtime uses Gemini. Correlate each returned
 Keep `runtime_gemini_config`, `provider_trace`, and `server_logs` pending until
 that independent operator review is recorded.
 
+## Single-capture local smoke (daily_control)
+
+For a quick local Quick Look check, use the exact fictional payload below after
+the backend has started with the guarded live configuration. Replace only the
+URL and token placeholder; never paste a token into this document or shell
+history. The bearer token is read from a local environment variable and is not
+printed by the command.
+
+```bash
+export P1_5_ACCEPTANCE_TOKEN="<LOCAL_TOKEN_NOT_FOR_CHAT>"
+curl --fail-with-body --silent --show-error \
+  -H "Authorization: Bearer ${P1_5_ACCEPTANCE_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "schema_version": "1",
+    "capture_type": "voice",
+    "source_type": "voice_transcript",
+    "raw_content": "今日主要測試每日控制台。AI 學習要完成 Gemini smoke test，英文口語五分鐘已完成，Cloud 課程未做。今日卡點係確認 AI 不會自行加入 deadline、負責人或完成狀態。下一步係檢查 structured output。",
+    "requested_processing": "voice_structure",
+    "record_type": "daily_control"
+  }' \
+  "http://127.0.0.1:8000/api/v1/capture"
+unset P1_5_ACCEPTANCE_TOKEN
+```
+
+Require HTTP 200, `status=processed`, a non-empty `result.markdown`, and an
+exactly preserved `raw_content` when reading the returned capture. The
+deterministic renderer remains responsible for the Markdown format; do not
+accept invented deadlines, owners, completion states, or other unsupported
+facts. This check is fictional only and is not device, staging, or production
+evidence.
+
+## Local launch and rollback
+
+Start locally with placeholders only:
+
+```bash
+export APP_ENV=production
+export AUTH_MODE=token
+export AI_PROVIDER=gemini
+export ENABLE_LIVE_AI=true
+export GEMINI_API_KEY="<SET_LOCALLY_DO_NOT_PASTE_INTO_CHAT>"
+export GEMINI_MODEL="<EXISTING_ALLOWLISTED_MODEL>"
+export ALLOWED_ORIGINS="http://127.0.0.1:8000"
+python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
+```
+
+Rollback is a process restart, not a code revert:
+
+```bash
+unset GEMINI_API_KEY GEMINI_MODEL
+export AI_PROVIDER=mock
+export ENABLE_LIVE_AI=false
+```
+
+If the live key, model, or boolean is missing/invalid, the application must
+fail closed at startup. Do not retry configuration failures automatically.
+
 ## Exact fictional success cases
 
 Send one distinct fictional request for each supported mode below. Voice must
