@@ -24,6 +24,7 @@ capture_type = voice
 source_type = voice_transcript
 raw_content = FinalTranscript
 requested_processing = voice_structure
+record_type = RecordType
 ```
 
 The backend interprets omitted fields as `source = null` and

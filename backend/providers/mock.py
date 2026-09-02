@@ -10,7 +10,32 @@ class MockProvider:
         mode = request.requested_processing
         if mode == "raw_save":
             raise ValueError("raw_save must not call an AI provider")
-        if mode == "voice_structure":
+        record_type = request.record_type
+        if record_type == "daily_control":
+            sections = {
+                "system_check": ["sync_completed: unknown", "inbox_cleared: unknown"],
+                "timeboxes": ["ai_learning: task=Review fictional capture; target_output=Review note; status=pending; next_action=Verify evidence", "msc: task=; target_output=; status=; next_action=", "side_work: task=; target_output=; status=; next_action="],
+                "micro_habits": ["english_5min: unknown", "ai_cloud_15min: unknown"],
+                "completed": [], "in_progress": ["Review fictional capture."],
+                "next_actions": ["Verify evidence before acting."],
+                "friction": ["blocker: ", "cause: ", "strategy: ", "prevention: "],
+                "insights": ["Raw evidence remains separate from suggestions."],
+                "facts_to_verify": ["Confirm this mock result with real evidence."],
+            }
+            summary = "A fictional daily control note is ready for review."
+        elif record_type == "work_log":
+            sections = {"completed": [], "in_progress": ["Continue the fictional work."], "next_actions": ["Verify the result before acting."], "blockers": [], "decisions": [], "facts_to_verify": ["Confirm this mock result with real evidence."]}
+            summary = "A fictional work log is ready for review."
+        elif record_type == "reflection":
+            sections = {"what_happened": [request.raw_content], "what_went_well": [], "what_could_improve": [], "lesson": [], "next_experiment": [], "facts_to_verify": ["Confirm this mock result with real evidence."]}
+            summary = "A fictional reflection is ready for review."
+        elif record_type == "todo":
+            sections = {"tasks": ["Review the fictional capture."], "due_dates_explicit_only": [], "dependencies": [], "facts_to_verify": ["Confirm this mock result with real evidence."]}
+            summary = "A fictional todo list is ready for review."
+        elif record_type == "meeting_followup":
+            sections = {"key_points": [request.raw_content], "decisions": [], "action_items": [], "owners_explicit_only": [], "open_questions": [], "follow_up": [], "facts_to_verify": ["Confirm this mock result with real evidence."]}
+            summary = "A fictional meeting follow-up is ready for review."
+        elif mode == "voice_structure":
             sections = {
                 "completed": ["Recorded the fictional completed item."],
                 "in_progress": ["Continue the fictional work."],
@@ -51,6 +76,7 @@ class MockProvider:
             summary = "A fictional source was summarized for review."
         return ProviderResult(
             processing_mode=mode,
+            record_type=record_type,
             title="Fictional capture",
             summary=summary,
             points=[

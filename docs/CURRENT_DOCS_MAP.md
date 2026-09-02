@@ -25,6 +25,7 @@ documents are `REFERENCE`; historical contracts are retained.
 | `docs/P1_5_BACKUP_RESTORE_DRILL.md` | MANUAL ACCEPTANCE | Fictional SQLite backup, clean restore and integrity evidence |
 | `docs/P1_5_WEB_PWA_DEVICE_ACCEPTANCE.md` | MANUAL ACCEPTANCE | Real-iPhone Web/PWA navigation, state and action evidence |
 | `docs/P1_5_APPLE_INTELLIGENCE_DEVICE_ACCEPTANCE.md` | MANUAL ACCEPTANCE | User-observed iPhone acceptance for optional local assist |
+| `docs/P1_5_STRUCTURED_RECORD_DEVICE_ACCEPTANCE.md` | MANUAL ACCEPTANCE | User-observed iPhone acceptance for deterministic record templates |
 | `docs/P1_5_ACCEPTANCE_MATRIX.md` | CURRENT HYBRID | Evidence boundary by feature |
 | `docs/P1_5_TECHNICAL_AUDIT.md` | CURRENT HYBRID | Full technical/security/privacy/product audit |
 | `docs/P1_5_RELEASE_CANDIDATE_AUDIT.md` | CURRENT HYBRID | Final RC gates, severity and residual-risk status |

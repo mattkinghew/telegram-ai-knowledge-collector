@@ -116,6 +116,7 @@ class GeminiProvider:
             return response.status_code, bytes(chunks)
 
     def _payload(self, request: CaptureRequest) -> Dict[str, Any]:
+        record_type = request.record_type
         if request.requested_processing == "voice_structure":
             provider_input = {
                 "processing_mode": request.requested_processing,
@@ -143,7 +144,9 @@ class GeminiProvider:
                 "rewrite or claim to replace the authoritative raw capture."
             )
 
-        return {
+        if record_type != "free":
+            provider_input["record_type"] = record_type
+        payload = {
             "model": self._model,
             "input": json.dumps(provider_input, ensure_ascii=False),
             "system_instruction": system_instruction,
@@ -151,13 +154,14 @@ class GeminiProvider:
                 {
                     "type": "text",
                     "mime_type": "application/json",
-                    "schema": self._response_schema(request.requested_processing),
+                    "schema": self._response_schema(request.requested_processing, request.record_type),
                 }
             ],
         }
+        return payload
 
     @staticmethod
-    def _response_schema(mode: str) -> Dict[str, Any]:
+    def _response_schema(mode: str, record_type: str = "free") -> Dict[str, Any]:
         required_sections = {
             "voice_structure": [
                 "completed",
@@ -180,6 +184,15 @@ class GeminiProvider:
             ],
             "short_article": ["draft"],
         }[mode]
+        template_sections = {
+            "daily_control": ["system_check", "timeboxes", "micro_habits", "completed", "in_progress", "next_actions", "friction", "insights", "facts_to_verify"],
+            "work_log": ["completed", "in_progress", "next_actions", "blockers", "decisions", "facts_to_verify"],
+            "reflection": ["what_happened", "what_went_well", "what_could_improve", "lesson", "next_experiment", "facts_to_verify"],
+            "todo": ["tasks", "due_dates_explicit_only", "dependencies", "facts_to_verify"],
+            "meeting_followup": ["key_points", "decisions", "action_items", "owners_explicit_only", "open_questions", "follow_up", "facts_to_verify"],
+        }
+        if record_type != "free":
+            required_sections = template_sections[record_type]
         line_list = {
             "type": "array",
             "items": {"type": "string", "minLength": 1, "maxLength": 1000},
@@ -188,7 +201,7 @@ class GeminiProvider:
         section_properties = {
             name: dict(line_list) for name in required_sections
         }
-        return {
+        schema = {
             "type": "object",
             "additionalProperties": False,
             "required": [
@@ -221,6 +234,10 @@ class GeminiProvider:
                 },
             },
         }
+        if record_type != "free":
+            schema["required"].append("record_type")
+            schema["properties"]["record_type"] = {"type": "string", "enum": [record_type]}
+        return schema
 
     @staticmethod
     def _output_text(envelope: Any) -> str:

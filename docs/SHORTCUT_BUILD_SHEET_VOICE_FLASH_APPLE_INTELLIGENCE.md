@@ -32,9 +32,9 @@ P1.4 local fallback remain authoritative. This is not a new Shortcut.
 13. **Show Notification** — processed, or locally saved and pending.
 
 `RawTranscript` and `FinalTranscript` must remain available. Cleanup must never
-overwrite the original evidence. `RecordType` is a Shortcut-side display and
-routing value; do not add it, `SuggestedRecordType`, or `ai_status` to the P1.5
-request because the backend intentionally rejects unknown fields.
+overwrite the original evidence. Map the explicitly selected `RecordType` to
+the backend `record_type` field; keep `SuggestedRecordType` and `ai_status`
+client-side.
 
 ## Transcript cleanup prompt
 
@@ -91,13 +91,15 @@ existing menu. Never silently accept local classification.
   "capture_type": "voice",
   "source_type": "voice_transcript",
   "raw_content": "{{CleanTranscript}}",
-  "requested_processing": "voice_structure"
+  "requested_processing": "voice_structure",
+  "record_type": "{{RecordType}}"
 }
 ```
 
 Omitted `source` and `allowed_projects` retain the backend defaults. The local
-assist prompt, model response, `RawTranscript`, `RecordType`, and local model
-configuration are not sent to the backend.
+assist prompt, model response, `RawTranscript`, and local model configuration
+are not sent to the backend. Only the selected allow-listed `RecordType` is
+mapped to `record_type`.
 
 ## Local structured fallback
 

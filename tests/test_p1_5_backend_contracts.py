@@ -66,6 +66,17 @@ class P15BackendContractTests(unittest.TestCase):
         self.assertEqual(request.raw_content, payload["raw_content"])
         self.assertEqual(request.requested_processing, "voice_structure")
 
+    def test_record_type_defaults_to_free_and_allowlist_is_strict(self) -> None:
+        request = CaptureRequest.model_validate(self.voice)
+        self.assertEqual(request.record_type, "free")
+        for record_type in ("daily_control", "work_log", "reflection", "todo", "meeting_followup"):
+            self.assertEqual(
+                CaptureRequest.model_validate(dict(self.voice, record_type=record_type)).record_type,
+                record_type,
+            )
+        with self.assertRaises(ValidationError):
+            CaptureRequest.model_validate(dict(self.voice, record_type="unknown"))
+
     def test_local_assist_metadata_stays_client_side(self) -> None:
         payload = dict(
             self.voice,

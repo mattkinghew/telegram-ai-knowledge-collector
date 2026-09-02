@@ -30,6 +30,14 @@ ProcessingMode = Literal[
     "project_knowledge",
 ]
 CaptureStatus = Literal["pending", "processing", "processed", "failed"]
+RecordType = Literal[
+    "free",
+    "daily_control",
+    "work_log",
+    "reflection",
+    "todo",
+    "meeting_followup",
+]
 ErrorCode = Literal[
     "NETWORK_UNAVAILABLE",
     "AI_UNAVAILABLE",
@@ -88,6 +96,7 @@ class CaptureRequest(BaseModel):
     source: Optional[str] = Field(default=None, max_length=2_048)
     raw_content: str = Field(max_length=50_000)
     requested_processing: ProcessingMode
+    record_type: RecordType = "free"
     allowed_projects: List[str] = Field(default_factory=list, max_length=8)
 
     @field_validator("raw_content")
@@ -150,6 +159,7 @@ class ProviderResult(BaseModel):
         "short_article",
         "project_knowledge",
     ]
+    record_type: RecordType = "free"
     title: str = Field(min_length=1, max_length=200)
     summary: str = Field(min_length=1, max_length=600)
     points: List[str] = Field(max_length=3)
@@ -192,7 +202,7 @@ class ProviderResult(BaseModel):
 
     @model_validator(mode="after")
     def validate_mode_sections(self) -> "ProviderResult":
-        expected = {
+        expected_by_mode = {
             "voice_structure": {
                 "completed",
                 "in_progress",
@@ -218,7 +228,18 @@ class ProviderResult(BaseModel):
                 "project_use",
                 "facts_to_verify",
             },
-        }[self.processing_mode]
+        }
+        template_sections = {
+            "daily_control": {
+                "system_check", "timeboxes", "micro_habits", "completed",
+                "in_progress", "next_actions", "friction", "insights", "facts_to_verify",
+            },
+            "work_log": {"completed", "in_progress", "next_actions", "blockers", "decisions", "facts_to_verify"},
+            "reflection": {"what_happened", "what_went_well", "what_could_improve", "lesson", "next_experiment", "facts_to_verify"},
+            "todo": {"tasks", "due_dates_explicit_only", "dependencies", "facts_to_verify"},
+            "meeting_followup": {"key_points", "decisions", "action_items", "owners_explicit_only", "open_questions", "follow_up", "facts_to_verify"},
+        }
+        expected = template_sections.get(self.record_type, expected_by_mode[self.processing_mode])
         if set(self.sections) != expected:
             raise ValueError("provider sections do not match processing_mode")
         return self

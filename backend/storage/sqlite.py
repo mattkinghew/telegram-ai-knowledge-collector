@@ -26,6 +26,7 @@ class CaptureRecord:
     source: Optional[str]
     raw_content: str
     requested_processing: str
+    record_type: str
     allowed_projects: List[str]
     status: str
     result: Optional[dict[str, Any]]
@@ -76,6 +77,7 @@ class CaptureStore:
                     source TEXT,
                     raw_content TEXT NOT NULL,
                     requested_processing TEXT NOT NULL,
+                    record_type TEXT NOT NULL DEFAULT 'free',
                     allowed_projects_json TEXT NOT NULL,
                     status TEXT NOT NULL,
                     result_json TEXT,
@@ -101,6 +103,10 @@ class CaptureStore:
                 connection.execute(
                     "ALTER TABLE captures ADD COLUMN title TEXT NOT NULL DEFAULT 'Captured item'"
                 )
+            if "record_type" not in columns:
+                connection.execute(
+                    "ALTER TABLE captures ADD COLUMN record_type TEXT NOT NULL DEFAULT 'free'"
+                )
 
     def create(self, request: CaptureRequest) -> CaptureRecord:
         capture_id = new_capture_id()
@@ -110,9 +116,9 @@ class CaptureStore:
                 """
                 INSERT INTO captures (
                     capture_id, schema_version, capture_type, source_type, source,
-                    raw_content, requested_processing, allowed_projects_json,
+                    raw_content, requested_processing, record_type, allowed_projects_json,
                     status, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)
                 """,
                 (
                     capture_id,
@@ -122,6 +128,7 @@ class CaptureStore:
                     request.source,
                     request.raw_content,
                     request.requested_processing,
+                    request.record_type,
                     json.dumps(request.allowed_projects, ensure_ascii=False),
                     timestamp,
                     timestamp,
@@ -298,6 +305,7 @@ class CaptureStore:
             source=row["source"],
             raw_content=row["raw_content"],
             requested_processing=row["requested_processing"],
+            record_type=row["record_type"] if "record_type" in row.keys() else "free",
             allowed_projects=json.loads(row["allowed_projects_json"]),
             status=row["status"],
             result=json.loads(row["result_json"]) if row["result_json"] else None,

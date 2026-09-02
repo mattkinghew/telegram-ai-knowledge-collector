@@ -234,6 +234,11 @@ local branch boundary; no push, merge, deployment, or publication has occurred.
 - P1.5 backend Shortcuts return Markdown to the device; only the Shortcut may
   invoke the local Obsidian write. Every backend/AI/Web failure retains the
   independent P1.4 local fallback.
+- P1.5.x extends the additive voice request with an allow-listed `record_type`
+  (default `free`) and deterministic templates for daily control, work log,
+  reflection, todo, and meeting follow-up. Unknown completion, dates, and
+  owners remain unchecked or explicitly pending; the confirmed transcript is
+  retained in the rendered note.
 - Tests use fictional data, local SQLite, local HTML fixtures, TestClient, two
   loopback-only production-mode Uvicorn flows, and Node's built-in runner. One
   flow exercises the Phase 4 backing APIs and restart persistence; the other

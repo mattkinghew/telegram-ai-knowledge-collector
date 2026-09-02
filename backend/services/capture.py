@@ -199,6 +199,7 @@ class CaptureService:
             source=record.source,
             raw_content=record.raw_content,
             requested_processing=record.requested_processing,
+            record_type=record.record_type,
             allowed_projects=record.allowed_projects,
         )
 

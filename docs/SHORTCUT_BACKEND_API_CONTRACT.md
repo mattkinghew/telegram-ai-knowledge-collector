@@ -9,13 +9,12 @@ The Shortcut may know only:
 - endpoint URL;
 - optional bearer token stored outside the repository;
 - `capture_type`, `source_type`, `source`, `raw_content`;
-- `requested_processing` and, optionally, up to eight `allowed_projects`.
+- `requested_processing`, `record_type`, and, optionally, up to eight `allowed_projects`.
 
 Local Apple Intelligence values such as `RawTranscript`, `CleanTranscript`,
-`SuggestedRecordType`, `RecordType`, and `ai_status` remain Shortcut-side
-variables. They are not backend request fields; the backend rejects them as
-unknown fields. The cleaned transcript is sent through the existing
-`raw_content` field.
+`SuggestedRecordType`, and `ai_status` remain Shortcut-side variables.
+`RecordType` is mapped to the backend `record_type` allowlist. The cleaned
+transcript is sent through the existing `raw_content` field.
 
 It must not contain a Gemini prompt, model name, provider response schema,
 provider-specific retry logic, or a Vault path.
@@ -31,7 +30,8 @@ authentication is enabled, `Authorization: Bearer <user-configured-token>`.
   "capture_type": "voice",
   "source_type": "voice_transcript",
   "raw_content": "Fictional transcript for local testing.",
-  "requested_processing": "voice_structure"
+  "requested_processing": "voice_structure",
+  "record_type": "free"
 }
 ```
 
@@ -42,7 +42,9 @@ require a safe filename.
 
 Accepted processing modes are `raw_save`, `voice_structure`, `summary`,
 `recommendation`, `short_article`, and `project_knowledge`. The API rejects
-unknown fields and unsupported capture/source/mode combinations.
+unknown fields and unsupported capture/source/mode combinations. `record_type`
+defaults to `free` and accepts only `free`, `daily_control`, `work_log`,
+`reflection`, `todo`, or `meeting_followup`.
 
 ## Success and local delivery
 

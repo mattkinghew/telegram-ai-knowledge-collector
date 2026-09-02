@@ -39,6 +39,11 @@ class P15BackendServiceTests(unittest.TestCase):
         self.assertEqual(stored.raw_content, self.request.raw_content)
         self.assertEqual(stored.result, result.model_dump())
 
+    def test_store_preserves_record_type_for_manual_retry(self) -> None:
+        request = self.request.model_copy(update={"record_type": "daily_control"})
+        record = self.store.create(request)
+        self.assertEqual(record.record_type, "daily_control")
+
     def test_failure_records_reason_without_overwriting_source(self) -> None:
         record = self.store.create(self.request)
         self.store.mark_failure(
@@ -138,6 +143,29 @@ class P15BackendServiceTests(unittest.TestCase):
         self.assertIn(self.request.raw_content, markdown)
         self.assertIn("## Unconfirmed AI Suggestions", markdown)
         self.assertIn("ai_status: suggested", markdown)
+
+    def test_structured_record_templates_render_without_inventing_fields(self) -> None:
+        for record_type, marker in (
+            ("daily_control", "## 🎯 今日時間箱 (Timeboxing)"),
+            ("work_log", "## 已完成"),
+            ("reflection", "## 學到的事"),
+            ("todo", "## 明確提及的日期"),
+            ("meeting_followup", "## 明確提及的負責人"),
+        ):
+            with self.subTest(record_type=record_type):
+                request = self.request.model_copy(update={"record_type": record_type})
+                result = MockProvider().process(request)
+                markdown = build_capture_markdown(request, result)
+                self.assertIn(marker, markdown)
+                self.assertIn(request.raw_content, markdown)
+                if record_type == "daily_control":
+                    self.assertIn("- [ ] 設備同步完成", markdown)
+                if record_type in {"todo", "meeting_followup"}:
+                    self.assertIn("(none recorded)", markdown)
+                if record_type == "todo":
+                    self.assertNotIn("2026-", markdown)
+                if record_type == "meeting_followup":
+                    self.assertIn("明確提及的負責人", markdown)
 
     def test_pending_markdown_preserves_url_without_claiming_summary(self) -> None:
         request = CaptureRequest.model_validate(
