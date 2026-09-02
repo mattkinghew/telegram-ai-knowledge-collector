@@ -56,7 +56,9 @@ class Settings:
         if self.auth_mode not in {"dev", "token"}:
             raise SettingsError("AUTH_MODE must be dev or token")
         if self.app_env == "production" and self.auth_mode != "token":
-            raise SettingsError("production requires token authentication")
+            raise SettingsError(
+                "production requires AUTH_MODE=token and API_AUTH_TOKEN"
+            )
         if self.auth_mode == "token" and not (
             self.api_auth_token and len(self.api_auth_token) >= 16
         ):

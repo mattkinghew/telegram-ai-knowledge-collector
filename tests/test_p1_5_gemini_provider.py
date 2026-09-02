@@ -336,6 +336,17 @@ class GeminiConfigurationTests(unittest.TestCase):
             ):
                 Settings.from_env(environment)
 
+    def test_production_auth_error_explains_required_local_startup_settings(self) -> None:
+        environment = self.base_env()
+        environment.pop("AUTH_MODE")
+        environment.pop("API_AUTH_TOKEN")
+
+        with self.assertRaisesRegex(
+            SettingsError,
+            r"production requires AUTH_MODE=token and API_AUTH_TOKEN",
+        ):
+            Settings.from_env(environment)
+
     def test_secret_values_are_excluded_from_settings_repr(self) -> None:
         settings = Settings.from_env(
             dict(

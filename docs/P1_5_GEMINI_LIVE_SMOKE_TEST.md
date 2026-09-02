@@ -83,6 +83,8 @@ Start locally with placeholders only:
 ```bash
 export APP_ENV=production
 export AUTH_MODE=token
+# Generate a local-only bearer token without printing or persisting its value.
+export API_AUTH_TOKEN="$(.venv/bin/python -c 'import secrets; print(secrets.token_urlsafe(24))')"
 export AI_PROVIDER=gemini
 export ENABLE_LIVE_AI=true
 export GEMINI_API_KEY="<SET_LOCALLY_DO_NOT_PASTE_INTO_CHAT>"
@@ -91,10 +93,19 @@ export ALLOWED_ORIGINS="http://127.0.0.1:8000"
 python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
 ```
 
+The `API_AUTH_TOKEN` line is required because production mode intentionally
+fails closed when token authentication is not configured. Use the same
+runtime variable for the smoke request, without copying the value into this
+document or printing it:
+
+```bash
+export P1_5_ACCEPTANCE_TOKEN="$API_AUTH_TOKEN"
+```
+
 Rollback is a process restart, not a code revert:
 
 ```bash
-unset GEMINI_API_KEY GEMINI_MODEL
+unset GEMINI_API_KEY GEMINI_MODEL P1_5_ACCEPTANCE_TOKEN API_AUTH_TOKEN
 export AI_PROVIDER=mock
 export ENABLE_LIVE_AI=false
 ```
