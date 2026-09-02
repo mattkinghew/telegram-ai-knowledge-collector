@@ -30,8 +30,13 @@ system prompt.
 
 ## Request contract
 
-The adapter sends a POST only to the fixed Gemini Interactions endpoint. The key
+The adapter sends a POST only to the current Gemini Interactions endpoint
+`https://generativelanguage.googleapis.com/v1beta/interactions`. The previous
+`v1beta2` path is a legacy contract and can surface as an unavailable response
+even when the same key/model succeeds with Google's current REST example. The key
 is sent in the `x-goog-api-key` header and never enters the JSON body.
+The endpoint and `gemini-3.6-flash` model are aligned with Google's current
+[Interactions API reference](https://ai.google.dev/api/interactions-api-v1).
 
 Live allowlist:
 
@@ -51,9 +56,10 @@ deadlines; raw input remains authoritative.
 The request includes a mode-specific JSON schema. The response is capped at
 256 KiB, decoded as UTF-8 JSON, extracted only from a completed model-output
 step, parsed again as structured JSON, and validated by strict `ProviderResult`
-contracts. Unknown fields, wrong sections, wrong modes, oversized output,
-invalid JSON, or malformed envelopes are rejected; there is no prose fallback
-or guessed repair.
+contracts. Current Interactions responses may omit a per-step status; when one is
+present it must be `done` or `completed`. Unknown fields, wrong sections, wrong
+modes, oversized output, invalid JSON, or malformed envelopes are rejected;
+there is no prose fallback or guessed repair.
 
 Safe mappings:
 
@@ -69,8 +75,10 @@ Safe mappings:
 | envelope/schema/mode mismatch | `SCHEMA_MISMATCH` |
 | response above 256 KiB | `PAYLOAD_TOO_LARGE` |
 
-Provider bodies and exception details are not returned or logged. Every
-provider failure becomes a safe pending capture through `CaptureService`; the
+Provider bodies and exception details are not returned or logged. A sanitized
+provider warning records only the fixed error code and bounded diagnostic
+category (for HTTP failures, the numeric status). Every provider failure becomes
+a safe pending capture through `CaptureService`; the
 database retains `capture_id`, source, raw content, requested processing, and
 the existing maximum of two manual retries. No background retry was added.
 

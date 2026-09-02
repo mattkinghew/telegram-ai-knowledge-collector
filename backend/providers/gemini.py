@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any, Dict, Optional
 
 import httpx
@@ -13,7 +14,7 @@ from backend.models import CaptureRequest, ProviderResult
 from backend.providers.base import ProviderFailure, ProviderOutcome
 
 
-GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta2/interactions"
+GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/interactions"
 LIVE_MODES = frozenset(
     {"voice_structure", "summary", "recommendation", "short_article"}
 )
@@ -34,6 +35,9 @@ SAFE_MESSAGES = {
 
 class GeminiConfigurationError(ValueError):
     """Raised when the adapter is constructed without an explicit safe config."""
+
+
+LOGGER = logging.getLogger("backend.providers.gemini")
 
 
 class GeminiProvider:
@@ -64,36 +68,39 @@ class GeminiProvider:
     def process(self, request: CaptureRequest) -> ProviderOutcome:
         mode = request.requested_processing
         if mode not in LIVE_MODES:
-            return self._failure("INVALID_REQUEST")
+            return self._failure("INVALID_REQUEST", "mode_not_allowlisted")
 
         try:
             response = self._post(self._payload(request))
         except httpx.TimeoutException:
-            return self._failure("AI_TIMEOUT")
+            return self._failure("AI_TIMEOUT", "transport_timeout")
         except httpx.RequestError:
-            return self._failure("NETWORK_UNAVAILABLE")
+            return self._failure("NETWORK_UNAVAILABLE", "transport_request_error")
 
         if response is None:
-            return self._failure("PAYLOAD_TOO_LARGE")
+            return self._failure("PAYLOAD_TOO_LARGE", "response_limit_exceeded")
         status_code, response_body = response
         if status_code != 200:
-            return self._failure(self._http_error_code(status_code))
+            return self._failure(
+                self._http_error_code(status_code),
+                f"http_status_{status_code}",
+            )
 
         try:
             envelope = json.loads(response_body.decode("utf-8"))
             model_text = self._output_text(envelope)
             parsed = json.loads(model_text)
         except (UnicodeDecodeError, json.JSONDecodeError):
-            return self._failure("INVALID_AI_JSON")
+            return self._failure("INVALID_AI_JSON", "response_json_invalid")
         except (KeyError, TypeError, ValueError):
-            return self._failure("SCHEMA_MISMATCH")
+            return self._failure("SCHEMA_MISMATCH", "response_envelope_invalid")
 
         try:
             result = ProviderResult.model_validate(parsed)
         except ValidationError:
-            return self._failure("SCHEMA_MISMATCH")
+            return self._failure("SCHEMA_MISMATCH", "response_contract_invalid")
         if result.processing_mode != mode:
-            return self._failure("SCHEMA_MISMATCH")
+            return self._failure("SCHEMA_MISMATCH", "response_mode_mismatch")
         return result
 
     def _post(self, payload: Dict[str, Any]) -> Optional[tuple[int, bytes]]:
@@ -250,7 +257,10 @@ class GeminiProvider:
         if (
             not isinstance(output, dict)
             or output.get("type") != "model_output"
-            or output.get("status") != "done"
+            or (
+                "status" in output
+                and output.get("status") not in {"done", "completed"}
+            )
         ):
             raise ValueError("provider interaction output is incomplete")
         content = output.get("content")
@@ -280,7 +290,14 @@ class GeminiProvider:
         return "AI_UNAVAILABLE"
 
     @staticmethod
-    def _failure(error_code: str) -> ProviderFailure:
+    def _failure(error_code: str, diagnostic: str) -> ProviderFailure:
+        # Diagnostics are deliberately bounded to category/status metadata.
+        # Never include provider bodies, prompts, response text, or exception details.
+        LOGGER.warning(
+            "gemini_provider_failure provider=gemini error_code=%s diagnostic=%s",
+            error_code,
+            diagnostic,
+        )
         return ProviderFailure(
             error_code=error_code,
             message=SAFE_MESSAGES[error_code],

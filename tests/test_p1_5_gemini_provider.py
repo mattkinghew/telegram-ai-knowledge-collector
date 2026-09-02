@@ -56,22 +56,22 @@ def provider_result(mode: str) -> dict:
     }
 
 
-def interaction_response(result: dict) -> dict:
+def interaction_response(result: dict, *, include_step_status: bool = True) -> dict:
+    step = {
+        "type": "model_output",
+        "content": [
+            {
+                "type": "text",
+                "text": json.dumps(result, ensure_ascii=False),
+            }
+        ],
+    }
+    if include_step_status:
+        step["status"] = "done"
     return {
         "id": "int_fictional",
         "status": "completed",
-        "steps": [
-            {
-                "type": "model_output",
-                "status": "done",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": json.dumps(result, ensure_ascii=False),
-                    }
-                ],
-            }
-        ],
+        "steps": [step],
     }
 
 
@@ -127,7 +127,7 @@ class GeminiProviderTests(unittest.TestCase):
         self.assertEqual(request.method, "POST")
         self.assertEqual(
             str(request.url),
-            "https://generativelanguage.googleapis.com/v1beta2/interactions",
+            "https://generativelanguage.googleapis.com/v1beta/interactions",
         )
         self.assertEqual(request.headers["x-goog-api-key"], API_KEY)
         payload = json.loads(request.content)
@@ -147,6 +147,38 @@ class GeminiProviderTests(unittest.TestCase):
         self.assertIn("Structured Capture Processor", payload["system_instruction"])
         self.assertNotIn(API_KEY, request.content.decode("utf-8"))
         self.assertNotIn("Vault", payload["input"])
+
+    def test_current_interactions_response_without_legacy_step_status_is_accepted(self) -> None:
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                json=interaction_response(
+                    provider_result("summary"), include_step_status=False
+                ),
+            )
+
+        outcome = self.provider_with_handler(handler).process(
+            self.content_request("summary")
+        )
+        self.assertIsInstance(outcome, ProviderResult)
+
+    def test_failure_diagnostic_is_sanitized_and_metadata_only(self) -> None:
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                503,
+                json={"error": {"message": "private provider response"}},
+            )
+
+        with self.assertLogs("backend.providers.gemini", level="WARNING") as logs:
+            outcome = self.provider_with_handler(handler).process(
+                self.content_request("summary")
+            )
+
+        self.assertEqual(outcome.error_code, "AI_UNAVAILABLE")
+        self.assertEqual(len(logs.output), 1)
+        self.assertIn("error_code=AI_UNAVAILABLE", logs.output[0])
+        self.assertIn("diagnostic=http_status_503", logs.output[0])
+        self.assertNotIn("private provider response", logs.output[0])
 
     def test_valid_content_modes_return_strict_results(self) -> None:
         for mode in ("summary", "recommendation", "short_article"):
@@ -192,18 +224,22 @@ class GeminiProviderTests(unittest.TestCase):
             (timeout, "AI_TIMEOUT"),
             (network, "NETWORK_UNAVAILABLE"),
         ):
-            with self.subTest(expected=expected):
+            with self.subTest(expected=expected), self.assertLogs(
+                "backend.providers.gemini", level="WARNING"
+            ) as logs:
                 outcome = self.provider_with_handler(handler).process(
                     self.content_request("summary")
                 )
                 self.assertEqual(outcome.error_code, expected)
                 self.assertNotIn("private", outcome.message)
+                self.assertNotIn("private", logs.output[0])
 
     def test_http_auth_quota_and_unavailable_failures_are_safely_mapped(self) -> None:
         for status, expected in (
             (401, "AI_AUTH_FAILED"),
             (403, "AI_AUTH_FAILED"),
             (429, "AI_RATE_LIMITED"),
+            (404, "AI_UNAVAILABLE"),
             (500, "AI_UNAVAILABLE"),
             (503, "AI_UNAVAILABLE"),
         ):
