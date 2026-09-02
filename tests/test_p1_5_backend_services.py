@@ -167,6 +167,41 @@ class P15BackendServiceTests(unittest.TestCase):
                 if record_type == "meeting_followup":
                     self.assertIn("明確提及的負責人", markdown)
 
+    def test_daily_control_markdown_preserves_cjk_mixed_text_without_mojibake(self) -> None:
+        request = self.request.model_copy(
+            update={
+                "record_type": "daily_control",
+                "raw_content": "今日主要任務是測試每日控制台。英文口語五分鐘已完成。下一步是確認中文 Markdown 顯示正常。Gemini API、Cloud、RecordType、AI Agent 🚀",
+            }
+        )
+        markdown = build_capture_markdown(request, MockProvider().process(request))
+        for value in (
+            "# 每日控制台",
+            "## 🚨 系統防呆檢查",
+            "## 🎯 今日時間箱",
+            "## 🎙️ 微習慣追蹤",
+            "## ✅ 今日完成",
+            "## 🚧 覆盤與阻力紀錄",
+            "## 📝 原始語音記錄",
+            request.raw_content,
+        ):
+            self.assertIn(value, markdown)
+        for marker in ("æ", "å", "ç"):
+            self.assertNotIn(marker, markdown)
+
+    def test_sqlite_round_trip_preserves_cjk_raw_and_markdown(self) -> None:
+        request = self.request.model_copy(
+            update={"record_type": "daily_control", "raw_content": "繁體中文 English 🚀"}
+        )
+        record = self.store.create(request)
+        self.store.mark_processing(record.capture_id)
+        result = MockProvider().process(request)
+        markdown = build_capture_markdown(request, result)
+        self.store.mark_processed(record.capture_id, result, markdown)
+        stored = self.store.get(record.capture_id)
+        self.assertEqual(stored.raw_content, request.raw_content)
+        self.assertIn(request.raw_content, stored.markdown or "")
+
     def test_pending_markdown_preserves_url_without_claiming_summary(self) -> None:
         request = CaptureRequest.model_validate(
             {

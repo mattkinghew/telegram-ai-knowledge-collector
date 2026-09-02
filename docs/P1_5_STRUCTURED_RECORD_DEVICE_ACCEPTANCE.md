@@ -17,6 +17,14 @@ Do not use a real Vault, Remotely Save credential, Gemini credential, or private
 work content. Preserve the confirmed transcript and compare it with the
 `## 📝 原始語音記錄` section.
 
+## UTF-8 device check
+
+Include `繁體中文`, `English`, an emoji, and technical terms such as
+`Gemini API`, `Cloud`, `RecordType`, and `AI Agent` in one fictional capture.
+Quick Look must show readable `每日控制台`, `系統防呆檢查`, `今日時間箱`, and
+`原始語音記錄` headings. Reject the case if mojibake appears, such as
+`æ...`, `å...`, or `ç...`.
+
 ## Cases
 
 | RecordType | Fictional input | HTTP status | capture status | Markdown inspected | raw preserved | Pass/Fail |

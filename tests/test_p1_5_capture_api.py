@@ -167,6 +167,31 @@ class P15CaptureAPITests(unittest.TestCase):
         self.assertEqual(listing.status_code, 200)
         self.assertEqual(listing.json()["pagination"]["total_items"], 1)
 
+    def test_capture_api_returns_utf8_json_for_cjk_markdown(self) -> None:
+        payload = dict(
+            self.voice,
+            record_type="daily_control",
+            raw_content="今日主要任務是測試每日控制台。English、Gemini API、AI Agent 🚀",
+        )
+        response = self.client.post("/api/v1/capture", json=payload, headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("application/json", response.headers["content-type"])
+        self.assertNotIn("charset=latin-1", response.headers["content-type"].casefold())
+        decoded = response.content.decode("utf-8")
+        self.assertIn("每日控制台", decoded)
+        self.assertIn(payload["raw_content"], decoded)
+        body = response.json()
+        self.assertEqual(body["status"], "processed")
+        self.assertIn("## 📝 原始語音記錄", body["result"]["markdown"])
+        for marker in ("æ", "å", "ç"):
+            self.assertNotIn(marker, body["result"]["markdown"])
+        status = self.client.get(
+            "/api/v1/captures/" + body["capture_id"], headers=self.headers
+        )
+        self.assertEqual(status.status_code, 200)
+        self.assertEqual(status.json()["raw_content"], payload["raw_content"])
+        self.assertIn(payload["raw_content"], status.json()["markdown"])
+
     def test_raw_save_never_calls_provider(self) -> None:
         app = create_app(
             settings=self.settings,
