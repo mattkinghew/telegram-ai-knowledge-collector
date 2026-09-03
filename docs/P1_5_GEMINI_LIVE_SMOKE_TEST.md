@@ -24,6 +24,29 @@ history, Git, a Shortcut note, or this evidence sheet.
 
 ## Guarded runner
 
+### Direct Gemini diagnostic
+
+Use the direct diagnostic before the application-level runner when a runtime
+key is independently available. It calls the official Gemini Interactions API
+directly; Cloudflare and the application adapter are not involved:
+
+```text
+Direct Gemini diagnostic → App adapter diagnostic → Device end-to-end
+```
+
+The command sends only the fixed fictional prompt `Reply with exactly:
+GEMINI_OK`, requires the allowlisted `GEMINI_MODEL`, uses a bounded timeout, and
+prints only sanitized status/category metadata. It never prints or persists a
+key or response body:
+
+```bash
+PYTHONPATH=src:. .venv/bin/python tools/p1_5_gemini_direct_smoke.py
+```
+
+If `GEMINI_API_KEY` is unavailable, the command reports `LIVE CALL BLOCKED` and
+does not make a network request. A direct failure must not be used to weaken
+the guarded adapter or its fail-closed configuration.
+
 `tools/p1_5_gemini_live_smoke.py` performs only the fixed cases in this file.
 It accepts an exact HTTPS origin, reads `P1_5_ACCEPTANCE_TOKEN` only from the
 runtime environment, rejects redirects, validates each stored result with the

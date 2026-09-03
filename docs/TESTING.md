@@ -79,6 +79,10 @@ PYTHONPATH=src:. .venv/bin/python -m unittest \
 PYTHONPATH=src:. .venv/bin/python tools/p1_5_gemini_live_smoke.py --help
 ```
 
+The direct Gemini diagnostic is separately covered by
+`tests.test_p1_5_gemini_direct_smoke` and never makes a live request in the
+standard test suite.
+
 These six fake-transport tests cover the four fixed fictional live modes,
 strict stored provider validation, sanitized contract failures, one controlled
 pending failure, exactly one manual retry, raw preservation, and distinct CLI
