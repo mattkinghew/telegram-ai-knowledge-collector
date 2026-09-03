@@ -37,7 +37,8 @@ automatic deletion or cleanup.
 
 Standard tests use `MockProvider` or HTTPX MockTransport. The guarded Gemini
 adapter has a fixed endpoint, server-side model allowlist, production-only
-triple opt-in, minimal mode-specific request mapping, 20-second timeout,
+triple opt-in, minimal mode-specific request mapping, a 5-second connect /
+60-second read / 10-second write timeout budget,
 256 KiB response cap, strict structured validation, and sanitized failures.
 Provider output is revalidated before storage and Markdown rendering. No key is
 persisted and no real Gemini call was made; live acceptance remains pending.

@@ -101,10 +101,16 @@ class CaptureService:
                     started,
                 )
             result = ProviderResult.model_validate(outcome.model_dump())
+            markdown_started = time.monotonic()
             markdown = build_capture_markdown(
                 request,
                 result,
                 extracted_content=extracted.text if extracted else None,
+            )
+            LOGGER.info(
+                "capture_stage capture_id=%s stage=markdown_rendering elapsed_ms=%s result=ok",
+                record.capture_id,
+                int((time.monotonic() - markdown_started) * 1_000),
             )
             self.store.mark_processed(record.capture_id, result, markdown)
             response = self._success(record.capture_id, markdown, result, extracted)

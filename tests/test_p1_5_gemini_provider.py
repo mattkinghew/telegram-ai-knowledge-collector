@@ -148,6 +148,111 @@ class GeminiProviderTests(unittest.TestCase):
         self.assertNotIn(API_KEY, request.content.decode("utf-8"))
         self.assertNotIn("Vault", payload["input"])
 
+    def test_structured_request_allows_model_read_time_without_extending_connect_budget(self) -> None:
+        captured = {}
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            captured["timeout"] = request.extensions.get("timeout")
+            return httpx.Response(
+                200,
+                json=interaction_response(provider_result("summary")),
+            )
+
+        self.provider_with_handler(handler).process(self.content_request("summary"))
+
+        self.assertEqual(
+            captured["timeout"],
+            {"connect": 5.0, "read": 60.0, "write": 10.0, "pool": 5.0},
+        )
+
+    def test_capture_api_completes_through_gemini_provider_path(self) -> None:
+        observed = {}
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            observed["timeout"] = request.extensions.get("timeout")
+            return httpx.Response(
+                200,
+                json=interaction_response(provider_result("voice_structure")),
+            )
+
+        client = httpx.Client(
+            transport=httpx.MockTransport(handler),
+            trust_env=False,
+        )
+        self.addCleanup(client.close)
+        provider = GeminiProvider(api_key=API_KEY, model=MODEL, client=client)
+        with tempfile.TemporaryDirectory() as directory:
+            store = CaptureStore(Path(directory) / "captures.sqlite3")
+            settings = Settings(
+                app_env="production",
+                ai_provider="gemini",
+                database_path=Path(directory) / "captures.sqlite3",
+                auth_mode="token",
+                api_auth_token="fictional-api-auth-token",
+                allowed_origins=("https://app.example",),
+                enable_live_ai=True,
+                gemini_api_key=API_KEY,
+                gemini_model=MODEL,
+            )
+            application = create_app(settings=settings, store=store, provider=provider)
+
+            from fastapi.testclient import TestClient
+
+            with TestClient(application) as api:
+                response = api.post(
+                    "/api/v1/capture",
+                    headers={"Authorization": "Bearer fictional-api-auth-token"},
+                    json=self.voice_request().model_dump(mode="json"),
+                )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["status"], "processed")
+        self.assertTrue(response.json()["result"]["markdown"])
+        self.assertEqual(
+            observed["timeout"],
+            {"connect": 5.0, "read": 60.0, "write": 10.0, "pool": 5.0},
+        )
+
+    def test_timing_diagnostics_are_stage_only_and_secret_free(self) -> None:
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                json=interaction_response(provider_result("summary")),
+            )
+
+        with self.assertLogs("backend.providers.gemini", level="INFO") as logs:
+            self.provider_with_handler(handler).process(self.content_request("summary"))
+
+        output = "\n".join(logs.output)
+        for stage in (
+            "request_construction",
+            "network_request",
+            "provider_response",
+            "structured_parsing",
+        ):
+            self.assertIn(f"stage={stage}", output)
+        self.assertIn("timeout_ms=0", output)
+        self.assertNotIn(API_KEY, output)
+        self.assertNotIn(self.content_request("summary").raw_content, output)
+        self.assertNotIn("x-goog-api-key", output)
+
+    def test_timeout_timing_identifies_network_stage_without_details(self) -> None:
+        def timeout(request: httpx.Request) -> httpx.Response:
+            raise httpx.ReadTimeout("private timeout detail", request=request)
+
+        with self.assertLogs("backend.providers.gemini", level="INFO") as logs:
+            outcome = self.provider_with_handler(timeout).process(
+                self.content_request("summary")
+            )
+
+        self.assertEqual(outcome.error_code, "AI_TIMEOUT")
+        output = "\n".join(logs.output)
+        self.assertIn(
+            "stage=network_request elapsed_ms=", output
+        )
+        self.assertIn("timeout_ms=60000 result=timeout", output)
+        self.assertNotIn("private timeout detail", output)
+
     def test_current_interactions_response_without_legacy_step_status_is_accepted(self) -> None:
         def handler(request: httpx.Request) -> httpx.Response:
             return httpx.Response(

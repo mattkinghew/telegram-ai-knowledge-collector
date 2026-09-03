@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 from typing import Any, Dict, Optional
 
 import httpx
@@ -19,7 +20,12 @@ LIVE_MODES = frozenset(
     {"voice_structure", "summary", "recommendation", "short_article"}
 )
 MAX_PROVIDER_RESPONSE_BYTES = 256 * 1024
-PROVIDER_TIMEOUT_SECONDS = 20.0
+# Structured responses can take longer than the minimal direct diagnostic. Keep
+# connection setup bounded while allowing a bounded model read window.
+PROVIDER_CONNECT_TIMEOUT_SECONDS = 5.0
+PROVIDER_READ_TIMEOUT_SECONDS = 60.0
+PROVIDER_WRITE_TIMEOUT_SECONDS = 10.0
+PROVIDER_POOL_TIMEOUT_SECONDS = 5.0
 SAFE_MESSAGES = {
     "NETWORK_UNAVAILABLE": "Network unavailable — capture was saved.",
     "AI_UNAVAILABLE": "AI temporarily unavailable — capture was saved.",
@@ -70,41 +76,85 @@ class GeminiProvider:
         if mode not in LIVE_MODES:
             return self._failure("INVALID_REQUEST", "mode_not_allowlisted")
 
+        construction_started = time.monotonic()
+        payload = self._payload(request)
+        self._log_timing("request_construction", construction_started, "ok")
+
+        network_started = time.monotonic()
         try:
-            response = self._post(self._payload(request))
+            response = self._post(payload)
         except httpx.TimeoutException:
+            self._log_timing(
+                "network_request",
+                network_started,
+                "timeout",
+                timeout_ms=int(PROVIDER_READ_TIMEOUT_SECONDS * 1_000),
+            )
             return self._failure("AI_TIMEOUT", "transport_timeout")
         except httpx.RequestError:
+            self._log_timing("network_request", network_started, "error")
             return self._failure("NETWORK_UNAVAILABLE", "transport_request_error")
+        self._log_timing("network_request", network_started, "ok")
 
         if response is None:
+            self._log_timing("provider_response", network_started, "too_large")
             return self._failure("PAYLOAD_TOO_LARGE", "response_limit_exceeded")
         status_code, response_body = response
+        self._log_timing("provider_response", network_started, "received")
         if status_code != 200:
             return self._failure(
                 self._http_error_code(status_code),
                 f"http_status_{status_code}",
             )
 
+        parsing_started = time.monotonic()
         try:
             envelope = json.loads(response_body.decode("utf-8"))
             model_text = self._output_text(envelope)
             parsed = json.loads(model_text)
         except (UnicodeDecodeError, json.JSONDecodeError):
+            self._log_timing("structured_parsing", parsing_started, "invalid_json")
             return self._failure("INVALID_AI_JSON", "response_json_invalid")
         except (KeyError, TypeError, ValueError):
+            self._log_timing("structured_parsing", parsing_started, "schema_error")
             return self._failure("SCHEMA_MISMATCH", "response_envelope_invalid")
+        self._log_timing("structured_parsing", parsing_started, "ok")
 
         try:
             result = ProviderResult.model_validate(parsed)
         except ValidationError:
+            self._log_timing("structured_validation", parsing_started, "schema_error")
             return self._failure("SCHEMA_MISMATCH", "response_contract_invalid")
         if result.processing_mode != mode:
+            self._log_timing("structured_validation", parsing_started, "mode_error")
             return self._failure("SCHEMA_MISMATCH", "response_mode_mismatch")
+        self._log_timing("structured_validation", parsing_started, "ok")
         return result
+
+    @staticmethod
+    def _log_timing(
+        stage: str,
+        started: float,
+        result: str,
+        *,
+        timeout_ms: int = 0,
+    ) -> None:
+        LOGGER.info(
+            "gemini_provider_timing provider=gemini stage=%s elapsed_ms=%s timeout_ms=%s result=%s",
+            stage,
+            int((time.monotonic() - started) * 1_000),
+            timeout_ms,
+            result,
+        )
 
     def _post(self, payload: Dict[str, Any]) -> Optional[tuple[int, bytes]]:
         chunks = bytearray()
+        timeout = httpx.Timeout(
+            connect=PROVIDER_CONNECT_TIMEOUT_SECONDS,
+            read=PROVIDER_READ_TIMEOUT_SECONDS,
+            write=PROVIDER_WRITE_TIMEOUT_SECONDS,
+            pool=PROVIDER_POOL_TIMEOUT_SECONDS,
+        )
         with self._client.stream(
             "POST",
             GEMINI_ENDPOINT,
@@ -113,7 +163,7 @@ class GeminiProvider:
                 "x-goog-api-key": self._api_key,
             },
             json=payload,
-            timeout=PROVIDER_TIMEOUT_SECONDS,
+            timeout=timeout,
             follow_redirects=False,
         ) as response:
             for chunk in response.iter_bytes():

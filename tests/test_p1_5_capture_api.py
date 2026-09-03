@@ -318,6 +318,7 @@ class P15CaptureAPITests(unittest.TestCase):
         self.assertNotIn("fictional-test-token", output)
         self.assertNotIn("Authorization", output)
         self.assertIn("processing=voice_structure", output)
+        self.assertIn("stage=markdown_rendering", output)
 
     def test_provider_failure_message_cannot_echo_raw_content(self) -> None:
         client = TestClient(

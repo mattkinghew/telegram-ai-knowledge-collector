@@ -53,8 +53,10 @@ deadlines; raw input remains authoritative.
 
 ## Response and failure contract
 
-The request includes a mode-specific JSON schema. The response is capped at
-256 KiB, decoded as UTF-8 JSON, extracted only from a completed model-output
+The request includes a mode-specific JSON schema. The transport uses a bounded
+5-second connection / 60-second read / 10-second write timeout budget so a
+structured model response is not cut off by the direct diagnostic's shorter
+request window. The response is capped at 256 KiB, decoded as UTF-8 JSON, extracted only from a completed model-output
 step, parsed again as structured JSON, and validated by strict `ProviderResult`
 contracts. Current Interactions responses may omit a per-step status; when one is
 present it must be `done` or `completed`. Unknown fields, wrong sections, wrong
@@ -84,12 +86,19 @@ a safe pending capture through `CaptureService`; the
 database retains `capture_id`, source, raw content, requested processing, and
 the existing maximum of two manual retries. No background retry was added.
 
+For live timeout investigation, metadata-only timing records identify
+`request_construction`, `network_request`, `provider_response`, and
+`structured_parsing`/`structured_validation`. Each record contains only stage,
+elapsed milliseconds, timeout milliseconds where applicable, and a fixed result
+category. Markdown rendering is separately marked by `CaptureService`; raw
+content, prompts, responses, headers, exception text, and secrets are excluded.
+
 ## Secret and logging audit
 
 - `.env` and `.env.*` remain ignored; `.env.example` contains blanks only.
 - The API key and API bearer token are excluded from `Settings` repr.
 - Logs contain only capture ID, provider class, processing mode, status,
-  duration, and safe error code.
+  duration, safe error code, and bounded stage timing metadata.
 - Logs do not contain raw content, prompt, model response, Markdown, key, or
   authorization header.
 - The API response and stored error message contain only internal sanitized
