@@ -40,8 +40,15 @@ prints only sanitized status/category metadata. It never prints or persists a
 key or response body:
 
 ```bash
-PYTHONPATH=src:. .venv/bin/python tools/p1_5_gemini_direct_smoke.py
+.venv/bin/python -m tools.p1_5_gemini_direct_smoke
 ```
+
+Transport diagnostics use content-free codes: `PROVIDER_DNS`, `PROVIDER_TLS`,
+`PROVIDER_TIMEOUT`, `PROVIDER_RESET`, `PROVIDER_CONNECT`, or
+`PROVIDER_NETWORK`. Invalid URL/protocol/request construction is reported as
+`REQUEST/MALFORMED_REQUEST`, while provider HTTP responses retain their HTTP
+status and a sanitized provider code. No exception text, headers, key, prompt,
+or response body is emitted.
 
 If `GEMINI_API_KEY` is unavailable, the command reports `LIVE CALL BLOCKED` and
 does not make a network request. A direct failure must not be used to weaken

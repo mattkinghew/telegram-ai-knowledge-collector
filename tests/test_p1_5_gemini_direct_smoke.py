@@ -53,9 +53,47 @@ class DirectGeminiSmokeTests(unittest.TestCase):
         def timeout(request: httpx.Request) -> httpx.Response:
             raise httpx.ReadTimeout("private detail")
 
-        self.assertEqual(run_direct_smoke(environ={"GEMINI_API_KEY": KEY, "GEMINI_MODEL": MODEL}, transport=httpx.MockTransport(timeout))["category"], "NETWORK")
+        timeout_result = run_direct_smoke(
+            environ={"GEMINI_API_KEY": KEY, "GEMINI_MODEL": MODEL},
+            transport=httpx.MockTransport(timeout),
+        )
+        self.assertEqual(timeout_result["category"], "NETWORK")
+        self.assertEqual(timeout_result["error_code"], "PROVIDER_TIMEOUT")
         malformed = httpx.MockTransport(lambda request: httpx.Response(200, text="not-json"))
         self.assertEqual(run_direct_smoke(environ={"GEMINI_API_KEY": KEY, "GEMINI_MODEL": MODEL}, transport=malformed)["category"], "PARSE")
+
+    def test_request_contract_failure_is_not_network(self) -> None:
+        result = run_direct_smoke(
+            environ={"GEMINI_API_KEY": KEY, "GEMINI_MODEL": MODEL},
+            endpoint="not-a-url",
+        )
+        self.assertEqual(result["category"], "REQUEST")
+        self.assertEqual(result["error_code"], "MALFORMED_REQUEST")
+
+        def unsupported(request: httpx.Request) -> httpx.Response:
+            raise httpx.UnsupportedProtocol("hidden", request=request)
+
+        result = run_direct_smoke(
+            environ={"GEMINI_API_KEY": KEY, "GEMINI_MODEL": MODEL},
+            transport=httpx.MockTransport(unsupported),
+        )
+        self.assertEqual(result["category"], "REQUEST")
+        self.assertEqual(result["error_code"], "MALFORMED_REQUEST")
+
+    def test_dns_tls_and_socket_failures_have_sanitized_codes(self) -> None:
+        failures = (("gaierror", "PROVIDER_DNS"), ("SSLError", "PROVIDER_TLS"), ("ConnectionResetError", "PROVIDER_RESET"))
+        for exception, code in failures:
+            with self.subTest(code=code):
+                cause = type(exception, (OSError,), {})()
+                error = httpx.ConnectError("hidden", request=httpx.Request("POST", GEMINI_ENDPOINT))
+                error.__cause__ = cause
+                result = run_direct_smoke(
+                    environ={"GEMINI_API_KEY": KEY, "GEMINI_MODEL": MODEL},
+                    transport=httpx.MockTransport(lambda request, error=error: (_ for _ in ()).throw(error)),
+                )
+                self.assertEqual(result["category"], "NETWORK")
+                self.assertEqual(result["error_code"], code)
+                self.assertNotIn("hidden", str(result))
 
     def test_model_allowlist_and_cli_missing_key_do_not_print_secret(self) -> None:
         self.assertEqual(run_direct_smoke(environ={"GEMINI_API_KEY": KEY, "GEMINI_MODEL": "other"})["category"], "MODEL")
