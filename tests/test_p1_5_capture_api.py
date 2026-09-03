@@ -153,6 +153,12 @@ class P15CaptureAPITests(unittest.TestCase):
         self.assertTrue(body["ok"])
         self.assertEqual(body["status"], "processed")
         self.assertIn(self.voice["raw_content"], body["result"]["markdown"])
+        handoff = body["result"]["obsidian_handoff"]
+        self.assertEqual(handoff["markdown"], body["result"]["markdown"])
+        self.assertEqual(handoff["record_type"], "free")
+        self.assertEqual(handoff["folder_key"], "free")
+        self.assertTrue(handoff["suggested_filename"].endswith(".md"))
+        self.assertRegex(handoff["suggested_date"], r"^\d{4}-\d{2}-\d{2}$")
 
         status = self.client.get(
             "/api/v1/captures/" + body["capture_id"], headers=self.headers

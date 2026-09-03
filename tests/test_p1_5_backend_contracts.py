@@ -11,6 +11,12 @@ from backend.models import (
     ProviderResult,
     new_capture_id,
 )
+from backend.services.obsidian_handoff import (
+    build_obsidian_handoff,
+    build_suggested_filename,
+    folder_for_record_type,
+    sanitize_note_title,
+)
 
 
 class P15BackendContractTests(unittest.TestCase):
@@ -224,6 +230,39 @@ class P15BackendContractTests(unittest.TestCase):
         )
         self.assertTrue(success.ok)
         self.assertEqual(pending.error_code, "AI_UNAVAILABLE")
+
+    def test_obsidian_handoff_sanitizes_cjk_and_path_traversal(self) -> None:
+        title = "  每日/控制台: 測試..  "
+        sanitized = sanitize_note_title(title)
+        self.assertEqual(sanitized, "每日-控制台-測試")
+        filename = build_suggested_filename("2026-09-03", title)
+        self.assertEqual(filename, "2026-09-03-每日-控制台-測試.md")
+        self.assertNotIn("/", filename)
+        self.assertNotIn("..", filename)
+
+    def test_obsidian_handoff_duplicate_suffix_is_deterministic(self) -> None:
+        self.assertEqual(
+            build_suggested_filename(
+                "2026-09-03", "Fictional note", existing_names={"2026-09-03-Fictional note.md"}
+            ),
+            "2026-09-03-Fictional note-2.md",
+        )
+
+    def test_obsidian_folder_mapping_is_logical_only(self) -> None:
+        self.assertEqual(folder_for_record_type("daily_control"), "Daily")
+        self.assertEqual(folder_for_record_type("free"), "Inbox")
+
+    def test_obsidian_handoff_is_logical_and_contains_no_vault_path(self) -> None:
+        handoff = build_obsidian_handoff(
+            markdown="# Fictional",
+            suggested_date="2026-09-03",
+            record_type="daily_control",
+            title="每日控制台",
+        )
+        self.assertEqual(handoff["folder_key"], "daily_control")
+        self.assertEqual(handoff["suggested_filename"], "2026-09-03-每日控制台.md")
+        self.assertEqual(handoff["markdown"], "# Fictional")
+        self.assertFalse(any("/Users/" in str(value) for value in handoff.values()))
 
 
 if __name__ == "__main__":

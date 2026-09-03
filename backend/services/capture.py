@@ -10,6 +10,7 @@ from backend.models import CaptureRequest, CaptureResponse, ProviderResult
 from backend.providers.base import Provider, ProviderFailure
 from backend.services.extraction import ExtractedArticle, URLExtractionError, URLExtractor
 from backend.services.markdown import build_capture_markdown
+from backend.services.obsidian_handoff import build_obsidian_handoff
 from backend.storage.sqlite import CaptureRecord, CaptureStore, RetryLimitError
 
 
@@ -67,7 +68,7 @@ class CaptureService:
             if request.requested_processing == "raw_save":
                 markdown = build_capture_markdown(request, None)
                 self.store.mark_processed(record.capture_id, None, markdown)
-                response = self._success(record.capture_id, markdown, None, None)
+                response = self._success(record, request, markdown, None, None)
                 self._log(record.capture_id, request, "processed", None, started)
                 return response
 
@@ -113,7 +114,7 @@ class CaptureService:
                 int((time.monotonic() - markdown_started) * 1_000),
             )
             self.store.mark_processed(record.capture_id, result, markdown)
-            response = self._success(record.capture_id, markdown, result, extracted)
+            response = self._success(record, request, markdown, result, extracted)
             self._log(record.capture_id, request, "processed", None, started)
             return response
         except URLExtractionError as exc:
@@ -170,14 +171,23 @@ class CaptureService:
 
     @staticmethod
     def _success(
-        capture_id: str,
+        record: CaptureRecord,
+        request: CaptureRequest,
         markdown: str,
         result: Optional[ProviderResult],
         extracted: Optional[ExtractedArticle],
     ) -> CaptureResponse:
+        title = result.title if result else "Captured item"
+        suggested_date = record.created_at[:10]
         payload = {
             "markdown": markdown,
             "provider_result": result.model_dump() if result else None,
+            "obsidian_handoff": build_obsidian_handoff(
+                markdown=markdown,
+                suggested_date=suggested_date,
+                record_type=request.record_type,
+                title=title,
+            ),
             "extracted": (
                 {
                     "final_url": extracted.final_url,
@@ -189,7 +199,7 @@ class CaptureService:
         }
         return CaptureResponse(
             ok=True,
-            capture_id=capture_id,
+            capture_id=record.capture_id,
             status="processed",
             result=payload,
             error_code=None,
