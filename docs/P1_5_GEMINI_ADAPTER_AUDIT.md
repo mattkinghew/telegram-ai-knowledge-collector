@@ -65,6 +65,29 @@ there is no prose fallback or guessed repair.
 The payload uses the current `response_format` JSON-schema contract and does not
 send legacy `generation_config`/`response_mime_type` parameters.
 
+## HTTP 500 contract investigation
+
+The reported `AI_UNAVAILABLE` with `diagnostic=http_status_500` is emitted only
+after the provider receives a non-200 HTTP response; it is not a timeout or a
+local Markdown/parsing failure. The direct smoke sends only `model` and a plain
+string `input`. The application adds a JSON-encoded mode envelope,
+`system_instruction`, and a structured `response_format` schema. The schema
+previously included `minLength`/`maxLength` on strings. Google's current
+Interactions structured-output subset documents string `enum`/`format`, while
+array `minItems`/`maxItems` and object `additionalProperties` are supported.
+Those string length keywords were therefore removed from the provider request;
+the same bounds remain enforced by the internal `ProviderResult` validation
+after parsing. This is the smallest contract alignment supported by the local
+evidence; an actual provider-side confirmation still requires the operator's
+fictional live run.
+
+The redacted binary-search command is
+`python3 tools/p1_5_gemini_request_bisect.py`. It sends five fictional variants
+(minimal, system instruction, simple schema, full schema, and application
+envelope) and prints only status and byte counts. It requires an explicit
+runtime `GEMINI_API_KEY` and allowlisted `GEMINI_MODEL`; it never prints the key,
+prompt, response body, or headers.
+
 Safe mappings:
 
 | Provider condition | Internal code |

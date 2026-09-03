@@ -252,7 +252,9 @@ class GeminiProvider:
             required_sections = template_sections[record_type]
         line_list = {
             "type": "array",
-            "items": {"type": "string", "minLength": 1, "maxLength": 1000},
+            # Keep provider JSON Schema to the Interactions-supported subset.
+            # Length bounds remain enforced by ProviderResult after parsing.
+            "items": {"type": "string"},
             "maxItems": 10,
         }
         section_properties = {
@@ -271,18 +273,14 @@ class GeminiProvider:
             ],
             "properties": {
                 "processing_mode": {"type": "string", "enum": [mode]},
-                "title": {"type": "string", "minLength": 1, "maxLength": 200},
-                "summary": {"type": "string", "minLength": 1, "maxLength": 600},
+                "title": {"type": "string"},
+                "summary": {"type": "string"},
                 "points": {
                     "type": "array",
-                    "items": {"type": "string", "minLength": 1, "maxLength": 500},
+                    "items": {"type": "string"},
                     "maxItems": 3,
                 },
-                "why_it_matters": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 600,
-                },
+                "why_it_matters": {"type": "string"},
                 "sections": {
                     "type": "object",
                     "additionalProperties": False,

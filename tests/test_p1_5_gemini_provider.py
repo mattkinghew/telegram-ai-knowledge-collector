@@ -165,6 +165,12 @@ class GeminiProviderTests(unittest.TestCase):
             {"connect": 5.0, "read": 60.0, "write": 10.0, "pool": 5.0},
         )
 
+    def test_structured_schema_uses_only_interactions_supported_keywords(self) -> None:
+        schema = GeminiProvider._response_schema("voice_structure")
+        encoded = json.dumps(schema)
+        self.assertNotIn("minLength", encoded)
+        self.assertNotIn("maxLength", encoded)
+
     def test_capture_api_completes_through_gemini_provider_path(self) -> None:
         observed = {}
 
