@@ -39,6 +39,7 @@ RecordType = Literal[
     "meeting_followup",
 ]
 ErrorCode = Literal[
+    "PROCESSING_QUEUED",
     "NETWORK_UNAVAILABLE",
     "AI_UNAVAILABLE",
     "AI_TIMEOUT",

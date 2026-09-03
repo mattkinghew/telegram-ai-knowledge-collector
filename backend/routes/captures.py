@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import asdict
 from typing import Literal, Optional
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, BackgroundTasks, Query, Request
 from fastapi.responses import JSONResponse
 
 from backend.models import CaptureRequest
@@ -30,11 +30,18 @@ def _unauthorized(request: Request) -> Optional[JSONResponse]:
 
 
 @router.post("/capture")
-def create_capture(request: Request, payload: CaptureRequest):
+def create_capture(
+    request: Request, background_tasks: BackgroundTasks, payload: CaptureRequest
+):
     denied = _unauthorized(request)
     if denied:
         return denied
     response = request.app.state.capture_service.create(payload)
+    if response.error_code == "PROCESSING_QUEUED":
+        background_tasks.add_task(
+            request.app.state.capture_service.process_existing,
+            response.capture_id,
+        )
     return JSONResponse(
         status_code=200 if response.ok else (202 if response.status == "pending" else 500),
         content=response.model_dump(mode="json"),

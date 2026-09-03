@@ -17,6 +17,13 @@ Backend OFF user report below. Use fictional/public-safe inputs only.
 Do not duplicate those procedures in another document. Record evidence only in
 their tables or a sanitized acceptance result derived from them.
 
+For live Gemini, the iPhone POST may return HTTP `202` with
+`PROCESSING_QUEUED`; this is an accepted acknowledgement, not a failed
+capture. Follow the bounded GET polling sequence in
+`P1_5_OBSIDIAN_SHORTCUT_HANDOFF.md` before evaluating Markdown or Obsidian
+handoff. MockProvider remains the Backend ON prerequisite and may return the
+existing immediate HTTP `200` response.
+
 ## Backend OFF accepted boundary
 
 Result: `USER_REPORTED_DEVICE_PASS`.

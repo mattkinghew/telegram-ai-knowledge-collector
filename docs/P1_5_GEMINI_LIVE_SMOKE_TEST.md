@@ -99,8 +99,12 @@ curl --fail-with-body --silent --show-error \
 unset P1_5_ACCEPTANCE_TOKEN
 ```
 
-Require HTTP 200, `status=processed`, a non-empty `result.markdown`, and an
-exactly preserved `raw_content` when reading the returned capture. The
+The live provider may return HTTP 202 with `status=pending` and
+`error_code=PROCESSING_QUEUED`. In that case poll the authenticated
+`GET /api/v1/captures/{capture_id}` endpoint every 2 seconds for at most 15
+attempts. Require the terminal GET to be `status=processed`, with a non-empty
+`result.markdown` (or `markdown` field), and an exactly preserved `raw_content`.
+An immediate MockProvider response may still be HTTP 200. The
 deterministic renderer remains responsible for the Markdown format; do not
 accept invented deadlines, owners, completion states, or other unsupported
 facts. This check is fictional only and is not device, staging, or production
@@ -149,7 +153,7 @@ Send one distinct fictional request for each supported mode below. Voice must
 use `capture_type=voice` and `source_type=voice_transcript`; the other three may
 use `capture_type=content` and `source_type=selected_text`.
 
-| Mode | Fictional input label | HTTP | `capture_id` | Status | Schema valid | Raw preserved | Log review | Result |
+| Mode | Fictional input label | POST HTTP | `capture_id` | Terminal status | Schema valid | Raw preserved | Log review | Result |
 |---|---|---:|---|---|---|---|---|---|
 | `voice_structure` | FICTIONAL-LIVE-VOICE-01 | | | | | | | PENDING |
 | `summary` | FICTIONAL-LIVE-SUMMARY-01 | | | | | | | PENDING |
@@ -158,8 +162,8 @@ use `capture_type=content` and `source_type=selected_text`.
 
 For each row:
 
-1. Require HTTP 200, `ok=true`, `status=processed`, a `capture_id`, and non-empty
-   `result.markdown`.
+1. Require HTTP 200/202 and a `capture_id`. For HTTP 202, poll as described
+   above; for HTTP 200, consume the result immediately.
 2. Query `GET /api/v1/captures/{capture_id}` and confirm the provider result
    validates against `ProviderResult` for the requested mode.
 3. Compare stored raw content with the original fictional input.

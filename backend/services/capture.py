@@ -37,14 +37,35 @@ class CaptureService:
         store: CaptureStore,
         provider: Provider,
         extractor: URLExtractor,
+        defer_processing: bool = False,
     ) -> None:
         self.store = store
         self.provider = provider
         self.extractor = extractor
+        self.defer_processing = defer_processing
 
     def create(self, request: CaptureRequest) -> CaptureResponse:
         record = self.store.create(request)
+        if self.defer_processing and request.requested_processing != "raw_save":
+            return self._queued(record.capture_id)
         return self._process(record, request)
+
+    def process_existing(self, capture_id: str) -> CaptureResponse:
+        """Process a persisted capture after its quick POST acknowledgement."""
+
+        record = self.store.get(capture_id)
+        return self._process(record, self._request_from_record(record))
+
+    @staticmethod
+    def _queued(capture_id: str, *, status: str = "pending") -> CaptureResponse:
+        return CaptureResponse(
+            ok=False,
+            capture_id=capture_id,
+            status=status,
+            result=None,
+            error_code="PROCESSING_QUEUED",
+            message="Capture accepted — processing continues in the background.",
+        )
 
     def retry(self, capture_id: str) -> CaptureResponse:
         current = self.store.get(capture_id)
@@ -52,6 +73,8 @@ class CaptureService:
             raise ValueError("processed captures do not require retry")
         record = self.store.begin_retry(capture_id)
         request = self._request_from_record(record)
+        if self.defer_processing:
+            return self._queued(record.capture_id, status="processing")
         return self._process(record, request, already_processing=True)
 
     def _process(

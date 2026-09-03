@@ -59,6 +59,7 @@ def create_app(
         store=capture_store,
         provider=provider,
         extractor=capture_extractor,
+        defer_processing=(configured.ai_provider == "gemini"),
     )
     application.state.rate_limiter = rate_limiter or InMemoryRateLimiter()
     application.add_middleware(

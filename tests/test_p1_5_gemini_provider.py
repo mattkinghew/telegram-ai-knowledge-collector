@@ -210,10 +210,20 @@ class GeminiProviderTests(unittest.TestCase):
                     headers={"Authorization": "Bearer fictional-api-auth-token"},
                     json=self.voice_request().model_dump(mode="json"),
                 )
+                capture_id = response.json()["capture_id"]
+                stored = store.get(capture_id)
+                status_response = api.get(
+                    "/api/v1/captures/" + capture_id,
+                    headers={"Authorization": "Bearer fictional-api-auth-token"},
+                )
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["status"], "processed")
-        self.assertTrue(response.json()["result"]["markdown"])
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.json()["status"], "pending")
+        self.assertEqual(response.json()["error_code"], "PROCESSING_QUEUED")
+        self.assertEqual(stored.status, "processed")
+        self.assertTrue(stored.markdown)
+        self.assertEqual(status_response.status_code, 200)
+        self.assertEqual(status_response.json()["status"], "processed")
         self.assertEqual(
             observed["timeout"],
             {"connect": 5.0, "read": 60.0, "write": 10.0, "pool": 5.0},

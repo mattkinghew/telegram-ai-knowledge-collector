@@ -6,7 +6,10 @@ from pathlib import Path
 
 from backend.models import CaptureRequest
 from backend.providers.gemini import GeminiConfigurationError, GeminiProvider
+from backend.providers.base import ProviderFailure
 from backend.providers.mock import MockProvider
+from backend.services.capture import CaptureService
+from backend.services.extraction import URLExtractor
 from backend.services.markdown import build_capture_markdown
 from backend.storage.sqlite import CaptureStore, RetryLimitError
 
@@ -27,6 +30,49 @@ class P15BackendServiceTests(unittest.TestCase):
                 "allowed_projects": ["Project Alpha"],
             }
         )
+
+    def test_deferred_capture_acknowledges_then_processes_same_persisted_record(self) -> None:
+        service = CaptureService(
+            store=self.store,
+            provider=MockProvider(),
+            extractor=URLExtractor(),
+            defer_processing=True,
+        )
+
+        queued = service.create(self.request)
+        self.assertFalse(queued.ok)
+        self.assertEqual(queued.status, "pending")
+        self.assertEqual(queued.error_code, "PROCESSING_QUEUED")
+        self.assertEqual(self.store.get(queued.capture_id).status, "pending")
+
+        processed = service.process_existing(queued.capture_id)
+        self.assertTrue(processed.ok)
+        self.assertEqual(processed.status, "processed")
+        stored = self.store.get(queued.capture_id)
+        self.assertEqual(stored.status, "processed")
+        self.assertEqual(stored.raw_content, self.request.raw_content)
+
+    def test_deferred_provider_failure_preserves_pending_capture(self) -> None:
+        class FailingProvider:
+            def process(self, request):
+                del request
+                return ProviderFailure(
+                    error_code="AI_TIMEOUT",
+                    message="provider detail must stay server-side",
+                )
+
+        service = CaptureService(
+            store=self.store,
+            provider=FailingProvider(),
+            extractor=URLExtractor(),
+            defer_processing=True,
+        )
+        queued = service.create(self.request)
+        result = service.process_existing(queued.capture_id)
+        self.assertFalse(result.ok)
+        self.assertEqual(result.status, "pending")
+        self.assertEqual(result.error_code, "AI_TIMEOUT")
+        self.assertEqual(self.store.get(queued.capture_id).raw_content, self.request.raw_content)
 
     def test_store_preserves_raw_input_through_processed_transition(self) -> None:
         record = self.store.create(self.request)
