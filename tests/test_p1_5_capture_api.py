@@ -164,7 +164,12 @@ class P15CaptureAPITests(unittest.TestCase):
             "/api/v1/captures/" + body["capture_id"], headers=self.headers
         )
         self.assertEqual(status.status_code, 200)
-        self.assertEqual(status.json()["raw_content"], self.voice["raw_content"])
+        status_body = status.json()
+        self.assertEqual(status_body["raw_content"], self.voice["raw_content"])
+        self.assertEqual(status_body["result"]["markdown"], body["result"]["markdown"])
+        self.assertEqual(
+            status_body["result"]["obsidian_handoff"], body["result"]["obsidian_handoff"]
+        )
 
         listing = self.client.get(
             "/api/v1/captures?page=1&page_size=10&status=processed",

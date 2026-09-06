@@ -10,10 +10,32 @@ from fastapi.responses import JSONResponse
 
 from backend.models import CaptureRequest
 from backend.security.auth import is_authorized
+from backend.services.obsidian_handoff import build_obsidian_handoff
 from backend.storage.sqlite import RetryLimitError
 
 
 router = APIRouter(prefix="/api/v1")
+
+
+def _capture_record_response(record: object) -> dict:
+    item = asdict(record)
+    if (
+        item.get("status") == "processed"
+        and isinstance(item.get("markdown"), str)
+        and item["markdown"]
+    ):
+        item["result"] = {
+            "markdown": item["markdown"],
+            "provider_result": item.get("result"),
+            "obsidian_handoff": build_obsidian_handoff(
+                markdown=item["markdown"],
+                suggested_date=str(item.get("created_at", ""))[:10],
+                record_type=item["record_type"],
+                title=item["title"],
+            ),
+            "extracted": None,
+        }
+    return item
 
 
 def error_response(status_code: int, code: str, message: str) -> JSONResponse:
@@ -57,7 +79,7 @@ def get_capture(request: Request, capture_id: str):
         record = request.app.state.store.get(capture_id)
     except KeyError:
         return error_response(404, "NOT_FOUND", "Capture was not found.")
-    return asdict(record)
+    return _capture_record_response(record)
 
 
 @router.get("/captures")
