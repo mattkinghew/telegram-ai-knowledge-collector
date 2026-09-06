@@ -132,6 +132,14 @@ service: com.business-knowledge-capture.p1-5.gemini-api-key
 account: <macOS account name>
 ```
 
+Use **Keychain Access** to create these items in the `login` keychain: choose
+`New Password Item`, use the service string above as the item name, use the
+macOS account name as `Account`, and enter the secret only in the password
+field. Do this once for each item. Do not use a `security ... -w <secret>`
+command copied from a shell history, and do not paste either value into chat.
+The wrapper performs a non-printing lookup by service/account and exits
+fail-closed if either item is absent or empty.
+
 The wrapper sets `APP_ENV=production`, `AUTH_MODE=token`,
 `AI_PROVIDER=gemini`, `ENABLE_LIVE_AI=true`,
 `GEMINI_MODEL=gemini-3.6-flash`, and the explicit origin
