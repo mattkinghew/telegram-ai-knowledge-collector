@@ -47,7 +47,7 @@ export AI_PROVIDER=gemini
 export ENABLE_LIVE_AI=true
 export GEMINI_MODEL=gemini-3.6-flash
 export GEMINI_API_KEY
-export ALLOWED_ORIGINS=https://capture.lamlab.cc
+export ALLOWED_ORIGINS=https://capture.lamlab.cc,http://127.0.0.1:8000
 export DATABASE_URL="sqlite:///$DATA_DIR/capture.sqlite3"
 
 cd "$REPO_ROOT"

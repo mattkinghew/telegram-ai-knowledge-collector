@@ -143,7 +143,8 @@ fail-closed if either item is absent or empty.
 The wrapper sets `APP_ENV=production`, `AUTH_MODE=token`,
 `AI_PROVIDER=gemini`, `ENABLE_LIVE_AI=true`,
 `GEMINI_MODEL=gemini-3.6-flash`, and the explicit origin
-`https://capture.lamlab.cc`. It binds only to `127.0.0.1:8000` and stores the
+`https://capture.lamlab.cc` plus the required local origin
+`http://127.0.0.1:8000`. It binds only to `127.0.0.1:8000` and stores the
 SQLite file under the user's Application Support directory. If either Keychain
 item is absent, the wrapper exits before starting Uvicorn; it does not fall
 back to development auth or MockProvider.
