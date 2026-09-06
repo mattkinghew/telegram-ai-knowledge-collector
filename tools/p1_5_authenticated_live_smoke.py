@@ -9,6 +9,7 @@ Gemini key.  The backend LaunchAgent owns the Gemini runtime secret.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 import time
@@ -21,6 +22,12 @@ BASE_URL = "https://capture.lamlab.cc"
 KEYCHAIN_SERVICE = "com.business-knowledge-capture.p1-5.api-auth-token"
 POLL_INTERVAL_SECONDS = 2
 MAX_POLL_ATTEMPTS = 15
+USER_AGENT = "business-knowledge-capture-smoke/1.0"
+API_HEADERS = {
+    "Accept": "application/json",
+    "Content-Type": "application/json",
+    "User-Agent": USER_AGENT,
+}
 HANDOFF_FIELDS = {
     "markdown",
     "suggested_filename",
@@ -77,27 +84,68 @@ def _request(
     method: str,
     token: str,
     body: Optional[dict[str, Any]] = None,
-) -> tuple[int, dict[str, Any]]:
+) -> tuple[int, dict[str, Any], dict[str, str]]:
     data = None if body is None else json.dumps(body).encode("utf-8")
-    headers = {
-        "Accept": "application/json",
-        "Authorization": f"Bearer {token}",
-    }
-    if data is not None:
-        headers["Content-Type"] = "application/json"
+    headers = {**API_HEADERS, "Authorization": f"Bearer {token}"}
     request = urllib.request.Request(
         f"{BASE_URL}{path}", data=data, headers=headers, method=method
     )
     try:
         with urllib.request.urlopen(request, timeout=45) as response:
             payload = json.loads(response.read())
-            return response.status, payload if isinstance(payload, dict) else {}
+            return (
+                response.status,
+                payload if isinstance(payload, dict) else {},
+                _safe_headers(response.headers),
+            )
     except urllib.error.HTTPError as error:
         try:
             payload = json.loads(error.read())
         except (ValueError, TypeError):
             payload = {}
-        return error.code, payload if isinstance(payload, dict) else {}
+        return (
+            error.code,
+            payload if isinstance(payload, dict) else {},
+            _safe_headers(error.headers),
+        )
+
+
+def _safe_headers(headers: object) -> dict[str, str]:
+    """Keep only response metadata allowed in diagnostics."""
+    if headers is None or not hasattr(headers, "items"):
+        return {}
+    return {
+        str(key).lower(): _safe_header_value(value)
+        for key, value in headers.items()
+        if str(key).lower() in {"cf-ray", "cf-error-type", "server", "content-type"}
+    }
+
+
+def _safe_header_value(value: object) -> str:
+    """Bound response metadata and prevent log-line injection."""
+    return str(value).replace("\r", "").replace("\n", "")[:200]
+
+
+def _safe_error_code(value: object) -> str:
+    candidate = str(value) if isinstance(value, (str, int, float)) else "unknown"
+    return candidate if re.fullmatch(r"[A-Za-z0-9_.-]{1,64}", candidate) else "unknown"
+
+
+def safe_response_diagnostics(
+    status: int, payload: dict[str, Any], headers: object
+) -> list[str]:
+    """Return sanitized metadata for a non-2xx edge/origin response."""
+    if 200 <= status < 300:
+        return []
+    safe_headers = _safe_headers(headers)
+    return [
+        f"HTTP_STATUS={status}",
+        f"CLOUDFLARE_ERROR_CODE={_safe_error_code(payload.get('error_code'))}",
+        f"CF_RAY={safe_headers.get('cf-ray', 'unknown')}",
+        f"CF_ERROR_TYPE={safe_headers.get('cf-error-type', 'unknown')}",
+        f"SERVER={safe_headers.get('server', 'unknown')}",
+        f"CONTENT_TYPE={safe_headers.get('content-type', 'unknown')}",
+    ]
 
 
 def run() -> int:
@@ -113,7 +161,7 @@ def run() -> int:
         return 1
 
     try:
-        post_status, initial = _request(
+        post_status, initial, post_headers = _request(
             "/api/v1/capture", "POST", token, fictional_payload()
         )
     except (OSError, urllib.error.URLError):
@@ -121,6 +169,8 @@ def run() -> int:
         print("AUTHENTICATED_SMOKE=FAIL")
         return 1
 
+    for line in safe_response_diagnostics(post_status, initial, post_headers):
+        print(line)
     capture_id = initial.get("capture_id")
     print(f"POST_HTTP_STATUS={post_status}")
     print(f"CAPTURE_ID={capture_id if isinstance(capture_id, str) else 'MISSING'}")
@@ -133,7 +183,7 @@ def run() -> int:
     for attempt in range(1, MAX_POLL_ATTEMPTS + 1):
         time.sleep(POLL_INTERVAL_SECONDS)
         try:
-            status, payload = _request(
+            status, payload, response_headers = _request(
                 f"/api/v1/captures/{capture_id}", "GET", token
             )
         except (OSError, urllib.error.URLError):
@@ -142,6 +192,8 @@ def run() -> int:
             print("ERROR_CODE=NETWORK_ERROR")
             print("AUTHENTICATED_SMOKE=FAIL")
             return 1
+        for line in safe_response_diagnostics(status, payload, response_headers):
+            print(line)
         state = payload.get("status", "unknown")
         if state not in {"processed", "failed"}:
             continue

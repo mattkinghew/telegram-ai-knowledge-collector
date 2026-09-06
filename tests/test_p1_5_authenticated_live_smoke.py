@@ -1,6 +1,12 @@
 import unittest
+from unittest import mock
 
-from tools.p1_5_authenticated_live_smoke import fictional_payload, handoff_is_complete
+from tools.p1_5_authenticated_live_smoke import (
+    fictional_payload,
+    handoff_is_complete,
+    safe_response_diagnostics,
+    _request,
+)
 
 
 class AuthenticatedLiveSmokeTest(unittest.TestCase):
@@ -27,6 +33,71 @@ class AuthenticatedLiveSmokeTest(unittest.TestCase):
         self.assertTrue(handoff_is_complete(result))
         del result["obsidian_handoff"]["folder_key"]
         self.assertFalse(handoff_is_complete(result))
+
+    def test_request_uses_explicit_api_headers_for_post(self):
+        response = mock.MagicMock(status=202, headers={})
+        response.read.return_value = b'{"status":"pending"}'
+        response.__enter__.return_value = response
+        with mock.patch(
+            "tools.p1_5_authenticated_live_smoke.urllib.request.urlopen",
+            return_value=response,
+        ) as urlopen:
+            _request("/api/v1/capture", "POST", "not-a-real-token", fictional_payload())
+
+        request = urlopen.call_args.args[0]
+        self.assertEqual(request.get_header("User-agent"), "business-knowledge-capture-smoke/1.0")
+        self.assertEqual(request.get_header("Accept"), "application/json")
+        self.assertEqual(request.get_header("Content-type"), "application/json")
+
+    def test_request_uses_same_safe_headers_for_poll_get(self):
+        response = mock.MagicMock(status=200, headers={})
+        response.read.return_value = b'{"status":"processed"}'
+        response.__enter__.return_value = response
+        with mock.patch(
+            "tools.p1_5_authenticated_live_smoke.urllib.request.urlopen",
+            return_value=response,
+        ) as urlopen:
+            _request("/api/v1/captures/fictional", "GET", "not-a-real-token")
+
+        request = urlopen.call_args.args[0]
+        self.assertEqual(request.get_header("User-agent"), "business-knowledge-capture-smoke/1.0")
+        self.assertEqual(request.get_header("Accept"), "application/json")
+        self.assertEqual(request.get_header("Content-type"), "application/json")
+
+    def test_cloudflare_diagnostics_are_redacted_metadata_only(self):
+        diagnostics = safe_response_diagnostics(
+            403,
+            {"error_code": 1010, "html": "secret raw response must not print"},
+            {
+                "cf-ray": "fictional-ray",
+                "cf-error-type": "1020",
+                "server": "cloudflare",
+                "content-type": "text/html; charset=UTF-8",
+            },
+        )
+        self.assertEqual(
+            diagnostics,
+            [
+                "HTTP_STATUS=403",
+                "CLOUDFLARE_ERROR_CODE=1010",
+                "CF_RAY=fictional-ray",
+                "CF_ERROR_TYPE=1020",
+                "SERVER=cloudflare",
+                "CONTENT_TYPE=text/html; charset=UTF-8",
+            ],
+        )
+        self.assertNotIn("secret raw response", "\n".join(diagnostics))
+
+    def test_cloudflare_diagnostics_bound_untrusted_metadata(self):
+        diagnostics = safe_response_diagnostics(
+            403,
+            {"error_code": "raw body\nwith secrets"},
+            {"server": "cloudflare\nraw response", "content-type": "text/html"},
+        )
+        joined = "\n".join(diagnostics)
+        self.assertIn("CLOUDFLARE_ERROR_CODE=unknown", joined)
+        self.assertNotIn("raw body", joined)
+        self.assertNotIn("\nraw response", joined)
 
 
 if __name__ == "__main__":
