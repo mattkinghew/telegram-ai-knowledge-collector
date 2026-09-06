@@ -10,6 +10,7 @@ set -euo pipefail
 REPO_ROOT="/Users/REPLACE_WITH_ACCOUNT/Documents/Codex/telegram-ai-knowledge-collector"
 VENV_PYTHON="$REPO_ROOT/.venv/bin/python"
 KEYCHAIN_SERVICE_PREFIX="com.business-knowledge-capture.p1-5"
+KEYCHAIN_ACCOUNT="$(/usr/bin/id -un)"
 
 if [[ ! -x "$VENV_PYTHON" ]]; then
   print -u2 "P1.5 backend start blocked: virtualenv Python is unavailable"
@@ -21,7 +22,7 @@ keychain_secret() {
   local value
   value="$(/usr/bin/security find-generic-password \
     -s "${KEYCHAIN_SERVICE_PREFIX}.${account}" \
-    -a "$USER" \
+    -a "$KEYCHAIN_ACCOUNT" \
     -w 2>/dev/null)" || {
       print -u2 "P1.5 backend start blocked: required Keychain item is unavailable"
       exit 78
