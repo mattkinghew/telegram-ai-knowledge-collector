@@ -22,6 +22,8 @@ BASE_URL = "https://capture.lamlab.cc"
 KEYCHAIN_SERVICE = "com.business-knowledge-capture.p1-5.api-auth-token"
 POLL_INTERVAL_SECONDS = 2
 MAX_POLL_ATTEMPTS = 15
+POLL_NETWORK_RETRIES = 2
+POLL_NETWORK_RETRY_DELAY_SECONDS = 0.5
 USER_AGENT = "business-knowledge-capture-smoke/1.0"
 API_HEADERS = {
     "Accept": "application/json",
@@ -164,6 +166,25 @@ def poll_failure_code(payload: dict[str, Any]) -> Optional[str]:
     return safe_code if safe_code != "unknown" else "UNKNOWN_PROCESSING_ERROR"
 
 
+def _poll_get_with_retries(
+    capture_id: str, token: str
+) -> tuple[int, dict[str, Any], dict[str, str]]:
+    """Retry only transient GET transport failures for one capture id.
+
+    This never retries the POST and never turns an HTTP response into a
+    transport retry.  A bounded retry absorbs a connector reconnect without
+    hiding an authentication or application response.
+    """
+    for retry in range(POLL_NETWORK_RETRIES + 1):
+        try:
+            return _request(f"/api/v1/captures/{capture_id}", "GET", token)
+        except (OSError, urllib.error.URLError):
+            if retry >= POLL_NETWORK_RETRIES:
+                raise
+            time.sleep(POLL_NETWORK_RETRY_DELAY_SECONDS)
+    raise RuntimeError("unreachable")
+
+
 def run() -> int:
     try:
         token = _keychain_token()
@@ -199,9 +220,7 @@ def run() -> int:
     for attempt in range(1, MAX_POLL_ATTEMPTS + 1):
         time.sleep(POLL_INTERVAL_SECONDS)
         try:
-            status, payload, response_headers = _request(
-                f"/api/v1/captures/{capture_id}", "GET", token
-            )
+            status, payload, response_headers = _poll_get_with_retries(capture_id, token)
         except (OSError, urllib.error.URLError):
             print(f"POLL_ATTEMPTS={attempt}")
             print("FINAL_STATUS=failed")

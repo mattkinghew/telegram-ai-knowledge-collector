@@ -7,6 +7,7 @@ from tools.p1_5_authenticated_live_smoke import (
     poll_failure_code,
     safe_response_diagnostics,
     _request,
+    _poll_get_with_retries,
 )
 
 
@@ -116,6 +117,25 @@ class AuthenticatedLiveSmokeTest(unittest.TestCase):
             ),
             "UNKNOWN_PROCESSING_ERROR",
         )
+
+    def test_poll_retries_transient_network_error_without_creating_post(self):
+        response = mock.MagicMock(status=200, headers={})
+        response.read.return_value = b'{"status":"processed"}'
+        response.__enter__.return_value = response
+        with mock.patch(
+            "tools.p1_5_authenticated_live_smoke.urllib.request.urlopen",
+            side_effect=[OSError("connector reconnect"), response],
+        ) as urlopen, mock.patch(
+            "tools.p1_5_authenticated_live_smoke.time.sleep"
+        ) as sleep:
+            status, payload, _ = _poll_get_with_retries(
+                "fictional-capture", "not-a-real-token"
+            )
+
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["status"], "processed")
+        self.assertEqual(urlopen.call_count, 2)
+        sleep.assert_called_once()
 
 
 if __name__ == "__main__":
