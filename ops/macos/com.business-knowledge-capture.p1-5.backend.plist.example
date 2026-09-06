@@ -6,10 +6,10 @@
     <string>com.business-knowledge-capture.p1-5.backend</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/REPLACE_WITH_ACCOUNT/Documents/Codex/telegram-ai-knowledge-collector/ops/macos/run-p1-5-backend.sh</string>
+        <string>/Users/REPLACE_WITH_ACCOUNT/Library/Application Support/business-knowledge-capture/run-p1-5-backend.sh</string>
     </array>
     <key>WorkingDirectory</key>
-    <string>/Users/REPLACE_WITH_ACCOUNT/Documents/Codex/telegram-ai-knowledge-collector</string>
+    <string>/Users/REPLACE_WITH_ACCOUNT/Library/Application Support/business-knowledge-capture/runtime/app</string>
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>

@@ -1,0 +1,31 @@
+#!/bin/zsh
+
+# Install a LaunchAgent-readable runtime outside macOS protected Documents.
+# Run interactively from the repository; this script never reads or writes secrets.
+set -euo pipefail
+
+REPO_ROOT="$HOME/Documents/Codex/telegram-ai-knowledge-collector"
+RUNTIME_ROOT="$HOME/Library/Application Support/business-knowledge-capture/runtime"
+APP_ROOT="$RUNTIME_ROOT/app"
+
+if [[ ! -f "$REPO_ROOT/pyproject.toml" ]]; then
+  print -u2 "P1.5 runtime install blocked: repository path is invalid"
+  exit 78
+fi
+
+mkdir -p "$RUNTIME_ROOT" "$APP_ROOT" "$RUNTIME_ROOT/logs" "$RUNTIME_ROOT/run"
+chmod 700 "$RUNTIME_ROOT" "$RUNTIME_ROOT/logs" "$RUNTIME_ROOT/run"
+
+if [[ ! -x "$RUNTIME_ROOT/venv/bin/python" ]]; then
+  /usr/bin/python3 -m venv "$RUNTIME_ROOT/venv"
+fi
+
+"$RUNTIME_ROOT/venv/bin/python" -m pip install --disable-pip-version-check "${REPO_ROOT}[hybrid]"
+
+# The backend and static web shell are not included in the src-only package.
+# Copy only runtime application files; never copy .git, .env, data, or .venv.
+mkdir -p "$APP_ROOT/backend" "$APP_ROOT/web"
+ditto "$REPO_ROOT/backend" "$APP_ROOT/backend"
+ditto "$REPO_ROOT/web" "$APP_ROOT/web"
+
+print "P1.5 runtime installed at $RUNTIME_ROOT"

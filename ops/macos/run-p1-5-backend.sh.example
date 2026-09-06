@@ -7,12 +7,13 @@
 
 set -euo pipefail
 
-REPO_ROOT="/Users/REPLACE_WITH_ACCOUNT/Documents/Codex/telegram-ai-knowledge-collector"
-VENV_PYTHON="$REPO_ROOT/.venv/bin/python"
+RUNTIME_ROOT="$HOME/Library/Application Support/business-knowledge-capture/runtime"
+APP_ROOT="$RUNTIME_ROOT/app"
+VENV_PYTHON="$RUNTIME_ROOT/venv/bin/python"
 KEYCHAIN_SERVICE_PREFIX="com.business-knowledge-capture.p1-5"
 KEYCHAIN_ACCOUNT="$(/usr/bin/id -un)"
 
-if [[ ! -x "$VENV_PYTHON" ]]; then
+if [[ ! -x "$VENV_PYTHON" || ! -d "$APP_ROOT/backend" || ! -d "$APP_ROOT/web" ]]; then
   print -u2 "P1.5 backend start blocked: virtualenv Python is unavailable"
   exit 78
 fi
@@ -51,5 +52,6 @@ export GEMINI_API_KEY
 export ALLOWED_ORIGINS=https://capture.lamlab.cc,http://127.0.0.1:8000
 export DATABASE_URL="sqlite:///$DATA_DIR/capture.sqlite3"
 
-cd "$REPO_ROOT"
+cd "$APP_ROOT"
+export PYTHONPATH="$APP_ROOT"
 exec "$VENV_PYTHON" -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
