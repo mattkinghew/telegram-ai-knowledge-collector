@@ -129,7 +129,7 @@ def run(environ: Optional[Mapping[str, str]] = None) -> int:
     api_key, credential_source = load_gemini_key() if environ is None else load_gemini_key(values)
     model = values.get("GEMINI_MODEL", "")
     shape = credential_shape(api_key)
-    if shape not in {"valid_shape", "missing"}:
+    if shape in {"too_short", "whitespace"}:
         print("LIVE BISECTION BLOCKED: Gemini credential is invalid or a placeholder")
         print(f"CREDENTIAL_EXISTS={'yes' if api_key else 'no'}")
         print(f"CREDENTIAL_LENGTH={len(api_key)}")
@@ -155,43 +155,39 @@ def run(environ: Optional[Mapping[str, str]] = None) -> int:
     provider = GeminiProvider(api_key=api_key, model=model)
     try:
         for name, payload in _variants(provider):
+            request_bytes = len(json.dumps(payload, ensure_ascii=False).encode())
             try:
-                response_context = provider._client.stream(
+                with provider._client.stream(
                     "POST",
                     GEMINI_ENDPOINT,
                     headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
                     json=payload,
                     timeout=TIMEOUT,
                     follow_redirects=False,
-                )
-                response = response_context.__enter__()
+                ) as response:
+                    body = bytearray()
+                    size = 0
+                    for chunk in response.iter_bytes():
+                        size += len(chunk)
+                        if len(body) < 8192:
+                            body.extend(chunk[: 8192 - len(body)])
+                    line = f"{name} status={response.status_code} request_bytes={request_bytes} response_bytes={size}"
+                    if response.status_code >= 400:
+                        error = _sanitized_http_error(bytes(body))
+                        line += (
+                            f" gemini_status={error['status']}"
+                            f" message={json.dumps(error['message'], ensure_ascii=False)}"
+                        )
+                        if error["reason"]:
+                            line += f" reason={json.dumps(error['reason'], ensure_ascii=False)}"
+                    print(line, flush=True)
             except httpx.TimeoutException:
-                print(f"{name} status=none request_bytes={len(json.dumps(payload, ensure_ascii=False).encode())} response_bytes=0 error_category=timeout")
+                print(f"{name} status=none request_bytes={request_bytes} response_bytes=0 error_category=timeout", flush=True)
                 return 1
             except httpx.RequestError as error:
                 category = "dns" if type(getattr(error, "__cause__", None)).__name__ in {"gaierror", "NameResolutionError"} else "connect"
-                print(f"{name} status=none request_bytes={len(json.dumps(payload, ensure_ascii=False).encode())} response_bytes=0 error_category={category}")
+                print(f"{name} status=none request_bytes={request_bytes} response_bytes=0 error_category={category}", flush=True)
                 return 1
-            try:
-                body = bytearray()
-                size = 0
-                for chunk in response.iter_bytes():
-                    size += len(chunk)
-                    if len(body) < 8192:
-                        body.extend(chunk[: 8192 - len(body)])
-                request_bytes = len(json.dumps(payload, ensure_ascii=False).encode())
-                line = f"{name} status={response.status_code} request_bytes={request_bytes} response_bytes={size}"
-                if response.status_code >= 400:
-                    error = _sanitized_http_error(bytes(body))
-                    line += (
-                        f" gemini_status={error['status']}"
-                        f" message={json.dumps(error['message'], ensure_ascii=False)}"
-                    )
-                    if error["reason"]:
-                        line += f" reason={json.dumps(error['reason'], ensure_ascii=False)}"
-                print(line)
-            finally:
-                response_context.__exit__(None, None, None)
     finally:
         provider._client.close()
     return 0

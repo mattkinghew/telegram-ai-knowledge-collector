@@ -181,7 +181,7 @@ def main(argv: Optional[list[str]] = None) -> int:
             diagnostic_environment["GEMINI_CREDENTIAL_SOURCE"] = source
     key = diagnostic_environment.get("GEMINI_API_KEY", "")
     shape = credential_shape(key)
-    if shape not in {"valid_shape", "missing"}:
+    if shape in {"too_short", "whitespace"}:
         print("GEMINI_DIRECT_SMOKE=BLOCKED")
         print("CATEGORY=CONFIG")
         print(f"CREDENTIAL_EXISTS={'yes' if key else 'no'}")
