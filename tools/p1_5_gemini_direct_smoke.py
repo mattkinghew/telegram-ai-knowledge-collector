@@ -14,9 +14,12 @@ import httpx
 
 # Keep the diagnostic runnable from the repository root without requiring a
 # caller-specific PYTHONPATH.  This only adds the checked-in source tree.
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPOSITORY_ROOT))
+sys.path.insert(0, str(REPOSITORY_ROOT / "src"))
 
 from backend.config import SUPPORTED_GEMINI_MODELS
+from tools.p1_5_gemini_credential import credential_shape, load_gemini_key
 
 GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/interactions"
 TIMEOUT_SECONDS = 20.0
@@ -170,7 +173,23 @@ def run_direct_smoke(
 def main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.parse_args(argv)
-    result = run_direct_smoke()
+    diagnostic_environment = dict(os.environ)
+    if not diagnostic_environment.get("GEMINI_API_KEY"):
+        key, source = load_gemini_key()
+        if key:
+            diagnostic_environment["GEMINI_API_KEY"] = key
+            diagnostic_environment["GEMINI_CREDENTIAL_SOURCE"] = source
+    key = diagnostic_environment.get("GEMINI_API_KEY", "")
+    shape = credential_shape(key)
+    if shape not in {"valid_shape", "missing"}:
+        print("GEMINI_DIRECT_SMOKE=BLOCKED")
+        print("CATEGORY=CONFIG")
+        print(f"CREDENTIAL_EXISTS={'yes' if key else 'no'}")
+        print(f"CREDENTIAL_LENGTH={len(key)}")
+        print(f"CREDENTIAL_SHAPE={shape}")
+        print(f"CREDENTIAL_SOURCE={diagnostic_environment.get('GEMINI_CREDENTIAL_SOURCE', 'environment' if key else 'unavailable')}")
+        return 2
+    result = run_direct_smoke(environ=diagnostic_environment)
     if result.get("blocked"):
         print("LIVE CALL BLOCKED: GEMINI_API_KEY not available in current runtime")
         return 2
