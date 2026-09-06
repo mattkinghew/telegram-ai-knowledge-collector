@@ -148,6 +148,22 @@ def safe_response_diagnostics(
     ]
 
 
+def poll_failure_code(payload: dict[str, Any]) -> Optional[str]:
+    """Return a persisted processing error that should end polling now.
+
+    The API keeps provider failures as ``pending`` so the raw capture remains
+    retryable.  A client must still surface that error immediately instead of
+    waiting for its own polling deadline and relabelling it as a timeout.
+    """
+    if payload.get("status") not in {"pending", "processing"}:
+        return None
+    error_code = payload.get("error_code")
+    if not isinstance(error_code, str) or error_code == "PROCESSING_QUEUED":
+        return None
+    safe_code = _safe_error_code(error_code)
+    return safe_code if safe_code != "unknown" else "UNKNOWN_PROCESSING_ERROR"
+
+
 def run() -> int:
     try:
         token = _keychain_token()
@@ -196,6 +212,17 @@ def run() -> int:
             print(line)
         state = payload.get("status", "unknown")
         if state not in {"processed", "failed"}:
+            failure_code = poll_failure_code(payload)
+            if failure_code:
+                print(f"POLL_ATTEMPTS={attempt}")
+                print(f"FINAL_STATUS={state}")
+                print(f"ERROR_CODE={failure_code}")
+                print("PROVIDER=gemini")
+                print("MARKDOWN_PRESENT=FAIL")
+                print("OBSIDIAN_HANDOFF_PRESENT=FAIL")
+                print("HANDOFF_FIELDS=FAIL")
+                print("AUTHENTICATED_SMOKE=FAIL")
+                return 1
             continue
 
         result = payload.get("result")

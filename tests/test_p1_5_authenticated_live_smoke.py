@@ -4,6 +4,7 @@ from unittest import mock
 from tools.p1_5_authenticated_live_smoke import (
     fictional_payload,
     handoff_is_complete,
+    poll_failure_code,
     safe_response_diagnostics,
     _request,
 )
@@ -98,6 +99,23 @@ class AuthenticatedLiveSmokeTest(unittest.TestCase):
         self.assertIn("CLOUDFLARE_ERROR_CODE=unknown", joined)
         self.assertNotIn("raw body", joined)
         self.assertNotIn("\nraw response", joined)
+
+    def test_pending_provider_failure_is_not_relabelled_as_client_timeout(self):
+        self.assertEqual(
+            poll_failure_code({"status": "pending", "error_code": "INVALID_REQUEST"}),
+            "INVALID_REQUEST",
+        )
+        self.assertIsNone(
+            poll_failure_code(
+                {"status": "pending", "error_code": "PROCESSING_QUEUED"}
+            )
+        )
+        self.assertEqual(
+            poll_failure_code(
+                {"status": "pending", "error_code": "raw body\nwith secrets"}
+            ),
+            "UNKNOWN_PROCESSING_ERROR",
+        )
 
 
 if __name__ == "__main__":
