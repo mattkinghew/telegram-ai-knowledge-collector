@@ -19,6 +19,7 @@ router = APIRouter(prefix="/api/v1")
 
 def _capture_record_response(record: object) -> dict:
     item = asdict(record)
+    item["id"] = item["capture_id"]
     if (
         item.get("status") == "processed"
         and isinstance(item.get("markdown"), str)
@@ -35,6 +36,30 @@ def _capture_record_response(record: object) -> dict:
             ),
             "extracted": None,
         }
+    else:
+        item.pop("result", None)
+        item.pop("markdown", None)
+    if item.get("status") == "failed" and item.get("error_code"):
+        item["error"] = {
+            "code": item["error_code"],
+            "message": item.get("error_message") or "Processing failed.",
+        }
+    return item
+
+
+def _capture_response_payload(response: object) -> dict:
+    item = response.model_dump(mode="json")
+    item["id"] = item["capture_id"]
+    if item.get("status") == "failed" and item.get("error_code"):
+        item["error"] = {
+            "code": item["error_code"],
+            "message": item.get("message") or "Processing failed.",
+        }
+    elif item.get("status") in {"pending", "processing"}:
+        item.pop("error_code", None)
+        item.pop("message", None)
+    if item.get("status") != "processed":
+        item.pop("result", None)
     return item
 
 
@@ -66,7 +91,7 @@ def create_capture(
         )
     return JSONResponse(
         status_code=200 if response.ok else (202 if response.status == "pending" else 500),
-        content=response.model_dump(mode="json"),
+        content=_capture_response_payload(response),
     )
 
 
@@ -170,5 +195,5 @@ def retry_capture(request: Request, capture_id: str):
         return error_response(409, "INVALID_STATE", str(exc))
     return JSONResponse(
         status_code=200 if response.ok else (202 if response.status == "pending" else 500),
-        content=response.model_dump(mode="json"),
+        content=_capture_response_payload(response),
     )

@@ -219,7 +219,8 @@ class GeminiProviderTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 202)
         self.assertEqual(response.json()["status"], "pending")
-        self.assertEqual(response.json()["error_code"], "PROCESSING_QUEUED")
+        self.assertNotIn("error_code", response.json())
+        self.assertNotIn("message", response.json())
         self.assertEqual(stored.status, "processed")
         self.assertTrue(stored.markdown)
         self.assertEqual(status_response.status_code, 200)
@@ -565,13 +566,13 @@ class GeminiFailurePreservationTests(unittest.TestCase):
             )
 
             created = service.create(request)
-            self.assertEqual(created.status, "pending")
+            self.assertEqual(created.status, "failed")
             self.assertEqual(created.error_code, "AI_UNAVAILABLE")
             capture_id = created.capture_id
 
             for expected_retry_count in (1, 2):
                 retried = service.retry(capture_id)
-                self.assertEqual(retried.status, "pending")
+                self.assertEqual(retried.status, "failed")
                 self.assertEqual(store.get(capture_id).retry_count, expected_retry_count)
 
             with self.assertRaises(RetryLimitError):

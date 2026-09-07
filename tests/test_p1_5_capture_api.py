@@ -217,7 +217,7 @@ class P15CaptureAPITests(unittest.TestCase):
         self.assertEqual(response.json()["status"], "processed")
         self.assertIn("ai_status: none", response.json()["result"]["markdown"])
 
-    def test_provider_failure_is_pending_and_manual_retry_can_process(self) -> None:
+    def test_provider_failure_is_failed_and_manual_retry_can_process(self) -> None:
         provider = UnavailableThenMockProvider()
         store = CaptureStore(Path(self.temp.name) / "retry.sqlite3")
         client = TestClient(
@@ -229,8 +229,8 @@ class P15CaptureAPITests(unittest.TestCase):
             )
         )
         created = client.post("/api/v1/capture", json=self.voice, headers=self.headers)
-        self.assertEqual(created.status_code, 202)
-        self.assertEqual(created.json()["status"], "pending")
+        self.assertEqual(created.status_code, 500)
+        self.assertEqual(created.json()["status"], "failed")
         capture_id = created.json()["capture_id"]
         self.assertEqual(store.get(capture_id).raw_content, self.voice["raw_content"])
 
@@ -268,7 +268,7 @@ class P15CaptureAPITests(unittest.TestCase):
         self.assertIn("Extracted Source Text", response.json()["result"]["markdown"])
         self.assertEqual(extractor.calls, [payload["source"]])
 
-    def test_video_reference_without_transcript_stays_pending_and_is_not_fetched(self) -> None:
+    def test_video_reference_without_transcript_fails_and_is_not_fetched(self) -> None:
         extractor = FixtureExtractor()
         payload = {
             "schema_version": "1",
@@ -288,8 +288,8 @@ class P15CaptureAPITests(unittest.TestCase):
         response = TestClient(app).post(
             "/api/v1/capture", json=payload, headers=self.headers
         )
-        self.assertEqual(response.status_code, 202)
-        self.assertEqual(response.json()["status"], "pending")
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.json()["status"], "failed")
         self.assertEqual(extractor.calls, [])
 
     def test_invalid_and_oversized_requests_have_bounded_errors(self) -> None:
@@ -343,7 +343,7 @@ class P15CaptureAPITests(unittest.TestCase):
         response = client.post(
             "/api/v1/capture", json=self.voice, headers=self.headers
         )
-        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.status_code, 500)
         self.assertNotIn(self.voice["raw_content"], response.text)
         self.assertEqual(
             response.json()["message"],

@@ -52,7 +52,7 @@ class P15BackendServiceTests(unittest.TestCase):
         self.assertEqual(stored.status, "processed")
         self.assertEqual(stored.raw_content, self.request.raw_content)
 
-    def test_deferred_provider_failure_preserves_pending_capture(self) -> None:
+    def test_deferred_provider_failure_preserves_failed_capture(self) -> None:
         class FailingProvider:
             def process(self, request):
                 del request
@@ -70,7 +70,7 @@ class P15BackendServiceTests(unittest.TestCase):
         queued = service.create(self.request)
         result = service.process_existing(queued.capture_id)
         self.assertFalse(result.ok)
-        self.assertEqual(result.status, "pending")
+        self.assertEqual(result.status, "failed")
         self.assertEqual(result.error_code, "AI_TIMEOUT")
         self.assertEqual(self.store.get(queued.capture_id).raw_content, self.request.raw_content)
 

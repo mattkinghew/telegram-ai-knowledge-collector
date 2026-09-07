@@ -141,8 +141,8 @@ class P15OperationsAPITests(unittest.TestCase):
         result = client.get("/api/v1/dashboard/today", headers=self.headers)
         self.assertEqual(result.status_code, 200)
         body = result.json()
-        self.assertEqual(body["pending_count"], 1)
-        self.assertEqual(body["failed_count"], 0)
+        self.assertEqual(body["pending_count"], 0)
+        self.assertEqual(body["failed_count"], 1)
         self.assertLessEqual(len(body["recent_captures"]), 5)
 
     def test_projects_return_only_assigned_project_summaries(self) -> None:

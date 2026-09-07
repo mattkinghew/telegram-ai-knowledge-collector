@@ -217,21 +217,22 @@ class P15ProcessRestartTests(unittest.TestCase):
             },
             authorized=True,
         )
-        self.assertEqual(pending_status, 202)
-        self.assertEqual(pending["status"], "pending")
+        self.assertEqual(pending_status, 500)
+        self.assertEqual(pending["status"], "failed")
         pending_id = pending["capture_id"]
 
         retry_status, _, retried = self._request(
             "POST", f"/api/v1/captures/{pending_id}/retry", authorized=True
         )
-        self.assertEqual(retry_status, 202)
-        self.assertEqual(retried["status"], "pending")
+        self.assertEqual(retry_status, 500)
+        self.assertEqual(retried["status"], "failed")
 
         today_status, _, today = self._request(
             "GET", "/api/v1/dashboard/today", authorized=True
         )
         self.assertEqual(today_status, 200)
-        self.assertEqual(today["pending_count"], 1)
+        self.assertEqual(today["pending_count"], 0)
+        self.assertEqual(today["failed_count"], 1)
 
         projects_status, _, projects = self._request(
             "GET", "/api/v1/projects", authorized=True
@@ -245,8 +246,7 @@ class P15ProcessRestartTests(unittest.TestCase):
             authorized=True,
         )
         self.assertEqual(pending_list_status, 200)
-        self.assertEqual(pending_list["pagination"]["total_items"], 1)
-        self.assertEqual(pending_list["data"][0]["capture_id"], pending_id)
+        self.assertEqual(pending_list["pagination"]["total_items"], 0)
 
         report_status, _, report = self._request(
             "POST",
@@ -289,7 +289,7 @@ class P15ProcessRestartTests(unittest.TestCase):
             "GET", f"/api/v1/captures/{pending_id}", authorized=True
         )
         self.assertEqual(pending_after_status, 200)
-        self.assertEqual(pending_after["status"], "pending")
+        self.assertEqual(pending_after["status"], "failed")
         self.assertEqual(pending_after["retry_count"], 1)
         self.assertEqual(pending_after["raw_content"], "")
         self.assertEqual(

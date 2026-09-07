@@ -144,14 +144,14 @@ class P15EndToEndTests(unittest.TestCase):
                     },
                     headers=self.headers,
                 )
-                self.assertEqual(response.status_code, 202)
+                self.assertEqual(response.status_code, 500)
                 payload = response.json()
                 self.assertEqual(payload["error_code"], error_code)
                 self.assertNotIn(raw_content, payload["message"])
                 record = store.get(payload["capture_id"])
                 self.assertEqual(record.raw_content, raw_content)
                 self.assertEqual(record.requested_processing, "voice_structure")
-                self.assertEqual(record.status, "pending")
+                self.assertEqual(record.status, "failed")
 
 
 if __name__ == "__main__":

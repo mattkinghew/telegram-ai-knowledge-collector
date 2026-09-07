@@ -10,8 +10,7 @@ set -euo pipefail
 RUNTIME_ROOT="$HOME/Library/Application Support/business-knowledge-capture/runtime"
 APP_ROOT="$RUNTIME_ROOT/app"
 VENV_PYTHON="$RUNTIME_ROOT/venv/bin/python"
-KEYCHAIN_SERVICE_PREFIX="com.business-knowledge-capture.p1-5"
-KEYCHAIN_ACCOUNT="$(/usr/bin/id -un)"
+KEYCHAIN_ACCOUNT="ob-editor"
 
 if [[ ! -x "$VENV_PYTHON" || ! -d "$APP_ROOT/backend" || ! -d "$APP_ROOT/web" ]]; then
   print -u2 "P1.5 backend start blocked: virtualenv Python is unavailable"
@@ -19,10 +18,10 @@ if [[ ! -x "$VENV_PYTHON" || ! -d "$APP_ROOT/backend" || ! -d "$APP_ROOT/web" ]]
 fi
 
 keychain_secret() {
-  local account="$1"
+  local service="$1"
   local value
   value="$(/usr/bin/security find-generic-password \
-    -s "${KEYCHAIN_SERVICE_PREFIX}.${account}" \
+    -s "$service" \
     -a "$KEYCHAIN_ACCOUNT" \
     -w 2>/dev/null)" || {
       print -u2 "P1.5 backend start blocked: required Keychain item is unavailable"
@@ -35,8 +34,8 @@ keychain_secret() {
   print -r -- "$value"
 }
 
-API_AUTH_TOKEN="$(keychain_secret api-auth-token)"
-GEMINI_API_KEY="$(keychain_secret gemini-api-key)"
+API_AUTH_TOKEN="$(keychain_secret API_AUTH_TOKEN)"
+GEMINI_API_KEY="$(keychain_secret GEMINI_API_KEY)"
 
 DATA_DIR="$HOME/Library/Application Support/business-knowledge-capture"
 mkdir -p "$DATA_DIR"

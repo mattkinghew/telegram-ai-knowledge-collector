@@ -178,7 +178,7 @@ class CaptureService:
     ) -> CaptureResponse:
         self.store.mark_failure(
             capture_id,
-            status="pending",
+            status="failed",
             error_code=error_code,
             message=message,
         )
@@ -186,7 +186,7 @@ class CaptureService:
         return CaptureResponse(
             ok=False,
             capture_id=capture_id,
-            status="pending",
+            status="failed",
             result=None,
             error_code=error_code,
             message=message,
