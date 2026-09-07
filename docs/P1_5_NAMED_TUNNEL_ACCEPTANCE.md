@@ -127,14 +127,14 @@ files outside Git. Store the two runtime secrets in Keychain; their values must
 never be put in the plist, shell history, repository, or logs:
 
 ```text
-service: com.business-knowledge-capture.p1-5.api-auth-token
-service: com.business-knowledge-capture.p1-5.gemini-api-key
-account: <macOS account name>
+service: API_AUTH_TOKEN
+service: GEMINI_API_KEY
+account: ob-editor
 ```
 
 Use **Keychain Access** to create these items in the `login` keychain: choose
-`New Password Item`, use the service string above as the item name, use the
-macOS account name as `Account`, and enter the secret only in the password
+`New Password Item`, use each service string above as the item name, use
+`ob-editor` as `Account`, and enter the secret only in the password
 field. Do this once for each item. Do not use a `security ... -w <secret>`
 command copied from a shell history, and do not paste either value into chat.
 The wrapper performs a non-printing lookup by service/account and exits

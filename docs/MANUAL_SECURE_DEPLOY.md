@@ -8,8 +8,10 @@ secret values into chat, files, Git, or command output.
 
 ```sh
 cd /Users/mattgor/Documents/Codex/telegram-ai-knowledge-collector
-security find-generic-password -a ob-editor -s API_AUTH_TOKEN -w >/dev/null
-security find-generic-password -a ob-editor -s GEMINI_API_KEY -w >/dev/null
+security find-generic-password -a ob-editor \
+  -s API_AUTH_TOKEN -w >/dev/null
+security find-generic-password -a ob-editor \
+  -s GEMINI_API_KEY -w >/dev/null
 ```
 
 Both commands must exit successfully. The existing production URL is
@@ -67,12 +69,16 @@ After the checkpoint and passing local tests, run the manual helper from the
 repository:
 
 ```sh
+./scripts/deploy_ob_editor_v01.sh --check
 ./scripts/deploy_ob_editor_v01.sh
 ```
 
-It retrieves both Keychain items without printing them, backs up the installed
-`backend/` and `web/`, uses the existing LaunchAgent, preserves the SQLite
-database outside the repository, restarts the same service, and checks health.
+The first command is read-only. The deployment command retrieves the existing
+Keychain items without printing them, backs up the installed `backend/` and
+`web/`, updates only those application directories, preserves the existing
+wrapper/plist and LaunchAgent label, preserves the SQLite database outside the
+repository, restarts the same service, and checks health. The historical
+external `install-p1-5-runtime.sh` is not required and must not be recreated.
 
 ## 5. Online smoke test
 

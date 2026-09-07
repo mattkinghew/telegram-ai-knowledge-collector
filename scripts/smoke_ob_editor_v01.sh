@@ -18,35 +18,61 @@ print "KEYCHAIN: PASS"
 BASE_URL="$BASE_URL" OB_EDITOR_TOKEN="$OB_EDITOR_TOKEN" /usr/bin/python3 - <<'PY'
 import json
 import os
+import subprocess
 import sys
 import time
-import urllib.error
-import urllib.request
 from uuid import uuid4
 
-base = os.environ["BASE_URL"]
+base = os.environ["BASE_URL"].rstrip("/")
 token = os.environ["OB_EDITOR_TOKEN"]
 headers = {"Accept": "application/json"}
 auth_headers = {**headers, "Authorization": "Bearer " + token, "Content-Type": "application/json"}
 
+def config_value(value):
+    return str(value).replace("\\", "\\\\").replace('"', '\\"').replace("\r", "\\r").replace("\n", "\\n")
+
 def request(path, *, method="GET", body=None, authenticated=False):
     request_headers = auth_headers if authenticated else headers
-    data = None if body is None else json.dumps(body).encode("utf-8")
-    req = urllib.request.Request(base + path, data=data, headers=request_headers, method=method)
+    config = [
+        "silent",
+        "show-error",
+        "max-time = 15",
+        f'request = "{config_value(method)}"',
+        f'url = "{config_value(base + path)}"',
+    ]
+    config.extend(f'header = "{config_value(name + ": " + value)}"' for name, value in request_headers.items())
+    if body is not None:
+        config.append(f'data = "{config_value(json.dumps(body, separators=(",", ":")))}"')
+    config.append('write-out = "__OB_EDITOR_HTTP_STATUS__%{http_code}"')
     try:
-        with urllib.request.urlopen(req, timeout=15) as response:
-            return response.status, json.loads(response.read().decode("utf-8"))
-    except urllib.error.HTTPError as exc:
+        completed = subprocess.run(
+            ["/usr/bin/curl", "--config", "-"],
+            input=("\n".join(config) + "\n").encode("utf-8"),
+            capture_output=True,
+            timeout=20,
+            check=False,
+        )
+        output = completed.stdout.decode("utf-8")
+        body_text, marker, status_text = output.rpartition("__OB_EDITOR_HTTP_STATUS__")
+        if not marker:
+            return 0, {}
         try:
-            payload = json.loads(exc.read().decode("utf-8"))
-        except Exception:
-            payload = {}
-        return exc.code, payload
+            status = int(status_text)
+            payload = json.loads(body_text)
+        except (ValueError, json.JSONDecodeError):
+            return 0, {}
+        return status, payload
     except Exception:
         return 0, {}
 
 status, payload = request("/health")
-if status != 200 or payload.get("status") != "healthy": sys.exit("HEALTH: FAIL")
+if (
+    status != 200
+    or not isinstance(payload, dict)
+    or payload.get("ok") is not True
+    or payload.get("status") != "healthy"
+):
+    sys.exit("HEALTH: FAIL")
 print("HEALTH: PASS")
 
 status, _ = request("/api/v1/captures")

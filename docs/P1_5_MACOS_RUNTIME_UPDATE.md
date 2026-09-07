@@ -4,7 +4,11 @@ The development repository remains under `Documents`, but the persistent
 LaunchAgent runs from the user-scoped Application Support runtime so macOS
 protected-folder access is not required at service start.
 
-## Install or update
+## Initial install (historical)
+
+The installer below was used to create the first Application Support runtime.
+It is not required for the current update procedure and may not exist on a
+machine where the runtime is already installed.
 
 Run these commands interactively from the repository:
 
@@ -24,6 +28,22 @@ The installer creates `~/Library/Application Support/business-knowledge-capture/
 with an isolated virtualenv, installs the package and pinned hybrid
 dependencies, and copies only `backend/` and `web/`. It does not copy `.git`,
 `.env`, `.venv`, `data/`, secrets, or Vault content.
+
+## Current update and restart
+
+For an existing runtime, use the V0.1 helper from the repository. It performs a
+read-only preflight with `--check`, backs up the installed application
+directories, synchronizes `backend/` and `web/`, and preserves the current
+wrapper, LaunchAgent plist, venv, and SQLite database:
+
+```sh
+./scripts/deploy_ob_editor_v01.sh --check
+./scripts/deploy_ob_editor_v01.sh
+```
+
+The canonical Keychain account is `ob-editor`, with services `API_AUTH_TOKEN`
+and `GEMINI_API_KEY`. Do not replace the existing wrapper unless those items
+have been separately verified in the operator's normal macOS Terminal.
 
 ## Restart and verify
 

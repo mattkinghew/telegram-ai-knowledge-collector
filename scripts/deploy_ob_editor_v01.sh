@@ -11,7 +11,15 @@ APP_ROOT="$RUNTIME_ROOT/app"
 WRAPPER="$DATA_ROOT/run-p1-5-backend.sh"
 PLIST="$HOME/Library/LaunchAgents/com.business-knowledge-capture.p1-5.backend.plist"
 LABEL="com.business-knowledge-capture.p1-5.backend"
-ACCOUNT="ob-editor"
+KEYCHAIN_ACCOUNT="ob-editor"
+CHECK_ONLY=false
+
+if [[ "${1:-}" == "--check" ]]; then
+  CHECK_ONLY=true
+elif [[ $# -gt 0 ]]; then
+  print -u2 "USAGE: $0 [--check]"
+  exit 64
+fi
 
 cleanup() {
   unset API_AUTH_TOKEN GEMINI_API_KEY
@@ -21,16 +29,54 @@ trap cleanup EXIT
 keychain_secret() {
   local service="$1"
   local value
-  value="$(/usr/bin/security find-generic-password -a "$ACCOUNT" -s "$service" -w 2>/dev/null)" || {
-    print -u2 "KEYCHAIN: FAIL ($service unavailable)"
+  value="$(/usr/bin/security find-generic-password \
+    -s "$service" \
+    -a "$KEYCHAIN_ACCOUNT" \
+    -w 2>/dev/null)" || {
+    print -u2 "KEYCHAIN: FAIL (required item unavailable)"
     exit 78
   }
-  [[ -n "$value" ]] || { print -u2 "KEYCHAIN: FAIL ($service empty)"; exit 78; }
+  [[ -n "$value" ]] || { print -u2 "KEYCHAIN: FAIL (required item empty)"; exit 78; }
   print -r -- "$value"
 }
 
-[[ -f "$REPO_ROOT/pyproject.toml" ]] || { print -u2 "DEPLOY: FAIL (repository)"; exit 78; }
-[[ -x "$DATA_ROOT/install-p1-5-runtime.sh" ]] || { print -u2 "DEPLOY: FAIL (existing installer missing)"; exit 78; }
+check_prerequisites() {
+  [[ -f "$REPO_ROOT/pyproject.toml" ]] || { print -u2 "DEPLOY: FAIL (repository)"; exit 78; }
+  [[ -d "$REPO_ROOT/backend" && -d "$REPO_ROOT/web" ]] || {
+    print -u2 "DEPLOY: FAIL (source runtime directories missing)"
+    exit 78
+  }
+  [[ -x "$RUNTIME_ROOT/venv/bin/python" ]] || {
+    print -u2 "DEPLOY: FAIL (existing runtime Python missing)"
+    exit 78
+  }
+  [[ -d "$APP_ROOT/backend" && -d "$APP_ROOT/web" ]] || {
+    print -u2 "DEPLOY: FAIL (installed runtime directories missing)"
+    exit 78
+  }
+  PYTHONPATH="$APP_ROOT" "$RUNTIME_ROOT/venv/bin/python" -c \
+    'import backend.app, fastapi, uvicorn' >/dev/null 2>&1 || {
+    print -u2 "DEPLOY: FAIL (runtime entry point unavailable)"
+    exit 78
+  }
+  [[ -x "$WRAPPER" ]] || { print -u2 "DEPLOY: FAIL (runtime wrapper missing)"; exit 78; }
+  [[ -f "$PLIST" ]] || { print -u2 "DEPLOY: FAIL (LaunchAgent plist missing)"; exit 78; }
+  /usr/bin/plutil -lint "$PLIST" >/dev/null || {
+    print -u2 "DEPLOY: FAIL (LaunchAgent plist invalid)"
+    exit 78
+  }
+  /bin/launchctl print "gui/$(/usr/bin/id -u)/$LABEL" >/dev/null 2>&1 || {
+    print -u2 "DEPLOY: FAIL (LaunchAgent is not loaded)"
+    exit 78
+  }
+}
+
+check_prerequisites
+
+if $CHECK_ONLY; then
+  print "PREFLIGHT: PASS"
+  exit 0
+fi
 
 API_AUTH_TOKEN="$(keychain_secret API_AUTH_TOKEN)"
 GEMINI_API_KEY="$(keychain_secret GEMINI_API_KEY)"
@@ -42,15 +88,8 @@ mkdir -p "$BACKUP_ROOT"
 if [[ -d "$APP_ROOT/backend" ]]; then ditto "$APP_ROOT/backend" "$BACKUP_ROOT/backend"; fi
 if [[ -d "$APP_ROOT/web" ]]; then ditto "$APP_ROOT/web" "$BACKUP_ROOT/web"; fi
 
-"$DATA_ROOT/install-p1-5-runtime.sh"
-mkdir -p "$HOME/Library/LaunchAgents"
-ditto "$REPO_ROOT/ops/macos/run-p1-5-backend.sh.example" "$WRAPPER"
-chmod 700 "$WRAPPER"
-
-sed -e "s#/Users/REPLACE_WITH_ACCOUNT#${HOME}#g" \
-  "$REPO_ROOT/ops/macos/com.business-knowledge-capture.p1-5.backend.plist.example" > "$PLIST"
-chmod 600 "$PLIST"
-/usr/bin/plutil -lint "$PLIST" >/dev/null
+ditto "$REPO_ROOT/backend" "$APP_ROOT/backend"
+ditto "$REPO_ROOT/web" "$APP_ROOT/web"
 
 if ! /bin/launchctl print "gui/$(/usr/bin/id -u)/$LABEL" >/dev/null 2>&1; then
   /bin/launchctl bootstrap "gui/$(/usr/bin/id -u)" "$PLIST"

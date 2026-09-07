@@ -36,11 +36,14 @@ Required variable names:
 
 Secret values are intentionally not documented.
 
-Current local audit status (2026-09-07): value-suppressed Keychain presence
-checks returned `missing_or_unknown` for both `API_AUTH_TOKEN` and
-`GEMINI_API_KEY`. No secret value was read or printed. Authenticated deployment
-and Gemini smoke testing must wait until the operator confirms both items exist
-in the login Keychain.
+The canonical macOS Keychain lookup uses account `ob-editor` and services
+`API_AUTH_TOKEN` and `GEMINI_API_KEY`.
+
+Current deployment note (2026-09-07): Codex did not access the login Keychain.
+The existing runtime wrapper remains the source of truth for the Keychain item
+names and account. The operator must run the documented manual preflight in a
+normal macOS Terminal before deployment; no secret value belongs in output or
+documentation.
 
 ## Update procedure
 
@@ -49,21 +52,33 @@ in the login Keychain.
    `*.egg-info` file staged for deployment.
 3. Back up the installed `backend/` and `web/` runtime directories and record
    the previous commit/runtime checksum outside Git.
-4. From the repository, run the existing operator installer:
+4. Run the deployment helper's read-only preflight:
 
    ```sh
-   "$HOME/Library/Application Support/business-knowledge-capture/install-p1-5-runtime.sh"
+   ./scripts/deploy_ob_editor_v01.sh --check
    ```
 
-   It copies only `backend/` and `web/` and does not copy `.git`, `.env`, data,
-   or `.venv`.
-5. Restart the existing service:
+   The historical installer is not present in the current Application Support
+   directory. It was an earlier architecture used to create the runtime; it is
+   not required for updates because the runtime venv and application layout
+   already exist.
+
+5. From the repository, run the deployment helper:
+
+   ```sh
+   ./scripts/deploy_ob_editor_v01.sh
+   ```
+
+   It backs up the installed `backend/` and `web/`, then copies only those two
+   application directories. It does not replace the existing wrapper or
+   plist, and does not copy `.git`, `.env`, data, or `.venv`.
+6. Restart the existing service:
 
    ```sh
    /bin/launchctl kickstart -k "gui/$(id -u)/com.business-knowledge-capture.p1-5.backend"
    ```
 
-6. Verify `/health`, unauthenticated 401, then run the bounded fictional
+7. Verify `/health`, unauthenticated 401, then run the bounded fictional
    authenticated smoke test. Do not use personal, company, Vault, or Obsidian
    content.
 
@@ -74,9 +89,9 @@ directories, then restart the same LaunchAgent and repeat health, auth, GET,
 and fictional capture checks. Code rollback does not roll back SQLite data;
 restore SQLite only from a separately verified application-consistent backup.
 
-The current runtime installer has no built-in version manifest. Until a commit
-and runtime checksum are recorded, rollback is operator-managed and the exact
-previous runtime must be preserved before update.
+The current runtime has no built-in version manifest. The helper records a
+timestamped backup of the previous application directories before copying the
+new ones; the existing wrapper, plist, venv, and SQLite file remain in place.
 
 ## Troubleshooting
 
